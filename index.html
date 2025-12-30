@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progres Pembangunan BTU KNC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Progres Pembangunan BTU KNC</h1>
+            <p class="subtitle">Sistem pemantauan progres pembangunan untuk berbagai peran pengguna. Pilih peran Anda untuk mengakses informasi yang sesuai.</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="role-selector" id="roleSelector">
+                <div class="role-btn user1" data-role="user1">
+                    <i class="fas fa-hard-hat"></i>
+                    <h3>Pelaksana Lapangan 1</h3>
+                    <span class="badge">Tim Konstruksi</span>
+                </div>
+                
+                <div class="role-btn user2" data-role="user2">
+                    <i class="fas fa-tools"></i>
+                    <h3>Pelaksana Lapangan 2</h3>
+                    <span class="badge">Tim Teknis</span>
+                </div>
+                
+                <div class="role-btn user3" data-role="user3">
+                    <i class="fas fa-user-hard-hat"></i>
+                    <h3>Pelaksana Lapangan 3</h3>
+                    <span class="badge">Tim Quality Control</span>
+                </div>
+                
+                <div class="role-btn manager" data-role="manager">
+                    <i class="fas fa-user-tie"></i>
+                    <h3>Manager</h3>
+                    <span class="badge">Manajer Proyek</span>
+                </div>
+                
+                <div class="role-btn admin" data-role="admin">
+                    <i class="fas fa-user-secret"></i>
+                    <h3>Admin</h3>
+                    <span class="badge">Administrator Sistem</span>
+                </div>
+            </div>
+            
+            <!-- Halaman Pelaksana Lapangan 1 -->
+            <div class="page-content user1-page" id="user1Page">
+                <div class="page-header">
+                    <div class="page-title">
+                        <i class="fas fa-hard-hat"></i>
+                        <h2>Dashboard Pelaksana Lapangan 1</h2>
+                    </div>
+                    <button class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Kembali ke Menu
+                    </button>
+                </div>
+                <div class="page-body">
+                    <p>Halaman ini berisi informasi khusus untuk <strong>Pelaksana Lapangan 1</strong>.</p>
+                    <p>Sebagai pelaksana lapangan, Anda memiliki akses untuk:</p>
+                    <ul>
+                        <li>Melaksanakan pekerjaan konstruksi harian</li>
+                        <li>Melaporkan hasil pekerjaan</li>
+                        <li>Mencatat penggunaan material</li>
+                        <li>Melaporkan kendala teknis</li>
+                        <li>Memastikan keselamatan kerja di lapangan</li>
+                    </ul>
+                    
+                    <div class="progress-section">
+                        <h3 class="progress-title">Progres Pekerjaan Area 1</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <p>Progres saat ini: <strong>75%</strong></p>
+                        <p>Estimasi selesai: <strong>10 Oktober 2023</strong></p>
+                        <p>Pekerjaan hari ini: Pemasangan struktur beton</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Halaman Pelaksana Lapangan 2 -->
+            <div class="page-content user2-page" id="user2Page">
+                <div class="page-header">
+                    <div class="page-title">
+                        <i class="fas fa-tools"></i>
+                        <h2>Dashboard Pelaksana Lapangan 2</h2>
+                    </div>
+                    <button class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Kembali ke Menu
+                    </button>
+                </div>
+                <div class="page-body">
+                    <p>Halaman ini berisi informasi khusus untuk <strong>Pelaksana Lapangan 2</strong>.</p>
+                    <p>Sebagai pelaksana lapangan, Anda memiliki akses untuk:</p>
+                    <ul>
+                        <li>Melakukan pekerjaan finishing</li>
+                        <li>Memasang utilitas bangunan</li>
+                        <li>Memeriksa kualitas instalasi</li>
+                        <li>Melaporkan kebutuhan material tambahan</li>
+                        <li>Koordinasi dengan sub-kontraktor</li>
+                    </ul>
+                    
+                    <div class="progress-section">
+                        <h3 class="progress-title">Progres Pekerjaan Area 2</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <p>Progres saat ini: <strong>60%</strong></p>
+                        <p>Estimasi selesai: <strong>25 Oktober 2023</strong></p>
+                        <p>Pekerjaan hari ini: Pemasangan instalasi listrik</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Halaman Pelaksana Lapangan 3 -->
+            <div class="page-content user3-page" id="user3Page">
+                <div class="page-header">
+                    <div class="page-title">
+                        <i class="fas fa-user-hard-hat"></i>
+                        <h2>Dashboard Pelaksana Lapangan 3</h2>
+                    </div>
+                    <button class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Kembali ke Menu
+                    </button>
+                </div>
+                <div class="page-body">
+                    <p>Halaman ini berisi informasi khusus untuk <strong>Pelaksana Lapangan 3</strong>.</p>
+                    <p>Sebagai pelaksana lapangan, Anda memiliki akses untuk:</p>
+                    <ul>
+                        <li>Melakukan quality control pekerjaan</li>
+                        <li>Memeriksa kesesuaian dengan spesifikasi teknis</li>
+                        <li>Dokumentasi progress pekerjaan</li>
+                        <li>Testing sistem yang terpasang</li>
+                        <li>Final inspection sebelum serah terima</li>
+                    </ul>
+                    
+                    <div class="progress-section">
+                        <h3 class="progress-title">Progres Pekerjaan Area 3</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <p>Progres saat ini: <strong>85%</strong></p>
+                        <p>Estimasi selesai: <strong>5 Oktober 2023</strong></p>
+                        <p>Pekerjaan hari ini: Quality check finishing interior</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Halaman Manager -->
+            <div class="page-content manager-page" id="managerPage">
+                <div class="page-header">
+                    <div class="page-title">
+                        <i class="fas fa-user-tie"></i>
+                        <h2>Dashboard Manager Proyek</h2>
+                    </div>
+                    <button class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Kembali ke Menu
+                    </button>
+                </div>
+                <div class="page-body">
+                    <p>Halaman ini berisi informasi khusus untuk <strong>Manager Proyek</strong>.</p>
+                    <p>Sebagai manager proyek, Anda memiliki akses untuk:</p>
+                    <ul>
+                        <li>Mengawasi keseluruhan progres proyek</li>
+                        <li>Mengelola anggaran dan sumber daya</li>
+                        <li>Koordinasi dengan semua tim pelaksana</li>
+                        <li>Berkomunikasi dengan stakeholder</li>
+                        <li>Membuat laporan perkembangan proyek</li>
+                        <li>Mengambil keputusan strategis</li>
+                    </ul>
+                    
+                    <div class="progress-section">
+                        <h3 class="progress-title">Progres Keseluruhan Pembangunan BTU KNC</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <p>Progres keseluruhan: <strong>73%</strong></p>
+                        <p>Estimasi penyelesaian proyek: <strong>30 November 2023</strong></p>
+                        <p>Anggaran tersisa: <strong>Rp 2,5 Miliar</strong></p>
+                        <p>Jumlah tim aktif: <strong>3 tim pelaksana</strong></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Halaman Admin -->
+            <div class="page-content admin-page" id="adminPage">
+                <div class="page-header">
+                    <div class="page-title">
+                        <i class="fas fa-user-secret"></i>
+                        <h2>Dashboard Administrator Sistem</h2>
+                    </div>
+                    <button class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Kembali ke Menu
+                    </button>
+                </div>
+                <div class="page-body">
+                    <p>Halaman ini berisi informasi khusus untuk <strong>Admin (Administrator Sistem)</strong>.</p>
+                    <p>Sebagai administrator sistem, Anda memiliki akses untuk:</p>
+                    <ul>
+                        <li>Mengelola semua akun pengguna</li>
+                        <li>Mengatur hak akses dan permission</li>
+                        <li>Mengelola database sistem</li>
+                        <li>Melakukan backup dan restore data</li>
+                        <li>Memantau aktivitas sistem</li>
+                        <li>Mengkonfigurasi pengaturan aplikasi</li>
+                        <li>Generate laporan sistem</li>
+                    </ul>
+                    
+                    <div class="progress-section">
+                        <h3 class="progress-title">Status Sistem</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <p>Ketersediaan sistem: <strong>100%</strong></p>
+                        <p>Pengguna aktif: <strong>4 dari 4</strong></p>
+                        <p>Total data progress: <strong>245 entri</strong></p>
+                        <p>Terakhir diperbarui: <strong>1 Oktober 2023, 10:30 WIB</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2023 Progres Pembangunan BTU KNC. Semua hak dilindungi.</p>
+            <p>Repository: <a href="https://github.com/ekaardilazarus-dotcom/progres_pembangunan_BTU_KNC" style="color: #4facfe;">github.com/ekaardilazarus-dotcom/progres_pembangunan_BTU_KNC</a></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
