@@ -3,7 +3,7 @@ const passwords = {
   user1: "BTUKNC@1A",
   user2: "kncbtu$2a",
   user3: "btukncmalan6!",
-  manager: "malangbtu225",
+  manager: "malangbtu225$",
   admin: "qwerty1234asdf"
 };
 
