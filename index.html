@@ -17,29 +17,39 @@
     </header>
 
     <div class="main-content">
-      <!-- Selector Role -->
-      <div class="role-selector" id="roleSelector">
-        <div class="role-btn user1" data-role="user1">
-          <i class="fas fa-hard-hat"></i>
-          <h3>Pelaksana Lapangan 1</h3>
+      <!-- Section Pelaksana Lapangan -->
+      <div class="section-container">
+        <h2 class="section-title">Pelaksana Lapangan</h2>
+        <div class="role-selector lapangan-set" id="lapanganSelector">
+          <div class="role-btn user1" data-role="user1">
+            <i class="fas fa-hard-hat"></i>
+            <h3>Pelaksana 1</h3>
+          </div>
+          <div class="role-btn user2" data-role="user2">
+            <i class="fas fa-hard-hat"></i>
+            <h3>Pelaksana 2</h3>
+          </div>
+          <div class="role-btn user3" data-role="user3">
+            <i class="fas fa-hard-hat"></i>
+            <h3>Pelaksana 3</h3>
+          </div>
         </div>
-        <div class="role-btn user2" data-role="user2">
-          <i class="fas fa-hard-hat"></i>
-          <h3>Pelaksana Lapangan 2</h3>
-        </div>
-        <div class="role-btn user3" data-role="user3">
-          <i class="fas fa-hard-hat"></i>
-          <h3>Pelaksana Lapangan 3</h3>
-        </div>
-        <div class="role-btn manager" data-role="manager">
-          <i class="fas fa-user-tie"></i>
-          <h3>Manager</h3>
-          <span class="badge">Manajer Proyek</span>
-        </div>
-        <div class="role-btn admin" data-role="admin">
-          <i class="fas fa-user-secret"></i>
-          <h3>Admin</h3>
-          <span class="badge">Administrator Sistem</span>
+      </div>
+
+      <!-- Section Manager & Admin -->
+      <div class="section-container">
+        <h2 class="section-title">Manager & Admin</h2>
+        <div class="role-selector manager-set" id="managerSelector">
+          <div class="role-btn manager" data-role="manager">
+            <i class="fas fa-user-tie"></i>
+            <h3>Manager</h3>
+            <span class="badge">Manajer Proyek</span>
+          </div>
+          <div class="role-btn admin" data-role="admin">
+            <i class="fas fa-user-secret"></i>
+            <h3>Admin</h3>
+            <span class="badge">Administrator Sistem</span>
+          </div>
         </div>
       </div>
 
@@ -52,21 +62,118 @@
           </div>
           <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
         </div>
-        <div class="page-body">
-          <div class="progress-section">
-            <h3>Tahap 1: Pondasi</h3>
-            <div class="progress-bar"><div class="progress-fill tahap1"></div></div>
-            <p>Progres: <strong>100%</strong></p>
+        <div class="page-layout">
+          <!-- Sidebar Kiri: Pemilih Kavling -->
+          <div class="sidebar-kavling">
+            <div class="search-box">
+              <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavling1">
+              <button class="btn-search"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="kavling-list">
+              <!-- Placeholder untuk list kavling -->
+              <div class="kavling-item">Blok A - 01</div>
+              <div class="kavling-item">Blok A - 02</div>
+              <div class="kavling-item">Blok B - 05</div>
+            </div>
+            <button class="btn-pilih">Pilih Kavling</button>
           </div>
-          <div class="progress-section">
-            <h3>Tahap 2: Tembok dan Genteng</h3>
-            <div class="progress-bar"><div class="progress-fill tahap2"></div></div>
-            <p>Progres: <strong>70%</strong></p>
-          </div>
-          <div class="progress-section">
-            <h3>Tahap 3: Cat dan Tegel</h3>
-            <div class="progress-bar"><div class="progress-fill tahap3"></div></div>
-            <p>Progres: <strong>40%</strong></p>
+          
+          <!-- Dashboard Kanan -->
+          <div class="page-body">
+            <!-- Rekap Keseluruhan -->
+            <div class="overall-rekap">
+              <div class="rekap-header">
+                <h3>Keseluruhan Progres Proyek</h3>
+                <span class="total-percent">0%</span>
+              </div>
+              <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
+            </div>
+
+            <!-- Tahap 1 -->
+            <div class="progress-section detailed" data-tahap="1">
+              <div class="section-header-flex">
+                <h3>Tahap 1: Struktur & Infrastruktur</h3>
+                <span class="sub-percent">0%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill tahap1" style="width: 0%"></div></div>
+              <div class="sub-tasks-grid">
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Land Clearing</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pondasi & Sloof</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Canopy</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Ring Blok</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Conduit + Inbow Doos</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Kotor</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Bersih</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Biotank</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plester</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Acian & Benangan</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cor Meja Dapur</label>
+              </div>
+              <div class="photo-upload-container">
+                <label class="upload-label">
+                  <i class="fas fa-camera"></i> Upload Foto Progres
+                  <input type="file" class="photo-input" accept="image/*" capture="environment">
+                </label>
+                <div class="photo-preview"></div>
+              </div>
+              <button class="btn-save-section"><i class="fas fa-save"></i> Simpan Tahap 1</button>
+            </div>
+
+            <!-- Tahap 2 -->
+            <div class="progress-section detailed" data-tahap="2">
+              <div class="section-header-flex">
+                <h3>Tahap 2: Atap, Dinding & Lantai</h3>
+                <span class="sub-percent">0%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill tahap2" style="width: 0%"></div></div>
+              <div class="sub-tasks-grid">
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Atap Galv</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Genteng</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plafond</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Dinding</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Toilet & Dapur</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Instalasi Listrik</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Lantai</label>
+              </div>
+              <div class="photo-upload-container">
+                <label class="upload-label">
+                  <i class="fas fa-camera"></i> Upload Foto Progres
+                  <input type="file" class="photo-input" accept="image/*" capture="environment">
+                </label>
+                <div class="photo-preview"></div>
+              </div>
+              <button class="btn-save-section"><i class="fas fa-save"></i> Simpan Tahap 2</button>
+            </div>
+
+            <!-- Tahap 3 -->
+            <div class="progress-section detailed" data-tahap="3">
+              <div class="section-header-flex">
+                <h3>Tahap 3: Finishing & Serah Terima</h3>
+                <span class="sub-percent">0%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill tahap3" style="width: 0%"></div></div>
+              <div class="sub-tasks-grid">
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Kusen Pintu & Jend.</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Daun Pintu & Jend.</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Dasar + Lapis Awal</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Fitting Lampu</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Fixture & Saniter</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Finish Interior</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Finish Exterior</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Bak Kontrol & Batas CP</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Paving Halaman</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> General Cleaning</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> COMPLETE</label>
+              </div>
+              <div class="photo-upload-container">
+                <label class="upload-label">
+                  <i class="fas fa-camera"></i> Upload Foto Progres
+                  <input type="file" class="photo-input" accept="image/*" capture="environment">
+                </label>
+                <div class="photo-preview"></div>
+              </div>
+              <button class="btn-save-section"><i class="fas fa-save"></i> Simpan Tahap 3</button>
+            </div>
           </div>
         </div>
       </div>
@@ -80,21 +187,65 @@
           </div>
           <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
         </div>
-        <div class="page-body">
-          <div class="progress-section">
-            <h3>Tahap 1: Pondasi</h3>
-            <div class="progress-bar"><div class="progress-fill tahap1"></div></div>
-            <p>Progres: <strong>100%</strong></p>
+        <div class="page-layout">
+          <div class="sidebar-kavling">
+            <div class="search-box">
+              <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavling2">
+              <button class="btn-search"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="kavling-list">
+              <div class="kavling-item">Blok C - 10</div>
+              <div class="kavling-item">Blok C - 11</div>
+            </div>
+            <button class="btn-pilih">Pilih Kavling</button>
           </div>
-          <div class="progress-section">
-            <h3>Tahap 2: Tembok dan Genteng</h3>
-            <div class="progress-bar"><div class="progress-fill tahap2"></div></div>
-            <p>Progres: <strong>70%</strong></p>
-          </div>
-          <div class="progress-section">
-            <h3>Tahap 3: Cat dan Tegel</h3>
-            <div class="progress-bar"><div class="progress-fill tahap3"></div></div>
-            <p>Progres: <strong>40%</strong></p>
+          <div class="page-body">
+            <div class="progress-section" data-tahap="1">
+              <h3>Tahap 1: Pondasi</h3>
+              <div class="progress-bar"><div class="progress-fill tahap1"></div></div>
+              <div class="progress-controls">
+                <label>Update Progres:</label>
+                <select class="progress-select">
+                  <option value="0">0%</option>
+                  <option value="50">50%</option>
+                  <option value="100">100%</option>
+                </select>
+                <label class="checkbox-container">
+                  <input type="checkbox" class="done-check"> Selesai
+                </label>
+              </div>
+            </div>
+            <div class="progress-section" data-tahap="2">
+              <h3>Tahap 2: Tembok dan Genteng</h3>
+              <div class="progress-bar"><div class="progress-fill tahap2"></div></div>
+              <div class="progress-controls">
+                <label>Update Progres:</label>
+                <select class="progress-select">
+                  <option value="0">0%</option>
+                  <option value="50">50%</option>
+                  <option value="100">100%</option>
+                </select>
+                <label class="checkbox-container">
+                  <input type="checkbox" class="done-check"> Selesai
+                </label>
+              </div>
+            </div>
+            <div class="progress-section" data-tahap="3">
+              <h3>Tahap 3: Cat dan Tegel</h3>
+              <div class="progress-bar"><div class="progress-fill tahap3"></div></div>
+              <div class="progress-controls">
+                <label>Update Progres:</label>
+                <select class="progress-select">
+                  <option value="0">0%</option>
+                  <option value="50">50%</option>
+                  <option value="100">100%</option>
+                </select>
+                <label class="checkbox-container">
+                  <input type="checkbox" class="done-check"> Selesai
+                </label>
+              </div>
+            </div>
+            <button class="btn-save-progress"><i class="fas fa-save"></i> Simpan Progres</button>
           </div>
         </div>
       </div>
@@ -108,21 +259,64 @@
           </div>
           <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
         </div>
-        <div class="page-body">
-          <div class="progress-section">
-            <h3>Tahap 1: Pondasi</h3>
-            <div class="progress-bar"><div class="progress-fill tahap1"></div></div>
-            <p>Progres: <strong>100%</strong></p>
+        <div class="page-layout">
+          <div class="sidebar-kavling">
+            <div class="search-box">
+              <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavling3">
+              <button class="btn-search"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="kavling-list">
+              <div class="kavling-item">Blok D - 01</div>
+            </div>
+            <button class="btn-pilih">Pilih Kavling</button>
           </div>
-          <div class="progress-section">
-            <h3>Tahap 2: Tembok dan Genteng</h3>
-            <div class="progress-bar"><div class="progress-fill tahap2"></div></div>
-            <p>Progres: <strong>70%</strong></p>
-          </div>
-          <div class="progress-section">
-            <h3>Tahap 3: Cat dan Tegel</h3>
-            <div class="progress-bar"><div class="progress-fill tahap3"></div></div>
-            <p>Progres: <strong>40%</strong></p>
+          <div class="page-body">
+            <div class="progress-section" data-tahap="1">
+              <h3>Tahap 1: Pondasi</h3>
+              <div class="progress-bar"><div class="progress-fill tahap1"></div></div>
+              <div class="progress-controls">
+                <label>Update Progres:</label>
+                <select class="progress-select">
+                  <option value="0">0%</option>
+                  <option value="50">50%</option>
+                  <option value="100">100%</option>
+                </select>
+                <label class="checkbox-container">
+                  <input type="checkbox" class="done-check"> Selesai
+                </label>
+              </div>
+            </div>
+            <div class="progress-section" data-tahap="2">
+              <h3>Tahap 2: Tembok dan Genteng</h3>
+              <div class="progress-bar"><div class="progress-fill tahap2"></div></div>
+              <div class="progress-controls">
+                <label>Update Progres:</label>
+                <select class="progress-select">
+                  <option value="0">0%</option>
+                  <option value="50">50%</option>
+                  <option value="100">100%</option>
+                </select>
+                <label class="checkbox-container">
+                  <input type="checkbox" class="done-check"> Selesai
+                </label>
+              </div>
+            </div>
+            <div class="progress-section" data-tahap="3">
+              <h3>Tahap 3: Cat dan Tegel</h3>
+              <div class="progress-bar"><div class="progress-fill tahap3"></div></div>
+              <div class="progress-controls">
+                <label>Update Progres:</label>
+                <select class="progress-select">
+                  <option value="0">0%</option>
+                  <option value="50">50%</option>
+                  <option value="100">100%</option>
+                </select>
+                <label class="checkbox-container">
+                  <input type="checkbox" class="done-check"> Selesai
+                </label>
+              </div>
+            </div>
+            <button class="btn-save-progress"><i class="fas fa-save"></i> Simpan Progres</button>
           </div>
         </div>
       </div>
@@ -136,15 +330,27 @@
           </div>
           <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
         </div>
-        <div class="page-body">
-          <p>Halaman khusus untuk <strong>Manager Proyek</strong>.</p>
-          <ul>
-            <li>Mengawasi keseluruhan progres proyek</li>
-            <li>Mengelola anggaran dan sumber daya</li>
-            <li>Koordinasi dengan tim pelaksana</li>
-            <li>Berkomunikasi dengan stakeholder</li>
-            <li>Membuat laporan perkembangan proyek</li>
-          </ul>
+        <div class="page-layout">
+          <div class="sidebar-kavling">
+            <div class="search-box">
+              <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavlingMgr">
+              <button class="btn-search"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="kavling-list">
+              <div class="kavling-item">Semua Blok</div>
+            </div>
+            <button class="btn-pilih">Pilih Kavling</button>
+          </div>
+          <div class="page-body">
+            <p>Halaman khusus untuk <strong>Manager Proyek</strong>.</p>
+            <ul>
+              <li>Mengawasi keseluruhan progres proyek</li>
+              <li>Mengelola anggaran dan sumber daya</li>
+              <li>Koordinasi dengan tim pelaksana</li>
+              <li>Berkomunikasi dengan stakeholder</li>
+              <li>Membuat laporan perkembangan proyek</li>
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -157,15 +363,27 @@
           </div>
           <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
         </div>
-        <div class="page-body">
-          <p>Halaman khusus untuk <strong>Admin</strong>.</p>
-          <ul>
-            <li>Mengelola akun pengguna</li>
-            <li>Mengatur hak akses</li>
-            <li>Mengelola database sistem</li>
-            <li>Backup dan restore data</li>
-            <li>Memantau aktivitas sistem</li>
-          </ul>
+        <div class="page-layout">
+          <div class="sidebar-kavling">
+            <div class="search-box">
+              <input type="text" placeholder="Cari User/Sistem..." id="searchAdmin">
+              <button class="btn-search"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="kavling-list">
+              <div class="kavling-item">Pengaturan Sistem</div>
+            </div>
+            <button class="btn-pilih">Pilih Menu</button>
+          </div>
+          <div class="page-body">
+            <p>Halaman khusus untuk <strong>Admin</strong>.</p>
+            <ul>
+              <li>Mengelola akun pengguna</li>
+              <li>Mengatur hak akses</li>
+              <li>Mengelola database sistem</li>
+              <li>Backup dan restore data</li>
+              <li>Memantau aktivitas sistem</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
