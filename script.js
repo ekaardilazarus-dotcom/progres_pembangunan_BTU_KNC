@@ -1,202 +1,188 @@
-// Password permanen untuk tiap role
-const passwords = {
-  user1: "00",
-  user2: "00",
-  user3: "00",
-  manager: "00",
-  admin: "00"
+// Google Apps Script untuk FinTrack
+// Deploy sebagai Web App dengan akses: Anyone, even anonymous
+
+var SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE'; // Ganti dengan ID spreadsheet Anda
+var SHEET_NAMES = {
+  transactions: 'Transactions',
+  savingTargets: 'SavingTargets',
+  reminders: 'Reminders',
+  syncLog: 'SyncLog'
 };
 
-let currentRole = null;
+function doGet(e) {
+  return handleRequest(e);
+}
 
-// Fungsi tampilkan halaman sesuai role
-function showPage(role) {
-  // Sembunyikan semua halaman
-  document.querySelectorAll('.page-content').forEach(page => {
-    page.style.display = 'none';
-  });
+function doPost(e) {
+  return handleRequest(e);
+}
 
-  // Sembunyikan menu role
-  document.querySelectorAll('.section-container').forEach(container => {
-    container.style.display = 'none';
-  });
-
-  // Tampilkan halaman sesuai role
-  const pageId = `${role}Page`;
-  const pageElement = document.getElementById(pageId);
-
-  if (pageElement) {
-    pageElement.style.display = 'block';
+function handleRequest(e) {
+  var action = e.parameter.action;
+  
+  try {
+    switch(action) {
+      case 'test':
+        return createResponse({success: true, message: 'FinTrack API is working!'});
+        
+      case 'saveData':
+        return handleSaveData(e);
+        
+      case 'loadData':
+        return handleLoadData();
+        
+      default:
+        return createResponse({success: false, error: 'Invalid action'}, 400);
+    }
+  } catch (error) {
+    return createResponse({success: false, error: error.toString()}, 500);
   }
-
-  // Scroll ke atas
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Fungsi kembali ke menu utama
-function goBack() {
-  document.querySelectorAll('.page-content').forEach(page => {
-    page.style.display = 'none';
-  });
-  document.querySelectorAll('.section-container').forEach(container => {
-    container.style.display = 'block';
-  });
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-  const modal = document.getElementById('passwordModal');
-  const input = document.getElementById('passwordInput');
-  const submitBtn = document.getElementById('submitPassword');
-  const errorMsg = document.getElementById('errorMessage');
-  const closeBtn = document.querySelector('.close-btn');
-
-  // Klik tombol role → buka modal
-  document.querySelectorAll('.role-btn').forEach(button => {
-    button.addEventListener('click', function () {
-      currentRole = this.getAttribute('data-role');
-      modal.style.display = 'flex';
-      input.value = '';
-      errorMsg.textContent = '';
-      input.focus();
-    });
-  });
-
-  // Submit password
-  submitBtn.addEventListener('click', function () {
-    if (input.value === passwords[currentRole]) {
-      modal.style.display = 'none';
-      showPage(currentRole);
-    } else {
-      errorMsg.textContent = "Password salah!";
+function handleSaveData(e) {
+  var data = JSON.parse(e.postData.contents);
+  
+  // Validasi API key jika ada
+  var apiKey = e.parameter.apiKey;
+  if (apiKey && apiKey !== 'YOUR_API_KEY') {
+    return createResponse({success: false, error: 'Invalid API key'}, 401);
+  }
+  
+  // Simpan data ke spreadsheet
+  saveToSheet(SHEET_NAMES.transactions, data.transactions || []);
+  saveToSheet(SHEET_NAMES.savingTargets, data.savingTargets || []);
+  saveToSheet(SHEET_NAMES.reminders, data.reminders || []);
+  
+  // Log sinkronisasi
+  logSync(data.timestamp, 'save', data.transactions?.length || 0);
+  
+  return createResponse({
+    success: true,
+    message: 'Data saved successfully',
+    count: {
+      transactions: data.transactions?.length || 0,
+      savingTargets: data.savingTargets?.length || 0,
+      reminders: data.reminders?.length || 0
     }
   });
+}
 
-  // Tutup modal
-  closeBtn.addEventListener('click', () => modal.style.display = 'none');
-  window.addEventListener('click', e => {
-    if (e.target === modal) modal.style.display = 'none';
+function handleLoadData() {
+  // Baca data dari spreadsheet
+  var transactions = loadFromSheet(SHEET_NAMES.transactions);
+  var savingTargets = loadFromSheet(SHEET_NAMES.savingTargets);
+  var reminders = loadFromSheet(SHEET_NAMES.reminders);
+  
+  // Log sinkronisasi
+  logSync(new Date().toISOString(), 'load', transactions.length);
+  
+  return createResponse({
+    success: true,
+    data: {
+      transactions: transactions,
+      savingTargets: savingTargets,
+      reminders: reminders
+    }
   });
+}
 
-  // Tombol kembali
-  document.querySelectorAll('.back-btn').forEach(button => {
-    button.addEventListener('click', goBack);
-  });
-
-  // Handler Sub-task Checkbox
-  function updatePercentages(page) {
-    const sections = page.querySelectorAll('.progress-section.detailed');
-    let totalProgress = 0;
-    let totalSections = sections.length;
-
-    sections.forEach(section => {
-      const checkboxes = section.querySelectorAll('.sub-task');
-      const checked = section.querySelectorAll('.sub-task:checked');
-      const percent = checkboxes.length > 0 ? Math.round((checked.length / checkboxes.length) * 100) : 0;
-      
-      const bar = section.querySelector('.progress-fill');
-      const label = section.querySelector('.sub-percent');
-      
-      bar.style.width = percent + '%';
-      label.textContent = percent + '%';
-      
-      totalProgress += percent;
+function saveToSheet(sheetName, data) {
+  var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = spreadsheet.getSheetByName(sheetName) || spreadsheet.insertSheet(sheetName);
+  
+  // Clear existing data
+  sheet.clear();
+  
+  if (data.length === 0) return;
+  
+  // Create headers from object keys
+  var headers = Object.keys(data[0]);
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  
+  // Add data rows
+  var rows = data.map(function(item) {
+    return headers.map(function(header) {
+      return item[header] !== undefined ? item[header] : '';
     });
+  });
+  
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+}
 
-    const overallPercent = Math.round(totalProgress / totalSections);
-    const mainBar = page.querySelector('.total-bar');
-    const mainLabel = page.querySelector('.total-percent');
+function loadFromSheet(sheetName) {
+  var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = spreadsheet.getSheetByName(sheetName);
+  
+  if (!sheet) return [];
+  
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  
+  var headers = data[0];
+  var result = [];
+  
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var item = {};
     
-    if (mainBar) mainBar.style.width = overallPercent + '%';
-    if (mainLabel) mainLabel.textContent = overallPercent + '%';
-  }
-
-  document.querySelectorAll('.sub-task').forEach(check => {
-    check.addEventListener('change', function() {
-      const page = this.closest('.page-content');
-      updatePercentages(page);
-    });
-  });
-
-  // Simpan Progres Tahapan
-  document.querySelectorAll('.btn-save-section').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const section = this.closest('.progress-section');
-      const tahap = section.getAttribute('data-tahap');
-      const percent = section.querySelector('.sub-percent').textContent;
-      alert(`Berhasil!\nData Tahap ${tahap} (${percent}) telah disimpan.`);
-    });
-  });
-
-  // Handler Photo Upload Preview
-  document.querySelectorAll('.photo-input').forEach(input => {
-    input.addEventListener('change', function() {
-      const container = this.closest('.photo-upload-container');
-      const preview = container.querySelector('.photo-preview');
-      preview.innerHTML = '';
+    for (var j = 0; j < headers.length; j++) {
+      var value = row[j];
       
-      if (this.files) {
-        Array.from(this.files).forEach(file => {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            preview.appendChild(img);
-          }
-          reader.readAsDataURL(file);
-        });
+      // Convert string numbers back to numbers
+      if (!isNaN(value) && value.toString().trim() !== '') {
+        value = Number(value);
       }
-    });
-  });
-
-  // Handler Photo Upload Preview
-  document.querySelectorAll('.photo-input').forEach(input => {
-    input.addEventListener('change', function() {
-      const container = this.closest('.photo-upload-container');
-      const preview = container.querySelector('.photo-preview');
-      preview.innerHTML = '';
       
-      if (this.files) {
-        Array.from(this.files).forEach(file => {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            preview.appendChild(img);
-          }
-          reader.readAsDataURL(file);
-        });
-      }
-    });
-  });
-
-  // Efek hover tombol role
-  document.querySelectorAll('.role-btn').forEach(button => {
-    button.addEventListener('mouseenter', function () {
-      this.style.transform = 'translateY(-10px) scale(1.05)';
-    });
-    button.addEventListener('mouseleave', function () {
-      this.style.transform = 'translateY(0) scale(1)';
-    });
-  });
-
-  // Efek ketikan judul
-  const title = document.querySelector('h1');
-  if (title) {
-    const originalText = title.textContent;
-    title.textContent = '';
-    let i = 0;
-    function typeWriter() {
-      if (i < originalText.length) {
-        title.textContent += originalText.charAt(i);
-        i++;
-        setTimeout(typeWriter, 50);
-      }
+      // Convert string booleans
+      if (value === 'true') value = true;
+      if (value === 'false') value = false;
+      
+      // Convert string null/undefined
+      if (value === 'null') value = null;
+      if (value === 'undefined') value = undefined;
+      
+      item[headers[j]] = value;
     }
-    setTimeout(typeWriter, 500);
+    
+    result.push(item);
   }
-});
+  
+  return result;
+}
 
-// Global scope
-window.showPage = showPage;
-window.goBack = goBack;
+function logSync(timestamp, action, recordCount) {
+  var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = spreadsheet.getSheetByName(SHEET_NAMES.syncLog) || spreadsheet.insertSheet(SHEET_NAMES.syncLog);
+  
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, 4).setValues([['Timestamp', 'Action', 'Record Count', 'IP Address']]);
+  }
+  
+  var ip = ''; // Note: Apps Script doesn't easily get IP in Web Apps
+  sheet.appendRow([timestamp, action, recordCount, ip]);
+}
+
+function createResponse(data, statusCode) {
+  var output = JSON.stringify(data);
+  return ContentService
+    .createTextOutput(output)
+    .setMimeType(ContentService.MimeType.JSON)
+    .setStatusCode(statusCode || 200);
+}
+
+// Fungsi untuk setup spreadsheet awal
+function setupSpreadsheet() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  SPREADSHEET_ID = spreadsheet.getId();
+  
+  // Buat sheet jika belum ada
+  Object.values(SHEET_NAMES).forEach(function(sheetName) {
+    if (!spreadsheet.getSheetByName(sheetName)) {
+      spreadsheet.insertSheet(sheetName);
+    }
+  });
+  
+  Logger.log('Spreadsheet setup complete. ID: ' + SPREADSHEET_ID);
+}
