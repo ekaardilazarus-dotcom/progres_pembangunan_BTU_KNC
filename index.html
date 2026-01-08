@@ -1,409 +1,482 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Progres Pembangunan BTU KNC</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTrack - Pelacak Keuangan & Tabungan</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Progres Pembangunan BTU KNC</h1>
-      <p class="subtitle">
-        Sistem pemantauan progres pembangunan untuk berbagai peran pengguna. Pilih peran Anda untuk mengakses informasi yang sesuai.
-      </p>
-    </header>
+    <div class="container">
+        <!-- Header dengan perbandingan pemasukan/pengeluaran/tabungan -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-piggy-bank"></i>
+                <h1>FinTrack<span class="logo-sub">Pro</span></h1>
+            </div>
+            <div class="comparison">
+                <div class="comparison-item">
+                    <span class="comparison-label">Pemasukan</span>
+                    <span class="comparison-value income-total">Rp 0</span>
+                </div>
+                <div class="comparison-item">
+                    <span class="comparison-label">Pengeluaran</span>
+                    <span class="comparison-value expense-total">Rp 0</span>
+                </div>
+                <div class="comparison-item">
+                    <span class="comparison-label">Tabungan</span>
+                    <span class="comparison-value savings-total">Rp 0</span>
+                </div>
+                <div class="comparison-item">
+                    <span class="comparison-label">Saldo</span>
+                    <span class="comparison-value balance">Rp 0</span>
+                </div>
+            </div>
+            <div class="sync-status" id="sync-status">
+                <i class="fas fa-sync-alt"></i>
+                <span>Local</span>
+            </div>
+        </header>
 
-    <div class="main-content">
-      <!-- Section Pelaksana Lapangan -->
-      <div class="section-container">
-        <h2 class="section-title">Pelaksana Lapangan</h2>
-        <div class="role-selector lapangan-set" id="lapanganSelector">
-          <div class="role-btn user1" data-role="user1">
-            <i class="fas fa-hard-hat"></i>
-            <h3>Pelaksana 1</h3>
-          </div>
-          <div class="role-btn user2" data-role="user2">
-            <i class="fas fa-hard-hat"></i>
-            <h3>Pelaksana 2</h3>
-          </div>
-          <div class="role-btn user3" data-role="user3">
-            <i class="fas fa-hard-hat"></i>
-            <h3>Pelaksana 3</h3>
-          </div>
-        </div>
-      </div>
+        <div class="main-content">
+            <!-- Sidebar Kiri: Filter dan Jenis -->
+            <aside class="sidebar left-sidebar">
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-filter"></i> Filter Data</h3>
+                    <div class="filter-options">
+                        <div class="filter-option">
+                            <label><input type="radio" name="type" value="all" checked> Semua</label>
+                        </div>
+                        <div class="filter-option">
+                            <label><input type="radio" name="type" value="income"> Pemasukan</label>
+                        </div>
+                        <div class="filter-option">
+                            <label><input type="radio" name="type" value="expense"> Pengeluaran</label>
+                        </div>
+                        <div class="filter-option">
+                            <label><input type="radio" name="type" value="saving"> Tabungan</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-calendar-alt"></i> Periode Waktu</h3>
+                    <div class="filter-options">
+                        <div class="filter-option">
+                            <label><input type="radio" name="period" value="day" checked> Hari Ini</label>
+                        </div>
+                        <div class="filter-option">
+                            <label><input type="radio" name="period" value="month"> Bulan Ini</label>
+                        </div>
+                        <div class="filter-option">
+                            <label><input type="radio" name="period" value="year"> Tahun Ini</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-chart-pie"></i> Ringkasan Bulan Ini</h3>
+                    <div class="month-summary">
+                        <p>Pemasukan: <span id="month-income">Rp 0</span></p>
+                        <p>Pengeluaran: <span id="month-expense">Rp 0</span></p>
+                        <p>Tabungan: <span id="month-saving">Rp 0</span></p>
+                        <p>Saldo: <span id="month-balance">Rp 0</span></p>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-cloud"></i> Sinkronisasi</h3>
+                    <div class="sync-controls">
+                        <button class="btn-sync" id="btn-sync-to-cloud">
+                            <i class="fas fa-upload"></i> Simpan ke Cloud
+                        </button>
+                        <button class="btn-sync" id="btn-sync-from-cloud">
+                            <i class="fas fa-download"></i> Ambil dari Cloud
+                        </button>
+                    </div>
+                    <div class="sync-info">
+                        <p>Terakhir sinkron: <span id="last-sync">Belum pernah</span></p>
+                    </div>
+                </div>
+            </aside>
 
-      <!-- Section Manager & Admin -->
-      <div class="section-container">
-        <h2 class="section-title">Manager & Admin</h2>
-        <div class="role-selector manager-set" id="managerSelector">
-          <div class="role-btn manager" data-role="manager">
-            <i class="fas fa-user-tie"></i>
-            <h3>Manager</h3>
-            <span class="badge">Manajer Proyek</span>
-          </div>
-          <div class="role-btn admin" data-role="admin">
-            <i class="fas fa-user-secret"></i>
-            <h3>Admin</h3>
-            <span class="badge">Administrator Sistem</span>
-          </div>
-        </div>
-      </div>
+            <!-- Konten Utama dengan 4 Tabs -->
+            <main class="content">
+                <div class="main-tabs">
+                    <div class="tab-buttons">
+                        <button class="tab-button active" data-tab="transaction-form">
+                            <i class="fas fa-plus-circle"></i> Transaksi
+                        </button>
+                        <button class="tab-button" data-tab="transaction-list">
+                            <i class="fas fa-list-alt"></i> Rekap
+                        </button>
+                        <button class="tab-button" data-tab="savings">
+                            <i class="fas fa-piggy-bank"></i> Tabungan
+                        </button>
+                        <button class="tab-button" data-tab="reminders-edit">
+                            <i class="fas fa-edit"></i> Edit Pengingat
+                        </button>
+                    </div>
+                    
+                    <!-- Tab 1: Form Transaksi -->
+                    <div class="tab-content active" id="transaction-form">
+                        <div class="tab-section">
+                            <h2><i class="fas fa-edit"></i> Form Transaksi Baru</h2>
+                            <form id="transaction-form-input">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="transaction-type">Jenis Transaksi *</label>
+                                        <select id="transaction-type" required onchange="toggleSavingTarget()">
+                                            <option value="">Pilih Jenis</option>
+                                            <option value="income">Pemasukan</option>
+                                            <option value="expense">Pengeluaran</option>
+                                            <option value="saving">Tabungan</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="category">Kategori *</label>
+                                        <select id="category" required>
+                                            <option value="">Pilih Kategori</option>
+                                            <!-- Pemasukan -->
+                                            <option value="gaji" class="income-option">Gaji</option>
+                                            <option value="investasi" class="income-option">Investasi</option>
+                                            <option value="hibah" class="income-option">Hibah/Hadiah</option>
+                                            <option value="lainnya" class="income-option">Lainnya (Pemasukan)</option>
+                                            <!-- Pengeluaran -->
+                                            <option value="makanan" class="expense-option">Makanan & Minuman</option>
+                                            <option value="transportasi" class="expense-option">Transportasi</option>
+                                            <option value="belanja" class="expense-option">Belanja</option>
+                                            <option value="hiburan" class="expense-option">Hiburan</option>
+                                            <option value="kesehatan" class="expense-option">Kesehatan</option>
+                                            <option value="pendidikan" class="expense-option">Pendidikan</option>
+                                            <option value="lainnya" class="expense-option">Lainnya (Pengeluaran)</option>
+                                            <!-- Tabungan -->
+                                            <option value="tabungan" class="saving-option">Tabungan Umum</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="amount">Jumlah (Rp) *</label>
+                                        <input type="number" id="amount" placeholder="Contoh: 50000" min="0" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="date">Tanggal *</label>
+                                        <input type="date" id="date" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group" id="saving-target-container" style="display: none;">
+                                    <label for="saving-target">Target Tabungan (Opsional)</label>
+                                    <select id="saving-target">
+                                        <option value="">Pilih Target Tabungan</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="description">Keterangan</label>
+                                    <textarea id="description" placeholder="Tambahkan keterangan transaksi..." rows="2"></textarea>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-submit">
+                                        <i class="fas fa-save"></i> Simpan Transaksi
+                                    </button>
+                                    <button type="button" class="btn-cancel" onclick="resetForm()">
+                                        <i class="fas fa-times"></i> Reset Form
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab 2: Rekap Transaksi -->
+                    <div class="tab-content" id="transaction-list">
+                        <div class="tab-section">
+                            <h2><i class="fas fa-history"></i> Riwayat Transaksi</h2>
+                            <div class="transaction-filter">
+                                <div class="filter-buttons">
+                                    <button class="filter-btn active" data-filter="day">Hari Ini</button>
+                                    <button class="filter-btn" data-filter="month">Bulan Ini</button>
+                                    <button class="filter-btn" data-filter="year">Tahun Ini</button>
+                                </div>
+                            </div>
+                            
+                            <div class="transactions-container">
+                                <div class="transactions-list" id="filtered-transactions">
+                                    <!-- Transaksi akan dimuat di sini -->
+                                    <div class="empty-state">
+                                        <i class="fas fa-receipt"></i>
+                                        <p>Belum ada transaksi</p>
+                                        <p class="empty-hint">Mulai tambahkan transaksi di tab "Transaksi"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab 3: Tabungan & Target -->
+                    <div class="tab-content" id="savings">
+                        <div class="tab-section">
+                            <div class="savings-header">
+                                <h2><i class="fas fa-bullseye"></i> Tabungan & Target</h2>
+                                <div class="total-savings">
+                                    <span class="total-label">Total Tabungan:</span>
+                                    <span class="total-amount" id="total-savings-amount">Rp 0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="savings-content">
+                                <div class="savings-targets">
+                                    <h3><i class="fas fa-flag"></i> Target Tabungan</h3>
+                                    <div class="targets-list" id="targets-list">
+                                        <!-- Daftar target akan dimuat di sini -->
+                                        <div class="empty-state">
+                                            <i class="fas fa-bullseye"></i>
+                                            <p>Belum ada target tabungan</p>
+                                            <p class="empty-hint">Tambahkan target tabungan Anda di bawah</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="add-target-form">
+                                        <h4><i class="fas fa-plus"></i> Tambah Target Baru</h4>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="target-name">Nama Target *</label>
+                                                <input type="text" id="target-name" placeholder="Contoh: Liburan ke Bali">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="target-amount">Target Jumlah (Rp) *</label>
+                                                <input type="number" id="target-amount" placeholder="Contoh: 5000000" min="0">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="target-deadline">Target Tanggal</label>
+                                                <input type="date" id="target-deadline">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="target-color">Warna Target</label>
+                                                <input type="color" id="target-color" value="#e50914">
+                                            </div>
+                                        </div>
+                                        <button class="btn-add-target" id="btn-add-target">
+                                            <i class="fas fa-bullseye"></i> Tambah Target
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="savings-progress">
+                                    <h3><i class="fas fa-chart-line"></i> Progress Tabungan</h3>
+                                    <div class="progress-container" id="progress-container">
+                                        <!-- Progress bar akan dimuat di sini -->
+                                        <p class="progress-info">Tambahkan target tabungan untuk melihat progress</p>
+                                    </div>
+                                    
+                                    <div class="savings-stats">
+                                        <div class="stat-card">
+                                            <div class="stat-icon">
+                                                <i class="fas fa-wallet"></i>
+                                            </div>
+                                            <div class="stat-content">
+                                                <span class="stat-label">Tabungan Bulan Ini</span>
+                                                <span class="stat-value" id="monthly-savings">Rp 0</span>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-icon">
+                                                <i class="fas fa-calendar-check"></i>
+                                            </div>
+                                            <div class="stat-content">
+                                                <span class="stat-label">Target Tercapai</span>
+                                                <span class="stat-value" id="achieved-targets">0</span>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-icon">
+                                                <i class="fas fa-percentage"></i>
+                                            </div>
+                                            <div class="stat-content">
+                                                <span class="stat-label">Rata-rata Tabungan</span>
+                                                <span class="stat-value" id="avg-savings">Rp 0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab 4: Edit Pengingat Rutin -->
+                    <div class="tab-content" id="reminders-edit">
+                        <div class="tab-section">
+                            <h2><i class="fas fa-bell"></i> Kelola Pengingat Rutin</h2>
+                            
+                            <div class="reminders-edit-content">
+                                <div class="reminders-list-edit">
+                                    <h3><i class="fas fa-list"></i> Daftar Pengingat Rutin</h3>
+                                    <div class="reminders-edit-container" id="reminders-edit-container">
+                                        <!-- Daftar pengingat untuk diedit akan dimuat di sini -->
+                                        <div class="empty-state">
+                                            <i class="fas fa-bell"></i>
+                                            <p>Belum ada pengingat rutin</p>
+                                            <p class="empty-hint">Tambahkan pengingat rutin baru di bawah</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="add-reminder-edit">
+                                    <h3><i class="fas fa-plus-circle"></i> Tambah/Ubah Pengingat</h3>
+                                    <form id="reminder-edit-form">
+                                        <input type="hidden" id="reminder-edit-id" value="">
+                                        
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="reminder-edit-name">Nama Pengingat *</label>
+                                                <input type="text" id="reminder-edit-name" placeholder="Contoh: Bayar Listrik" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="reminder-edit-category">Kategori *</label>
+                                                <select id="reminder-edit-category" required>
+                                                    <option value="">Pilih Kategori</option>
+                                                    <option value="listrik">Listrik & Air</option>
+                                                    <option value="internet">Internet & TV</option>
+                                                    <option value="kredit">Kredit/Kontrakan</option>
+                                                    <option value="asuransi">Asuransi</option>
+                                                    <option value="langganan">Langganan</option>
+                                                    <option value="cicilan">Cicilan</option>
+                                                    <option value="lainnya">Lainnya</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="reminder-edit-amount">Jumlah (Rp) *</label>
+                                                <input type="number" id="reminder-edit-amount" placeholder="Contoh: 500000" min="0" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="reminder-edit-date">Tanggal Bayar (1-31) *</label>
+                                                <input type="number" id="reminder-edit-date" placeholder="Contoh: 10" min="1" max="31" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="reminder-edit-duration">Durasi (bulan)</label>
+                                                <input type="number" id="reminder-edit-duration" placeholder="Contoh: 12 (untuk cicilan)" min="0">
+                                                <small class="input-hint">Isi 0 untuk pengingat tanpa batas waktu</small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="reminder-edit-start-month">Mulai Bulan</label>
+                                                <input type="month" id="reminder-edit-start-month">
+                                                <small class="input-hint">Untuk menghitung sisa durasi</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="reminder-edit-description">Keterangan</label>
+                                            <textarea id="reminder-edit-description" placeholder="Tambahkan keterangan pengingat..." rows="2"></textarea>
+                                        </div>
+                                        
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn-submit" id="btn-save-reminder">
+                                                <i class="fas fa-save"></i> Simpan Pengingat
+                                            </button>
+                                            <button type="button" class="btn-cancel" id="btn-cancel-reminder">
+                                                <i class="fas fa-times"></i> Batal
+                                            </button>
+                                            <button type="button" class="btn-delete" id="btn-delete-reminder" style="display: none;">
+                                                <i class="fas fa-trash"></i> Hapus
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
 
-      <!-- Halaman Pelaksana Lapangan 1 -->
-      <div class="page-content user1-page" id="user1Page">
-        <div class="page-header">
-          <div class="page-title">
-            <i class="fas fa-hard-hat"></i>
-            <h2>Dashboard Pelaksana Lapangan 1</h2>
-          </div>
-          <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
+            <!-- Sidebar Kanan: Pengingat Rutin -->
+            <aside class="sidebar right-sidebar">
+                <div class="sidebar-section">
+                    <div class="reminders-header">
+                        <h3><i class="fas fa-bell"></i> Pengingat Rutin</h3>
+                        <span class="reminders-count" id="reminders-count">0</span>
+                    </div>
+                    
+                    <div class="reminders-list" id="reminders-list">
+                        <!-- Pengingat akan dimuat di sini -->
+                        <div class="empty-state-small">
+                            <i class="fas fa-bell"></i>
+                            <p>Belum ada pengingat</p>
+                        </div>
+                    </div>
+                    
+                    <div class="upcoming-reminders">
+                        <h4><i class="fas fa-calendar-day"></i> Jatuh Tempo Dekat</h4>
+                        <div id="upcoming-reminders">
+                            <!-- Pengingat yang akan datang akan dimuat di sini -->
+                            <p class="no-upcoming">Tidak ada jatuh tempo dekat</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
         </div>
-        <div class="page-layout">
-          <!-- Sidebar Kiri: Pemilih Kavling -->
-          <div class="sidebar-kavling">
-            <div class="search-box">
-              <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavling1">
-              <button class="btn-search"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="kavling-list">
-              <!-- Placeholder untuk list kavling -->
-              <div class="kavling-item">Blok A - 01</div>
-              <div class="kavling-item">Blok A - 02</div>
-              <div class="kavling-item">Blok B - 05</div>
-            </div>
-            <button class="btn-pilih">Pilih Kavling</button>
-          </div>
-          
-          <!-- Dashboard Kanan -->
-          <div class="page-body">
-            <!-- Rekap Keseluruhan -->
-            <div class="overall-rekap">
-              <div class="rekap-header">
-                <h3>Keseluruhan Progres Proyek</h3>
-                <span class="total-percent">0%</span>
-              </div>
-              <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
-            </div>
 
-            <!-- Tahap 1 -->
-            <div class="progress-section detailed" data-tahap="1">
-              <div class="section-header-flex">
-                <h3>Tahap 1: Struktur & Infrastruktur</h3>
-                <span class="sub-percent">0%</span>
-              </div>
-              <div class="progress-bar"><div class="progress-fill tahap1" style="width: 0%"></div></div>
-              <div class="sub-tasks-grid">
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Land Clearing</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pondasi & Sloof</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Canopy</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Ring Blok</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Conduit + Inbow Doos</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Kotor</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Bersih</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Biotank</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plester</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Acian & Benangan</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cor Meja Dapur</label>
-              </div>
-              <div class="photo-upload-container">
-                <label class="upload-label">
-                  <i class="fas fa-camera"></i> Upload Foto Progres
-                  <input type="file" class="photo-input" accept="image/*" capture="environment">
-                </label>
-                <div class="photo-preview"></div>
-              </div>
-              <button class="btn-save-section"><i class="fas fa-save"></i> Simpan Tahap 1</button>
-            </div>
-
-            <!-- Tahap 2 -->
-            <div class="progress-section detailed" data-tahap="2">
-              <div class="section-header-flex">
-                <h3>Tahap 2: Atap, Dinding & Lantai</h3>
-                <span class="sub-percent">0%</span>
-              </div>
-              <div class="progress-bar"><div class="progress-fill tahap2" style="width: 0%"></div></div>
-              <div class="sub-tasks-grid">
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Atap Galv</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Genteng</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plafond</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Dinding</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Toilet & Dapur</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Instalasi Listrik</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Lantai</label>
-              </div>
-              <div class="photo-upload-container">
-                <label class="upload-label">
-                  <i class="fas fa-camera"></i> Upload Foto Progres
-                  <input type="file" class="photo-input" accept="image/*" capture="environment">
-                </label>
-                <div class="photo-preview"></div>
-              </div>
-              <button class="btn-save-section"><i class="fas fa-save"></i> Simpan Tahap 2</button>
-            </div>
-
-            <!-- Tahap 3 -->
-            <div class="progress-section detailed" data-tahap="3">
-              <div class="section-header-flex">
-                <h3>Tahap 3: Finishing & Serah Terima</h3>
-                <span class="sub-percent">0%</span>
-              </div>
-              <div class="progress-bar"><div class="progress-fill tahap3" style="width: 0%"></div></div>
-              <div class="sub-tasks-grid">
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Kusen Pintu & Jend.</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Daun Pintu & Jend.</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Dasar + Lapis Awal</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Fitting Lampu</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Fixture & Saniter</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Finish Interior</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Finish Exterior</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Bak Kontrol & Batas CP</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Paving Halaman</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> General Cleaning</label>
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> COMPLETE</label>
-              </div>
-              <div class="photo-upload-container">
-                <label class="upload-label">
-                  <i class="fas fa-camera"></i> Upload Foto Progres
-                  <input type="file" class="photo-input" accept="image/*" capture="environment">
-                </label>
-                <div class="photo-preview"></div>
-              </div>
-              <button class="btn-save-section"><i class="fas fa-save"></i> Simpan Tahap 3</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Halaman Pelaksana Lapangan 2 -->
-      <div class="page-content user2-page" id="user2Page">
-        <div class="page-header">
-          <div class="page-title">
-            <i class="fas fa-hard-hat"></i>
-            <h2>Dashboard Pelaksana Lapangan 2</h2>
-          </div>
-          <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
-        </div>
-        <div class="page-layout">
-          <div class="sidebar-kavling">
-            <div class="search-box">
-              <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavling2">
-              <button class="btn-search"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="kavling-list">
-              <div class="kavling-item">Blok C - 10</div>
-              <div class="kavling-item">Blok C - 11</div>
-            </div>
-            <button class="btn-pilih">Pilih Kavling</button>
-          </div>
-          <div class="page-body">
-            <div class="progress-section" data-tahap="1">
-              <h3>Tahap 1: Pondasi</h3>
-              <div class="progress-bar"><div class="progress-fill tahap1"></div></div>
-              <div class="progress-controls">
-                <label>Update Progres:</label>
-                <select class="progress-select">
-                  <option value="0">0%</option>
-                  <option value="50">50%</option>
-                  <option value="100">100%</option>
-                </select>
-                <label class="checkbox-container">
-                  <input type="checkbox" class="done-check"> Selesai
-                </label>
-              </div>
-            </div>
-            <div class="progress-section" data-tahap="2">
-              <h3>Tahap 2: Tembok dan Genteng</h3>
-              <div class="progress-bar"><div class="progress-fill tahap2"></div></div>
-              <div class="progress-controls">
-                <label>Update Progres:</label>
-                <select class="progress-select">
-                  <option value="0">0%</option>
-                  <option value="50">50%</option>
-                  <option value="100">100%</option>
-                </select>
-                <label class="checkbox-container">
-                  <input type="checkbox" class="done-check"> Selesai
-                </label>
-              </div>
-            </div>
-            <div class="progress-section" data-tahap="3">
-              <h3>Tahap 3: Cat dan Tegel</h3>
-              <div class="progress-bar"><div class="progress-fill tahap3"></div></div>
-              <div class="progress-controls">
-                <label>Update Progres:</label>
-                <select class="progress-select">
-                  <option value="0">0%</option>
-                  <option value="50">50%</option>
-                  <option value="100">100%</option>
-                </select>
-                <label class="checkbox-container">
-                  <input type="checkbox" class="done-check"> Selesai
-                </label>
-              </div>
-            </div>
-            <button class="btn-save-progress"><i class="fas fa-save"></i> Simpan Progres</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Halaman Pelaksana Lapangan 3 -->
-      <div class="page-content user3-page" id="user3Page">
-        <div class="page-header">
-          <div class="page-title">
-            <i class="fas fa-hard-hat"></i>
-            <h2>Dashboard Pelaksana Lapangan 3</h2>
-          </div>
-          <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
-        </div>
-        <div class="page-layout">
-          <div class="sidebar-kavling">
-            <div class="search-box">
-              <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavling3">
-              <button class="btn-search"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="kavling-list">
-              <div class="kavling-item">Blok D - 01</div>
-            </div>
-            <button class="btn-pilih">Pilih Kavling</button>
-          </div>
-          <div class="page-body">
-            <div class="progress-section" data-tahap="1">
-              <h3>Tahap 1: Pondasi</h3>
-              <div class="progress-bar"><div class="progress-fill tahap1"></div></div>
-              <div class="progress-controls">
-                <label>Update Progres:</label>
-                <select class="progress-select">
-                  <option value="0">0%</option>
-                  <option value="50">50%</option>
-                  <option value="100">100%</option>
-                </select>
-                <label class="checkbox-container">
-                  <input type="checkbox" class="done-check"> Selesai
-                </label>
-              </div>
-            </div>
-            <div class="progress-section" data-tahap="2">
-              <h3>Tahap 2: Tembok dan Genteng</h3>
-              <div class="progress-bar"><div class="progress-fill tahap2"></div></div>
-              <div class="progress-controls">
-                <label>Update Progres:</label>
-                <select class="progress-select">
-                  <option value="0">0%</option>
-                  <option value="50">50%</option>
-                  <option value="100">100%</option>
-                </select>
-                <label class="checkbox-container">
-                  <input type="checkbox" class="done-check"> Selesai
-                </label>
-              </div>
-            </div>
-            <div class="progress-section" data-tahap="3">
-              <h3>Tahap 3: Cat dan Tegel</h3>
-              <div class="progress-bar"><div class="progress-fill tahap3"></div></div>
-              <div class="progress-controls">
-                <label>Update Progres:</label>
-                <select class="progress-select">
-                  <option value="0">0%</option>
-                  <option value="50">50%</option>
-                  <option value="100">100%</option>
-                </select>
-                <label class="checkbox-container">
-                  <input type="checkbox" class="done-check"> Selesai
-                </label>
-              </div>
-            </div>
-            <button class="btn-save-progress"><i class="fas fa-save"></i> Simpan Progres</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Halaman Manager -->
-      <div class="page-content manager-page" id="managerPage">
-        <div class="page-header">
-          <div class="page-title">
-            <i class="fas fa-user-tie"></i>
-            <h2>Dashboard Manager Proyek</h2>
-          </div>
-          <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
-        </div>
-        <div class="page-layout">
-          <div class="sidebar-kavling">
-            <div class="search-box">
-              <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavlingMgr">
-              <button class="btn-search"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="kavling-list">
-              <div class="kavling-item">Semua Blok</div>
-            </div>
-            <button class="btn-pilih">Pilih Kavling</button>
-          </div>
-          <div class="page-body">
-            <p>Halaman khusus untuk <strong>Manager Proyek</strong>.</p>
-            <ul>
-              <li>Mengawasi keseluruhan progres proyek</li>
-              <li>Mengelola anggaran dan sumber daya</li>
-              <li>Koordinasi dengan tim pelaksana</li>
-              <li>Berkomunikasi dengan stakeholder</li>
-              <li>Membuat laporan perkembangan proyek</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- Halaman Admin -->
-      <div class="page-content admin-page" id="adminPage">
-        <div class="page-header">
-          <div class="page-title">
-            <i class="fas fa-user-secret"></i>
-            <h2>Dashboard Administrator Sistem</h2>
-          </div>
-          <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
-        </div>
-        <div class="page-layout">
-          <div class="sidebar-kavling">
-            <div class="search-box">
-              <input type="text" placeholder="Cari User/Sistem..." id="searchAdmin">
-              <button class="btn-search"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="kavling-list">
-              <div class="kavling-item">Pengaturan Sistem</div>
-            </div>
-            <button class="btn-pilih">Pilih Menu</button>
-          </div>
-          <div class="page-body">
-            <p>Halaman khusus untuk <strong>Admin</strong>.</p>
-            <ul>
-              <li>Mengelola akun pengguna</li>
-              <li>Mengatur hak akses</li>
-              <li>Mengelola database sistem</li>
-              <li>Backup dan restore data</li>
-              <li>Memantau aktivitas sistem</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2023 FinTrack Pro - Pelacak Keuangan & Tabungan Pribadi</p>
+            <p class="footer-info">
+                <span id="data-status">Data disimpan di browser Anda</span> | 
+                <button id="clear-data">Hapus Semua Data</button>
+            </p>
+            <p class="appscript-info">
+                <i class="fas fa-code"></i> Siap untuk Google Apps Script | 
+                <button id="test-connection">Test Koneksi</button>
+            </p>
+        </footer>
     </div>
 
-    <div class="footer">
-      <p>© 2025 Progres Pembangunan BTU KNC. Semua hak dilindungi.</p>
+    <!-- Modal untuk konfirmasi hapus -->
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content">
+            <h3>Konfirmasi</h3>
+            <p id="modal-message">Apakah Anda yakin?</p>
+            <div class="modal-actions">
+                <button class="btn-confirm" id="modal-confirm">Ya</button>
+                <button class="btn-cancel" id="modal-cancel">Tidak</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Modal Password -->
-  <div id="passwordModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <h2>Masukkan Password</h2>
-      <input type="password" id="passwordInput" placeholder="Password">
-      <button id="submitPassword">Submit</button>
-      <p id="errorMessage" class="error"></p>
+    <!-- Modal untuk koneksi Google Apps Script -->
+    <div class="modal" id="connection-modal">
+        <div class="modal-content">
+            <h3><i class="fab fa-google"></i> Google Apps Script</h3>
+            <div class="form-group">
+                <label for="script-url">URL Script Deployment</label>
+                <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbx.../exec">
+                <small class="input-hint">Dapatkan dari Google Apps Script setelah deploy</small>
+            </div>
+            <div class="form-group">
+                <label for="api-key">API Key (Opsional)</label>
+                <input type="text" id="api-key" placeholder="Kunci API untuk keamanan">
+            </div>
+            <div class="connection-test-result" id="connection-test-result"></div>
+            <div class="modal-actions">
+                <button class="btn-confirm" id="btn-save-script">Simpan URL</button>
+                <button class="btn-cancel" id="btn-cancel-script">Batal</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
