@@ -1,5 +1,6 @@
-// script.js - UPDATE DENGAN USER MANAGEMENT
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
+// script.js - UPDATE DENGAN DUA APPS SCRIPT URL
+const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw7U0SfqFqLh67s85J6AVThtBl-AEqwjiAe8JflBKVaO2Ltp0DmFlbxzmAvrZjtDQCo8A/exec';
 
 let currentRole = null;
 
@@ -80,7 +81,7 @@ function getUsersFromServer() {
       if (script) script.remove();
     };
     
-    const url = APPS_SCRIPT_URL + 
+    const url = USER_APPS_SCRIPT_URL + 
       '?action=getUsers&callback=' + callbackName;
     
     console.log('Fetching users from:', url);
@@ -217,7 +218,7 @@ function updateUserOnServer(role, displayName, password) {
       if (script) script.remove();
     };
     
-    const url = APPS_SCRIPT_URL + 
+    const url = USER_APPS_SCRIPT_URL + 
       '?action=updateUser&role=' + encodeURIComponent(role) + 
       '&displayName=' + encodeURIComponent(displayName) + 
       '&password=' + encodeURIComponent(password) + 
@@ -276,6 +277,487 @@ function resetUserForm() {
   statusDiv.style.display = 'none';
 }
 
+// ========== FUNGSI DATA PROGRESS PELAKSANA 1 ==========
+
+let selectedKavling = null;
+let currentKavlingData = null;
+
+// Fungsi untuk memuat list kavling ke dropdown
+async function loadKavlingList() {
+  console.log('Loading kavling list...');
+  
+  const searchInput = document.getElementById('searchKavling1');
+  const loading = document.getElementById('kavlingLoading');
+  
+  if (loading) loading.style.display = 'block';
+  
+  try {
+    const kavlings = await getKavlingListFromServer();
+    
+    if (kavlings && kavlings.length > 0) {
+      // Update search input dengan datalist
+      updateSearchDatalist(kavlings);
+      console.log(`Loaded ${kavlings.length} kavlings`);
+    } else {
+      console.log('No kavlings found');
+    }
+    
+  } catch (error) {
+    console.error('Error loading kavling list:', error);
+    showProgressMessage('error', 'Gagal memuat data kavling');
+  } finally {
+    if (loading) loading.style.display = 'none';
+  }
+}
+
+// Fungsi untuk mengambil list kavling dari server
+function getKavlingListFromServer() {
+  return new Promise((resolve) => {
+    const callbackName = 'kavlingListCallback_' + Date.now();
+    
+    window[callbackName] = function(data) {
+      console.log('Kavling list response:', data);
+      
+      if (data.success && data.kavlings) {
+        resolve(data.kavlings);
+      } else {
+        console.error('Failed to get kavling list:', data.message);
+        resolve([]);
+      }
+      
+      delete window[callbackName];
+      const script = document.getElementById('kavlingListScript');
+      if (script) script.remove();
+    };
+    
+    const url = PROGRESS_APPS_SCRIPT_URL + 
+      '?action=getKavlingList&callback=' + callbackName;
+    
+    console.log('Fetching kavling list from:', url);
+    
+    const script = document.createElement('script');
+    script.id = 'kavlingListScript';
+    script.src = url;
+    
+    document.body.appendChild(script);
+  });
+}
+
+// Fungsi untuk update search dengan datalist
+function updateSearchDatalist(kavlings) {
+  const searchInput = document.getElementById('searchKavling1');
+  const datalistId = 'kavlingDatalist';
+  
+  // Hapus datalist lama jika ada
+  const oldDatalist = document.getElementById(datalistId);
+  if (oldDatalist) oldDatalist.remove();
+  
+  // Buat datalist baru
+  const datalist = document.createElement('datalist');
+  datalist.id = datalistId;
+  
+  kavlings.forEach(kavling => {
+    const option = document.createElement('option');
+    option.value = kavling;
+    datalist.appendChild(option);
+  });
+  
+  // Tambahkan datalist ke DOM
+  document.body.appendChild(datalist);
+  
+  // Hubungkan dengan input
+  searchInput.setAttribute('list', datalistId);
+}
+
+// Fungsi untuk mencari kavling
+async function searchKavling() {
+  const searchInput = document.getElementById('searchKavling1');
+  const kavlingName = searchInput.value.trim();
+  
+  if (!kavlingName) {
+    showProgressMessage('error', 'Masukkan nama kavling');
+    return;
+  }
+  
+  console.log('Searching for kavling:', kavlingName);
+  
+  try {
+    const data = await getKavlingDataFromServer(kavlingName);
+    
+    if (data.success) {
+      selectedKavling = kavlingName;
+      currentKavlingData = data;
+      
+      // Update UI dengan data kavling
+      updateKavlingInfo(data);
+      
+      // Load progress data ke checkbox
+      loadProgressData(data.data);
+      
+      console.log('Kavling data loaded successfully:', data);
+    } else {
+      showProgressMessage('error', data.message || 'Kavling tidak ditemukan');
+    }
+    
+  } catch (error) {
+    console.error('Error searching kavling:', error);
+    showProgressMessage('error', 'Gagal memuat data kavling');
+  }
+}
+
+// Fungsi untuk mengambil data kavling dari server
+function getKavlingDataFromServer(kavlingName) {
+  return new Promise((resolve) => {
+    const callbackName = 'kavlingDataCallback_' + Date.now();
+    
+    window[callbackName] = function(data) {
+      console.log('Kavling data response:', data);
+      resolve(data);
+      
+      delete window[callbackName];
+      const script = document.getElementById('kavlingDataScript');
+      if (script) script.remove();
+    };
+    
+    const url = PROGRESS_APPS_SCRIPT_URL + 
+      '?action=getKavlingData&kavling=' + encodeURIComponent(kavlingName) + 
+      '&callback=' + callbackName;
+    
+    console.log('Fetching kavling data from:', url);
+    
+    const script = document.createElement('script');
+    script.id = 'kavlingDataScript';
+    script.src = url;
+    
+    document.body.appendChild(script);
+  });
+}
+
+// Fungsi untuk update info kavling di sidebar
+function updateKavlingInfo(data) {
+  const infoDisplay = document.getElementById('kavlingInfo1');
+  
+  if (!infoDisplay) return;
+  
+  infoDisplay.innerHTML = `
+    <div class="info-item">
+      <span class="info-label">Blok/Kavling:</span>
+      <span class="info-value val-name">${data.kavling || '-'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Tipe:</span>
+      <span class="info-value val-type">${data.tipe || '-'}</span>
+    </div>
+  `;
+}
+
+// Fungsi untuk memuat data progress ke checkbox
+function loadProgressData(progressData) {
+  if (!progressData) return;
+  
+  // Tahap 1
+  Object.keys(progressData.tahap1 || {}).forEach(taskName => {
+    const isChecked = progressData.tahap1[taskName];
+    const checkbox = findCheckboxByTaskName(taskName, 1);
+    if (checkbox) {
+      checkbox.checked = isChecked;
+    }
+  });
+  
+  // Tahap 2
+  Object.keys(progressData.tahap2 || {}).forEach(taskName => {
+    const isChecked = progressData.tahap2[taskName];
+    const checkbox = findCheckboxByTaskName(taskName, 2);
+    if (checkbox) {
+      checkbox.checked = isChecked;
+    }
+  });
+  
+  // Tahap 3 (tanpa COMPLETE)
+  Object.keys(progressData.tahap3 || {}).forEach(taskName => {
+    const isChecked = progressData.tahap3[taskName];
+    const checkbox = findCheckboxByTaskName(taskName, 3);
+    if (checkbox) {
+      checkbox.checked = isChecked;
+    }
+  });
+  
+  // Update total progress
+  updateTotalProgressDisplay(progressData.totalProgress);
+  
+  // Hitung progress per tahap
+  updateProgress('user1Page');
+}
+
+// Helper untuk mencari checkbox berdasarkan nama task
+function findCheckboxByTaskName(taskName, tahap) {
+  const checkboxes = document.querySelectorAll(`.user1-page .progress-section[data-tahap="${tahap}"] .sub-task`);
+  
+  for (let checkbox of checkboxes) {
+    const label = checkbox.closest('label');
+    if (label && label.textContent.includes(taskName)) {
+      return checkbox;
+    }
+  }
+  
+  return null;
+}
+
+// Update total progress display
+function updateTotalProgressDisplay(totalProgress) {
+  const totalPercentElement = document.querySelector('.user1-page .total-percent');
+  const totalBarElement = document.querySelector('.user1-page .total-bar');
+  
+  if (totalPercentElement) {
+    totalPercentElement.textContent = totalProgress;
+  }
+  
+  if (totalBarElement) {
+    // Extract percentage number
+    const percentMatch = totalProgress.match(/(\d+)%/);
+    const percent = percentMatch ? parseInt(percentMatch[1]) : 0;
+    totalBarElement.style.width = percent + '%';
+  }
+}
+
+// Fungsi untuk menyimpan tahap 1
+async function saveTahap1() {
+  if (!selectedKavling || !currentKavlingData) {
+    showProgressMessage('error', 'Pilih kavling terlebih dahulu');
+    return;
+  }
+  
+  const tahap1Section = document.querySelector('.user1-page .progress-section[data-tahap="1"]');
+  const checkboxes = tahap1Section.querySelectorAll('.sub-task');
+  const saveButton = tahap1Section.querySelector('.btn-save-section');
+  
+  // Collect data
+  const tahapData = {};
+  checkboxes.forEach(checkbox => {
+    const label = checkbox.closest('label');
+    const taskName = label.textContent.trim();
+    tahapData[taskName] = checkbox.checked;
+  });
+  
+  // Show loading
+  if (saveButton) {
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    saveButton.disabled = true;
+  }
+  
+  try {
+    const result = await saveTahapDataToServer('saveTahap1', selectedKavling, tahapData);
+    
+    if (result.success) {
+      showProgressMessage('success', result.message);
+      
+      // Update current data
+      if (currentKavlingData.data) {
+        Object.keys(tahapData).forEach(taskName => {
+          if (currentKavlingData.data.tahap1[taskName] !== undefined) {
+            currentKavlingData.data.tahap1[taskName] = tahapData[taskName];
+          }
+        });
+      }
+      
+      console.log('Tahap 1 saved successfully:', result);
+    } else {
+      showProgressMessage('error', result.message || 'Gagal menyimpan tahap 1');
+    }
+    
+  } catch (error) {
+    console.error('Error saving tahap 1:', error);
+    showProgressMessage('error', 'Gagal menyimpan: ' + error.message);
+  } finally {
+    // Restore button
+    if (saveButton) {
+      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 1';
+      saveButton.disabled = false;
+    }
+  }
+}
+
+// Fungsi untuk menyimpan tahap 2
+async function saveTahap2() {
+  if (!selectedKavling || !currentKavlingData) {
+    showProgressMessage('error', 'Pilih kavling terlebih dahulu');
+    return;
+  }
+  
+  const tahap2Section = document.querySelector('.user1-page .progress-section[data-tahap="2"]');
+  const checkboxes = tahap2Section.querySelectorAll('.sub-task');
+  const saveButton = tahap2Section.querySelector('.btn-save-section');
+  
+  const tahapData = {};
+  checkboxes.forEach(checkbox => {
+    const label = checkbox.closest('label');
+    const taskName = label.textContent.trim();
+    tahapData[taskName] = checkbox.checked;
+  });
+  
+  if (saveButton) {
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    saveButton.disabled = true;
+  }
+  
+  try {
+    const result = await saveTahapDataToServer('saveTahap2', selectedKavling, tahapData);
+    
+    if (result.success) {
+      showProgressMessage('success', result.message);
+      
+      if (currentKavlingData.data) {
+        Object.keys(tahapData).forEach(taskName => {
+          if (currentKavlingData.data.tahap2[taskName] !== undefined) {
+            currentKavlingData.data.tahap2[taskName] = tahapData[taskName];
+          }
+        });
+      }
+      
+      console.log('Tahap 2 saved successfully:', result);
+    } else {
+      showProgressMessage('error', result.message || 'Gagal menyimpan tahap 2');
+    }
+    
+  } catch (error) {
+    console.error('Error saving tahap 2:', error);
+    showProgressMessage('error', 'Gagal menyimpan: ' + error.message);
+  } finally {
+    if (saveButton) {
+      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 2';
+      saveButton.disabled = false;
+    }
+  }
+}
+
+// Fungsi untuk menyimpan tahap 3
+async function saveTahap3() {
+  if (!selectedKavling || !currentKavlingData) {
+    showProgressMessage('error', 'Pilih kavling terlebih dahulu');
+    return;
+  }
+  
+  const tahap3Section = document.querySelector('.user1-page .progress-section[data-tahap="3"]');
+  const checkboxes = tahap3Section.querySelectorAll('.sub-task');
+  const saveButton = tahap3Section.querySelector('.btn-save-section');
+  
+  const tahapData = {};
+  checkboxes.forEach(checkbox => {
+    const label = checkbox.closest('label');
+    const taskName = label.textContent.trim();
+    tahapData[taskName] = checkbox.checked;
+  });
+  
+  if (saveButton) {
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    saveButton.disabled = true;
+  }
+  
+  try {
+    const result = await saveTahapDataToServer('saveTahap3', selectedKavling, tahapData);
+    
+    if (result.success) {
+      showProgressMessage('success', result.message);
+      
+      if (currentKavlingData.data) {
+        Object.keys(tahapData).forEach(taskName => {
+          if (currentKavlingData.data.tahap3[taskName] !== undefined) {
+            currentKavlingData.data.tahap3[taskName] = tahapData[taskName];
+          }
+        });
+      }
+      
+      console.log('Tahap 3 saved successfully:', result);
+    } else {
+      showProgressMessage('error', result.message || 'Gagal menyimpan tahap 3');
+    }
+    
+  } catch (error) {
+    console.error('Error saving tahap 3:', error);
+    showProgressMessage('error', 'Gagal menyimpan: ' + error.message);
+  } finally {
+    if (saveButton) {
+      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 3';
+      saveButton.disabled = false;
+    }
+  }
+}
+
+// Fungsi helper untuk menyimpan data tahap ke server
+function saveTahapDataToServer(action, kavling, data) {
+  return new Promise((resolve) => {
+    const callbackName = 'saveTahapCallback_' + Date.now();
+    
+    window[callbackName] = function(response) {
+      console.log('Save tahap response:', response);
+      resolve(response);
+      
+      delete window[callbackName];
+      const script = document.getElementById('saveTahapScript');
+      if (script) script.remove();
+    };
+    
+    const url = PROGRESS_APPS_SCRIPT_URL + 
+      '?action=' + action + 
+      '&kavling=' + encodeURIComponent(kavling) + 
+      '&data=' + encodeURIComponent(JSON.stringify(data)) + 
+      '&callback=' + callbackName;
+    
+    console.log('Saving tahap data via:', url);
+    
+    const script = document.createElement('script');
+    script.id = 'saveTahapScript';
+    script.src = url;
+    
+    document.body.appendChild(script);
+  });
+}
+
+// Fungsi untuk menampilkan pesan progress
+function showProgressMessage(type, message) {
+  // Buat atau temukan message container
+  let messageContainer = document.getElementById('progressMessage');
+  
+  if (!messageContainer) {
+    messageContainer = document.createElement('div');
+    messageContainer.id = 'progressMessage';
+    messageContainer.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      max-width: 300px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    `;
+    document.body.appendChild(messageContainer);
+  }
+  
+  messageContainer.innerHTML = `
+    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" 
+       style="color: ${type === 'success' ? '#10b981' : '#f43f5e'}; font-size: 1.2rem;"></i>
+    <span>${message}</span>
+  `;
+  
+  messageContainer.style.display = 'flex';
+  messageContainer.style.backgroundColor = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)';
+  messageContainer.style.color = type === 'success' ? '#10b981' : '#f43f5e';
+  messageContainer.style.border = `1px solid ${type === 'success' ? '#10b981' : '#f43f5e'}`;
+  
+  // Auto hide setelah 3 detik
+  setTimeout(() => {
+    messageContainer.style.display = 'none';
+  }, 3000);
+}
+
 // ========== PROGRESS CALCULATION ==========
 function updateProgress(pageId) {
   const page = document.getElementById(pageId);
@@ -332,7 +814,7 @@ function verifyLogin(role, password) {
     
     const script = document.createElement('script');
     script.id = 'loginScript';
-    script.src = APPS_SCRIPT_URL + 
+    script.src = USER_APPS_SCRIPT_URL + 
       '?role=' + encodeURIComponent(role) + 
       '&password=' + encodeURIComponent(password) + 
       '&callback=' + callbackName;
@@ -469,10 +951,15 @@ function showPage(role) {
     // Trigger initial progress calc
     updateProgress(role + 'Page');
     
-    // Jika role admin, load user data untuk management
+    // Load data khusus berdasarkan role
     if (role === 'admin') {
       setTimeout(() => {
         loadUsersForAdmin();
+      }, 500);
+    } else if (role.startsWith('user')) {
+      // Untuk pelaksana, load kavling list
+      setTimeout(() => {
+        loadKavlingList();
       }, 500);
     }
   }
@@ -640,12 +1127,31 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btn) {
       const originalContent = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Menyingkronkan...';
-      setTimeout(() => {
+      btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Menyinkronkan...';
+      
+      if (selectedKavling) {
+        // Reload current kavling data
+        getKavlingDataFromServer(selectedKavling)
+          .then(data => {
+            if (data.success) {
+              currentKavlingData = data;
+              loadProgressData(data.data);
+              showProgressMessage('success', 'Data berhasil disinkronisasi');
+            }
+          })
+          .catch(error => {
+            console.error('Error syncing data:', error);
+            showProgressMessage('error', 'Gagal menyinkronkan data');
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+          });
+      } else {
+        showProgressMessage('info', 'Pilih kavling terlebih dahulu');
         btn.disabled = false;
         btn.innerHTML = originalContent;
-        alert('Data berhasil disinkronisasi!');
-      }, 1500);
+      }
     }
   });
   
@@ -653,6 +1159,44 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('click', function(e) {
     if (e.target.id === 'btnSaveUser' || e.target.closest('#btnSaveUser')) {
       saveUserChanges();
+    }
+  });
+  
+  // Search button for kavling
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.btn-search')) {
+      const searchBtn = e.target.closest('.btn-search');
+      const searchInput = searchBtn.previousElementSibling;
+      
+      if (searchInput && searchInput.id === 'searchKavling1') {
+        searchKavling();
+      }
+    }
+  });
+  
+  // Enter key in kavling search
+  document.addEventListener('keypress', function(e) {
+    if (e.target.id === 'searchKavling1' && e.key === 'Enter') {
+      searchKavling();
+    }
+  });
+  
+  // Save tahap buttons
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.btn-save-section')) {
+      const button = e.target.closest('.btn-save-section');
+      const section = button.closest('.progress-section');
+      if (section) {
+        const tahap = section.getAttribute('data-tahap');
+        
+        if (tahap === '1') {
+          saveTahap1();
+        } else if (tahap === '2') {
+          saveTahap2();
+        } else if (tahap === '3') {
+          saveTahap3();
+        }
+      }
     }
   });
 });
@@ -716,4 +1260,9 @@ window.updateUserTest = function() {
   updateUserOnServer(testData.role, testData.displayName, testData.password)
     .then(result => console.log('Update result:', result))
     .catch(error => console.error('Update error:', error));
+};
+
+window.testProgressSystem = function() {
+  console.log('Testing progress system...');
+  loadKavlingList();
 };
