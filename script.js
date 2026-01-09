@@ -16,37 +16,46 @@ function debounce(fn, wait = 250) {
   };
 }
 
-// FUNGSI LOGIN YANG SUDAH DIPERBAIKI
-async function verifyRole(username, password) {
-  try {
-    // Gunakan 'username' bukan 'role' karena Apps Script mencari berdasarkan displayName
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: username,  // Gunakan username yang diklik user
-        password: password
-      })
-    });
-
-    const result = await response.json();
+function verifyRole(username, password) {
+  return new Promise((resolve) => {
+    // Create callback function name
+    const callbackName = 'loginCallback_' + Date.now();
     
-    // Debug log untuk development
-    console.log('Login response:', result);
-    
-    return result;
-    
-  } catch (err) {
-    console.error('Network error:', err);
-    return {
-      success: false,
-      message: 'Gagal terhubung ke server'
+    // Define callback function
+    window[callbackName] = function(data) {
+      resolve(data);
+      delete window[callbackName];
+      
+      // Remove script tag
+      const script = document.getElementById('jsonpScript');
+      if (script) script.remove();
     };
-  }
+    
+    // Create script tag for JSONP
+    const script = document.createElement('script');
+    script.id = 'jsonpScript';
+    script.src = `${APPS_SCRIPT_URL}?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&callback=${callbackName}`;
+    
+    document.body.appendChild(script);
+  });
 }
 
+// Usage in your existing code:
+async function handleLogin() {
+  const username = 'Laksana 1'; // atau ambil dari modal
+  const password = '11'; // atau ambil dari input
+  
+  const result = await verifyRole(username, password);
+  
+  if (result.success) {
+    // Login berhasil
+    console.log('Role:', result.role); // "user1"
+    console.log('Display Name:', result.displayName); // "Laksana 1"
+  } else {
+    // Login gagal
+    console.log('Error:', result.message);
+  }
+}
 function applyDisplayName(role, displayName) {
   // Update role selector buttons
   const roleButtons = document.querySelectorAll(`[data-role="${role}"] h3`);
