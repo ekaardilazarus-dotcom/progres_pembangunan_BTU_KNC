@@ -1,237 +1,477 @@
-// Password permanen untuk tiap role
-const passwords = {
-  user1: "00",
-  user2: "00",
-  user3: "00",
-  manager: "00",
-  admin: "00"
-};
-
-let currentRole = null;
-
-// Fungsi tampilkan halaman sesuai role
-function showPage(role) {
-  // Sembunyikan semua halaman
-  document.querySelectorAll('.page-content').forEach(page => {
-    page.style.display = 'none';
-  });
-
-  // Sembunyikan menu role
-  document.querySelectorAll('.section-container').forEach(container => {
-    container.style.display = 'none';
-  });
-
-  // Tampilkan halaman sesuai role
-  const pageId = role + 'Page';
-  const pageElement = document.getElementById(pageId);
-
-  if (pageElement) {
-    pageElement.style.display = 'block';
-  }
-
-  // Scroll ke atas
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+/* Reset & Font */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-// Fungsi kembali ke menu utama
-function goBack() {
-  document.querySelectorAll('.page-content').forEach(page => {
-    page.style.display = 'none';
-  });
-  document.querySelectorAll('.section-container').forEach(container => {
-    container.style.display = 'block';
-  });
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+body {
+  background: #0f172a;
+  color: #f8fafc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-  const modal = document.getElementById('passwordModal');
-  const input = document.getElementById('passwordInput');
-  const submitBtn = document.getElementById('submitPassword');
-  const errorMsg = document.getElementById('errorMessage');
-  const closeBtn = document.querySelector('.close-btn');
+.container {
+  max-width: 100%;
+  width: 100%;
+  padding: 10px;
+}
 
-  // Klik tombol role -> buka modal
-  document.querySelectorAll('.role-btn').forEach(button => {
-    button.addEventListener('click', function () {
-      currentRole = this.getAttribute('data-role');
-      if (modal) {
-        modal.style.display = 'flex';
-        if (input) {
-          input.value = '';
-          input.focus();
-        }
-        if (errorMsg) errorMsg.textContent = '';
-      }
-    });
-  });
+/* Header */
+header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px 10px;
+}
 
-  // Submit password
-  if (submitBtn) {
-    submitBtn.addEventListener('click', function () {
-      if (input && input.value === passwords[currentRole]) {
-        if (modal) modal.style.display = 'none';
-        showPage(currentRole);
-      } else if (errorMsg) {
-        errorMsg.textContent = "Password salah!";
-      }
-    });
-  }
+h1 {
+  font-size: 1.75rem;
+  margin-bottom: 10px;
+  background: linear-gradient(to right, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
 
-  // Tutup modal
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      if (modal) modal.style.display = 'none';
-    });
-  }
-  window.addEventListener('click', e => {
-    if (modal && e.target === modal) modal.style.display = 'none';
-  });
+.subtitle {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  max-width: 100%;
+  line-height: 1.5;
+}
 
-  // Tombol kembali
-  document.querySelectorAll('.back-btn').forEach(button => {
-    button.addEventListener('click', goBack);
-  });
+/* Role Selector */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
 
-  // Handler Percentages
-  function updatePercentages(page) {
-    if (!page) return;
-    const sections = page.querySelectorAll('.progress-section.detailed');
-    let totalProgress = 0;
-    let sectionCount = 0;
+.section-container {
+  width: 100%;
+}
 
-    sections.forEach(section => {
-      const checkboxes = section.querySelectorAll('.sub-task');
-      const checked = section.querySelectorAll('.sub-task:checked');
-      if (checkboxes.length > 0) {
-        sectionCount++;
-        const percent = Math.round((checked.length / checkboxes.length) * 100);
-        const bar = section.querySelector('.progress-fill');
-        const label = section.querySelector('.sub-percent');
-        if (bar) bar.style.width = percent + '%';
-        if (label) label.textContent = percent + '%';
-        totalProgress += percent;
-      }
-    });
+.section-title {
+  font-size: 1.25rem;
+  margin-bottom: 15px;
+  color: #38bdf8;
+  font-weight: 600;
+  padding-left: 5px;
+  border-left: 4px solid #38bdf8;
+}
 
-    const overallPercent = sectionCount > 0 ? Math.round(totalProgress / sectionCount) : 0;
-    const mainBar = page.querySelector('.total-bar');
-    const mainLabel = page.querySelector('.total-percent');
-    
-    if (mainBar) mainBar.style.width = overallPercent + '%';
-    if (mainLabel) mainLabel.textContent = overallPercent + '%';
+.role-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  width: 100%;
+}
 
-    // Update Info Display
-    const selectedKavling = page.querySelector('.kavling-item.selected');
-    if (selectedKavling) {
-      const infoDisplay = page.querySelector('.kavling-info-display');
-      if (infoDisplay) {
-        const progressLabel = infoDisplay.querySelector('.val-progress');
-        if (progressLabel) progressLabel.textContent = overallPercent + '%';
-      }
-    }
-  }
+.lapangan-set {
+  grid-template-columns: repeat(1, 1fr);
+}
 
-  // Kavling Selection
-  document.querySelectorAll('.kavling-item').forEach(item => {
-    item.addEventListener('click', function() {
-      const page = this.closest('.page-content');
-      if (!page) return;
-      page.querySelectorAll('.kavling-item').forEach(i => i.classList.remove('selected'));
-      this.classList.add('selected');
-      
-      const name = this.textContent;
-      const type = this.getAttribute('data-type');
-      const infoDisplay = page.querySelector('.kavling-info-display');
-      
-      if (infoDisplay) {
-        const nameVal = infoDisplay.querySelector('.val-name');
-        const typeVal = infoDisplay.querySelector('.val-type');
-        if (nameVal) nameVal.textContent = name;
-        if (typeVal) typeVal.textContent = type;
-        updatePercentages(page);
-      }
-    });
-  });
+.role-btn {
+  width: 100%;
+  height: auto;
+  min-height: 120px;
+  padding: 20px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-  // Search Input
-  document.querySelectorAll('.search-input-large').forEach(inputEl => {
-    inputEl.addEventListener('input', function() {
-      const term = this.value.toLowerCase();
-      const page = this.closest('.page-content');
-      if (!page) return;
-      page.querySelectorAll('.kavling-item').forEach(item => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = text.includes(term) ? 'block' : 'none';
-      });
-    });
-  });
+.role-btn i {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
 
-  // Checkbox Change
-  document.querySelectorAll('.sub-task').forEach(check => {
-    check.addEventListener('change', function() {
-      const page = this.closest('.page-content');
-      updatePercentages(page);
-    });
-  });
+.role-btn h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
 
-  // Save Buttons
-  document.querySelectorAll('.btn-save-section').forEach(btn => {
-    btn.addEventListener('click', function() {
-      if (this.classList.contains('btn-manager-save')) {
-        const page = this.closest('.page-content');
-        if (!page) return;
-        const nameEl = page.querySelector('.val-name');
-        const kavling = nameEl ? nameEl.textContent : '-';
-        if (kavling === '-') {
-          alert('Silakan pilih kavling terlebih dahulu!');
-          return;
-        }
-        const siapJualCheck = page.querySelector('#statusSiapJual');
-        const isSiapJual = siapJualCheck ? siapJualCheck.checked : false;
-        const statusText = isSiapJual ? 'SIAP JUAL' : 'Monitoring';
-        const statusVal = page.querySelector('.val-status');
-        if (statusVal) {
-          statusVal.textContent = statusText;
-          statusVal.className = 'info-value val-status ' + (isSiapJual ? 'status-ready' : 'status-monitoring');
-        }
-        alert('Berhasil!\nStatus Kavling ' + kavling + ' diperbarui: ' + statusText);
-      } else {
-        const section = this.closest('.progress-section');
-        const tahap = section ? section.getAttribute('data-tahap') : 'Data';
-        const percentEl = section ? section.querySelector('.sub-percent') : null;
-        const percent = percentEl ? percentEl.textContent : '0%';
-        alert('Berhasil!\n' + tahap + ' (' + percent + ') telah disimpan.');
-      }
-    });
-  });
+.role-btn.user1 { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
+.role-btn.user2 { background: linear-gradient(135deg, #10b981, #059669); }
+.role-btn.user3 { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.role-btn.manager { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.role-btn.admin { background: linear-gradient(135deg, #f43f5e, #e11d48); }
 
-  // Hover Effects
-  document.querySelectorAll('.role-btn').forEach(button => {
-    button.addEventListener('mouseenter', function () {
-      this.style.transform = 'translateY(-10px) scale(1.05)';
-    });
-    button.addEventListener('mouseleave', function () {
-      this.style.transform = 'translateY(0) scale(1)';
-    });
-  });
+/* Page Content */
+.page-content {
+  display: none;
+  width: 100%;
+  background: #1e293b;
+  border-radius: 20px;
+  padding: 15px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
 
-  // Typewriter Title
-  const title = document.querySelector('h1');
-  if (title) {
-    const originalText = title.textContent;
-    title.textContent = '';
-    let i = 0;
-    function typeWriter() {
-      if (i < originalText.length) {
-        title.textContent += originalText.charAt(i);
-        i++;
-        setTimeout(typeWriter, 50);
-      }
-    }
-    setTimeout(typeWriter, 500);
-  }
-});
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-window.showPage = showPage;
-window.goBack = goBack;
+.page-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.back-btn {
+  width: fit-content;
+  background: #334155;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.page-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.search-box {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+}
+
+.search-input-large {
+  flex: 1;
+  padding: 16px !important;
+  font-size: 1.1rem !important;
+  border-radius: 12px !important;
+  border: 2px solid #334155 !important;
+  background: #0f172a !important;
+  color: white !important;
+}
+
+.search-input-large:focus {
+  border-color: #38bdf8 !important;
+  outline: none;
+}
+
+.kavling-info-display {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+
+.info-label {
+  color: #94a3b8;
+}
+
+.info-value {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.kavling-list {
+  height: 200px;
+  overflow-y: auto;
+  margin-top: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.kavling-item {
+  padding: 14px;
+  margin-bottom: 8px;
+  background: #334155;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.kavling-item:hover {
+  background: #475569;
+}
+
+.kavling-item.selected {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+/* Dashboard Elements */
+.overall-rekap {
+  background: #0f172a;
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  border-left: 6px solid #38bdf8;
+}
+
+.total-percent { font-size: 2.2rem; }
+
+.progress-section.detailed {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.section-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.sub-tasks-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  background: transparent;
+  padding: 0;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #334155;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 1rem;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.task-item input {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.btn-save-section {
+  padding: 16px;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  margin-top: 15px;
+  width: 100%;
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  border: none;
+  color: white;
+  font-weight: bold;
+}
+
+/* Modal Password */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.modal-content {
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 40px 30px;
+  border-radius: 24px;
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: #38bdf8;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 16px;
+  margin: 20px 0;
+  border: 2px solid #334155;
+  border-radius: 12px;
+  background: #0f172a;
+  color: white;
+  font-size: 1.25rem;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.modal-content input:focus {
+  border-color: #38bdf8;
+}
+
+.modal-content button {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.modal-content button:active {
+  transform: scale(0.98);
+}
+
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #94a3b8;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Utility */
+.progress-bar {
+  height: 12px;
+  background: #334155;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 0%;
+}
+
+.tahap1 { background: #38bdf8; }
+.tahap2 { background: #10b981; }
+.tahap3 { background: #fbbf24; }
+
+.verification-card {
+  background: #1e293b;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 25px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.verification-item {
+  background: #0f172a;
+  border: 1px solid #334155;
+  margin-bottom: 10px;
+}
+
+.verification-item input:checked + label {
+  color: #10b981;
+}
+
+.siap-jual-box {
+  margin-top: 25px;
+  padding: 20px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 12px;
+  border: 2px dashed #10b981;
+}
+
+.final-status {
+  background: #064e3b;
+  border: 2px solid #10b981;
+}
+
+.status-note {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.read-only {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.val-status {
+  font-weight: bold;
+}
+
+.status-ready {
+  color: #10b981;
+}
+
+.status-monitoring {
+  color: #38bdf8;
+}
+  margin-top: 40px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .container { max-width: 600px; }
+  .lapangan-set { grid-template-columns: repeat(3, 1fr); }
+  .sub-tasks-grid { grid-template-columns: repeat(2, 1fr); }
+}
