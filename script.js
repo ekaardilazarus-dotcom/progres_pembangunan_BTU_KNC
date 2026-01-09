@@ -3,6 +3,7 @@ const passwords = {
   user1: "00",
   user2: "00",
   user3: "00",
+  user4: "00",
   manager: "00",
   admin: "00"
 };
