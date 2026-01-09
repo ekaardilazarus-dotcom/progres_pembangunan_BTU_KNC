@@ -107,6 +107,7 @@ h1 {
 .role-btn.user1 { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
 .role-btn.user2 { background: linear-gradient(135deg, #10b981, #059669); }
 .role-btn.user3 { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.role-btn.user4 { background: linear-gradient(135deg, #f59e0b, #d97706); }
 .role-btn.manager { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
 .role-btn.admin { background: linear-gradient(135deg, #f43f5e, #e11d48); }
 
@@ -194,6 +195,7 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-bottom: 20px;
 }
 
 .info-item {
@@ -504,6 +506,6 @@ footer {
 
 @media (min-width: 768px) {
   .container { max-width: 600px; }
-  .lapangan-set { grid-template-columns: repeat(3, 1fr); }
+  .lapangan-set { grid-template-columns: repeat(2, 1fr); }
   .sub-tasks-grid { grid-template-columns: repeat(2, 1fr); }
 }
