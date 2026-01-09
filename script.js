@@ -1,5 +1,5 @@
 // script.js - FINAL FIXED VERSION
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUYtck_xszKJN0_5GREfiuxraUajGMaXwzldidxsCxlwzWo3iCEMb3a3HMdoqABUkA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxT34q7cdAm4CGroxZFFga6kefzQ9Py_RmSpa4eNUrKhrLJB47loCX_IAjkHhH6r1nF/exec';
 
 let currentRole = null;
 
@@ -415,6 +415,41 @@ window.checkTitleElement = function(role = 'user1') {
     });
   }
 };
+
+function verifyLogin(role, password) {
+  return new Promise((resolve) => {
+    const callbackName = 'loginCallback_' + Date.now();
+    
+    window[callbackName] = function(data) {
+      console.log('=== LOGIN RESPONSE ===');
+      console.log('Full response:', data);
+      console.log('Success:', data.success);
+      console.log('Display Name:', data.displayName);
+      console.log('Message:', data.message);
+      console.log('======================');
+      
+      resolve(data);
+      delete window[callbackName];
+      
+      const script = document.getElementById('loginScript');
+      if (script) script.remove();
+    };
+    
+    const url = APPS_SCRIPT_URL + 
+      '?role=' + encodeURIComponent(role) + 
+      '&password=' + encodeURIComponent(password) + 
+      '&callback=' + callbackName;
+    
+    console.log('=== CALLING APPS SCRIPT ===');
+    console.log('URL:', url);
+    
+    const script = document.createElement('script');
+    script.id = 'loginScript';
+    script.src = url;
+    
+    document.body.appendChild(script);
+  });
+}
 
 window.clearAll = function() {
   sessionStorage.clear();
