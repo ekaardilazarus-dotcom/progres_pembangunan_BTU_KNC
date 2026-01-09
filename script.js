@@ -1,6 +1,6 @@
 // script.js (ganti seluruh file lama dengan ini)
 // URL Web App Apps Script (ganti jika perlu)
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPgTz13cPmFvB0cKMy8uxNPpFhbuz4wBtT3dpNgtsjl1ml7eqmQ81cM03_NrquUwTE/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbykn1POHuUA1B-QgvQwBUoPBTgDMcYn5AeCBVuvMDUJ2zbG1VwSdkFd3kuXA8xZmZXA/exec';
 
 let currentRole = null;
 let currentDisplayName = null;
