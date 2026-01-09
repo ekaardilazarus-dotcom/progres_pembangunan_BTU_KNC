@@ -1,9 +1,8 @@
 // script.js - SIMPLE VERSION
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXEY1FYf9Ov8srzR2FB2MrOOLyA6F7BnfJ68YdpsAJRUDUKDlD56iKCIkdIbRP9A3M/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVYzY6hl8Y7B4XHWOJS-f6LSSbxBvremKXejqfUJ8aWNPeqvQ0gV1L3O-kUk5QryrP/exec';
 
 let currentRole = null;
 
-// Mapping role ke username di sheet
 const roleToDisplayName = {
   'user1': 'Laksana 1',
   'user2': 'Laksana 2', 
@@ -13,34 +12,33 @@ const roleToDisplayName = {
   'admin': 'Laksana 6'
 };
 
-// Fungsi login sederhana
-async function verifyLogin(username, password) {
-  try {
-    console.log('Sending login request:', { username });
+// Fungsi login dengan JSONP (sama seperti pencarian kavling)
+function verifyLogin(username, password) {
+  return new Promise((resolve) => {
+    const callbackName = 'loginCallback_' + Date.now();
     
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ username, password })
-    });
-    
-    console.log('Response status:', response.status);
-    const result = await response.json();
-    console.log('Response data:', result);
-    return result;
-    
-  } catch (error) {
-    console.error('Login error:', error);
-    return {
-      success: false,
-      message: 'Gagal menghubungi server'
+    window[callbackName] = function(data) {
+      resolve(data);
+      delete window[callbackName];
+      
+      // Remove script
+      const script = document.getElementById('loginScript');
+      if (script) script.remove();
     };
-  }
+    
+    const script = document.createElement('script');
+    script.id = 'loginScript';
+    const url = APPS_SCRIPT_URL + 
+      '?username=' + encodeURIComponent(username) + 
+      '&password=' + encodeURIComponent(password) + 
+      '&callback=' + callbackName;
+    
+    script.src = url;
+    document.body.appendChild(script);
+  });
 }
 
-// Fungsi utama untuk handle login
+// Handle login
 async function handleLogin() {
   const modal = document.getElementById('passwordModal');
   const passwordInput = document.getElementById('passwordInput');
@@ -50,76 +48,89 @@ async function handleLogin() {
   if (!currentRole || !passwordInput) return;
   
   const password = passwordInput.value.trim();
-  
   if (!password) {
     if (errorMsg) errorMsg.textContent = 'Masukkan password';
     return;
   }
   
-  // Tampilkan loading
+  // Loading
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Memeriksa...';
   }
   
   // Ambil username berdasarkan role
-  const usernameForAPI = roleToDisplayName[currentRole];
-  
-  if (!usernameForAPI) {
-    if (errorMsg) errorMsg.textContent = 'Role tidak valid';
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Masuk';
-    }
-    return;
-  }
+  const username = roleToDisplayName[currentRole];
   
   try {
-    // Panggil API login
-    const result = await verifyLogin(usernameForAPI, password);
+    const result = await verifyLogin(username, password);
     
     if (result.success) {
-      // Login berhasil
+      // Sukses
       if (modal) modal.style.display = 'none';
       
-      // Update tampilan
-      const displayName = result.displayName || usernameForAPI;
+      // Update UI
+      const displayName = result.displayName || username;
       const role = result.role || currentRole;
       
-      // Update role button text
       document.querySelectorAll(`[data-role="${currentRole}"] h3`).forEach(el => {
         el.textContent = displayName;
       });
       
-      // Simpan session
+      // Save session
       sessionStorage.setItem('loggedRole', role);
       sessionStorage.setItem('loggedDisplayName', displayName);
       
-      // Tampilkan halaman dashboard
+      // Show dashboard
       showPage(role);
       
     } else {
-      // Login gagal
-      if (errorMsg) {
-        errorMsg.textContent = result.message || 'Password salah';
-      }
+      // Gagal
+      if (errorMsg) errorMsg.textContent = result.message;
       passwordInput.value = '';
       passwordInput.focus();
     }
     
   } catch (error) {
-    console.error('Error:', error);
-    if (errorMsg) {
-      errorMsg.textContent = 'Terjadi kesalahan';
-    }
+    if (errorMsg) errorMsg.textContent = 'Gagal menghubungi server';
   } finally {
-    // Reset button
     if (submitBtn) {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Masuk';
     }
   }
 }
+
+// Event listener untuk role buttons
+document.addEventListener('click', function(e) {
+  const roleBtn = e.target.closest('.role-btn');
+  if (roleBtn) {
+    currentRole = roleBtn.getAttribute('data-role');
+    const modal = document.getElementById('passwordModal');
+    
+    if (modal && currentRole) {
+      // Update modal title
+      const title = modal.querySelector('.modal-title');
+      if (title) title.textContent = 'Login sebagai ' + (roleToDisplayName[currentRole] || currentRole);
+      
+      // Show modal
+      modal.style.display = 'flex';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+      document.getElementById('errorMessage').textContent = '';
+    }
+  }
+});
+
+// Submit button
+document.getElementById('submitPassword')?.addEventListener('click', handleLogin);
+
+// Enter key
+document.getElementById('passwordInput')?.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    document.getElementById('submitPassword')?.click();
+  }
+});
 
 // ====== FUNGSI YANG PERLU DITAMBAHKAN ======
 
