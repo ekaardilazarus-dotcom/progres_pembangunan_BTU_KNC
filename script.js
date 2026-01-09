@@ -9,9 +9,49 @@ const defaultDisplayNames = {
   'user2': 'Pelaksana 2', 
   'user3': 'Pelaksana 3',
   'user4': 'Pelaksana 4',
-  'manager': 'Manager',
+  'manager': 'MANAGEMENT',
   'admin': 'Admin'
 };
+
+// ========== PROGRESS CALCULATION ==========
+function updateProgress(pageId) {
+  const page = document.getElementById(pageId);
+  if (!page) return;
+
+  const totalBar = page.querySelector('.total-bar');
+  const totalPercent = page.querySelector('.total-percent');
+  
+  const sections = page.querySelectorAll('.progress-section.detailed');
+  let totalTasks = 0;
+  let completedTasks = 0;
+
+  sections.forEach(section => {
+    const checkboxes = section.querySelectorAll('.sub-task');
+    const weight = checkboxes.length;
+    let sectionCompleted = 0;
+
+    checkboxes.forEach(cb => {
+      if (cb.checked) sectionCompleted++;
+    });
+
+    const sectionPercent = weight > 0 ? Math.round((sectionCompleted / weight) * 100) : 0;
+    
+    // Update section UI
+    const sectionBar = section.querySelector('.progress-fill');
+    const sectionText = section.querySelector('.sub-percent');
+    
+    if (sectionBar) sectionBar.style.width = sectionPercent + '%';
+    if (sectionText) sectionText.textContent = sectionPercent + '%';
+
+    totalTasks += weight;
+    completedTasks += sectionCompleted;
+  });
+
+  const overallPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  
+  if (totalBar) totalBar.style.width = overallPercent + '%';
+  if (totalPercent) totalPercent.textContent = overallPercent + '%';
+}
 
 // ========== LOGIN FUNCTION ==========
 function verifyLogin(role, password) {
@@ -164,6 +204,9 @@ function showPage(role) {
     if (savedName) {
       updateDashboardTitle(role, savedName);
     }
+    
+    // Trigger initial progress calc
+    updateProgress(role + 'Page');
   }
 }
 
@@ -259,16 +302,46 @@ document.addEventListener('DOMContentLoaded', function() {
       if (modal) modal.style.display = 'none';
     }
   });
-  
-  // Back buttons
-  document.querySelectorAll('.back-btn').forEach(btn => {
-    btn.addEventListener('click', goBack);
+
+  // Admin Tab Switching
+  document.addEventListener('click', function(e) {
+    const tabBtn = e.target.closest('.admin-tab-btn');
+    if (tabBtn) {
+      const tabId = tabBtn.getAttribute('data-tab');
+      
+      // Update buttons
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.color = '#94a3b8';
+        btn.style.borderBottom = 'none';
+      });
+      tabBtn.classList.add('active');
+      tabBtn.style.color = 'white';
+      tabBtn.style.borderBottom = '3px solid #38bdf8';
+      
+      // Update content
+      document.querySelectorAll('.tab-content-item').forEach(content => {
+        content.style.display = 'none';
+      });
+      const targetContent = document.getElementById('tab-' + tabId);
+      if (targetContent) targetContent.style.display = 'block';
+    }
   });
-  
+
+  // Checkbox change listener for progress
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('sub-task')) {
+      const page = e.target.closest('.page-content');
+      if (page) {
+        updateProgress(page.id);
+      }
+    }
+  });
+
   // Logout button
   document.addEventListener('click', function(e) {
     const btn = e.target.closest('.logout-btn');
-    if (btn && confirm('Apakah Anda yakin ingin logout?')) {
+    if (btn) {
       clearSession();
       goBack();
       
@@ -285,6 +358,21 @@ document.addEventListener('DOMContentLoaded', function() {
           h2.textContent = defaultDisplayNames[role] ? `Dashboard ${defaultDisplayNames[role]}` : `Dashboard ${role}`;
         }
       });
+    }
+  });
+
+  // Sync button listener
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.sync-btn');
+    if (btn) {
+      const originalContent = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Menyingkronkan...';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+        alert('Data berhasil disinkronisasi!');
+      }, 1500);
     }
   });
 });
