@@ -1,6 +1,6 @@
 // script.js - Login dengan Google Apps Script API
 // URL Web App Apps Script (ganti dengan URL deployment Anda)
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz6P4BEhQrmnYMSZPi8UVQVw3rYy-BQWlz8zqI-MHKq2uJUCbYdtzO64hcFeLRPxnVw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylrP5opJkox2ViDNeyrMdzXF1BK7JcGwjiGGpwrIP_QNL2aHTOtO_Gln0nHE5QEm6O/exec';
 
 let currentRole = null;
 let currentDisplayName = null;
