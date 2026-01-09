@@ -681,71 +681,119 @@
         </div>
       </div>
 
-      <!-- Tab Content: User Management -->
-      <div id="tab-users" class="tab-content-item" style="display:none;">
-        <div style="background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
-          <h3 style="margin-bottom:20px; color:#38bdf8; font-size: 1.1rem;"><i class="fas fa-users-cog"></i> Pengaturan User & Password</h3>
-          <div id="userListAdmin" style="display:flex; flex-direction:column; gap:20px;">
-            <!-- User Item: Pelaksana 1 -->
-            <div style="display:flex; flex-direction:column; gap:12px; padding:20px; background:#0f172a; border-radius:12px; border:1px solid #334155;">
-              <div style="display:flex; align-items:center; gap:10px; margin-bottom: 5px;">
-                <i class="fas fa-hard-hat" style="color:#38bdf8; font-size: 1.2rem;"></i>
-                <span style="font-weight:bold; font-size: 1.1rem;">Pelaksana 1</span>
-              </div>
-              <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                  <label style="font-size: 0.8rem; color: #94a3b8;">Username</label>
-                  <input type="text" placeholder="Username" value="user1" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
-                </div>
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                  <label style="font-size: 0.8rem; color: #94a3b8;">Password Baru</label>
-                  <input type="password" placeholder="Masukkan password baru" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
-                </div>
-              </div>
-              <button class="btn-update-user" style="padding:12px; background: linear-gradient(135deg, #38bdf8, #818cf8); color:white; border:none; border-radius:8px; cursor:pointer; font-weight: bold; margin-top: 5px;"><i class="fas fa-save"></i> Update Pelaksana 1</button>
-            </div>
-            
-            <!-- User Item: MANAGEMENT -->
-            <div style="display:flex; flex-direction:column; gap:12px; padding:20px; background:#0f172a; border-radius:12px; border:1px solid #334155;">
-              <div style="display:flex; align-items:center; gap:10px; margin-bottom: 5px;">
-                <i class="fas fa-user-tie" style="color:#38bdf8; font-size: 1.2rem;"></i>
-                <span style="font-weight:bold; font-size: 1.1rem;">MANAGEMENT</span>
-              </div>
-              <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                  <label style="font-size: 0.8rem; color: #94a3b8;">Username</label>
-                  <input type="text" placeholder="Username" value="manager" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
-                </div>
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                  <label style="font-size: 0.8rem; color: #94a3b8;">Password Baru</label>
-                  <input type="password" placeholder="Masukkan password baru" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
-                </div>
-              </div>
-              <button class="btn-update-user" style="padding:12px; background: linear-gradient(135deg, #38bdf8, #818cf8); color:white; border:none; border-radius:8px; cursor:pointer; font-weight: bold; margin-top: 5px;"><i class="fas fa-save"></i> Update MANAGEMENT</button>
-            </div>
-            
-            <!-- User Item: Admin -->
-            <div style="display:flex; flex-direction:column; gap:12px; padding:20px; background:#0f172a; border-radius:12px; border:1px solid #334155;">
-              <div style="display:flex; align-items:center; gap:10px; margin-bottom: 5px;">
-                <i class="fas fa-user-shield" style="color:#38bdf8; font-size: 1.2rem;"></i>
-                <span style="font-weight:bold; font-size: 1.1rem;">Admin</span>
-              </div>
-              <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                  <label style="font-size: 0.8rem; color: #94a3b8;">Username</label>
-                  <input type="text" placeholder="Username" value="admin" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
-                </div>
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                  <label style="font-size: 0.8rem; color: #94a3b8;">Password Baru</label>
-                  <input type="password" placeholder="Masukkan password baru" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
-                </div>
-              </div>
-              <button class="btn-update-user" style="padding:12px; background: linear-gradient(135deg, #38bdf8, #818cf8); color:white; border:none; border-radius:8px; cursor:pointer; font-weight: bold; margin-top: 5px;"><i class="fas fa-save"></i> Update Admin</button>
+    <!-- Ganti bagian ini di index.html (tab user management) -->
+<!-- Tab Content: User Management -->
+<div id="tab-users" class="tab-content-item" style="display:none;">
+  <div style="background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+    <h3 style="margin-bottom:20px; color:#38bdf8; font-size: 1.1rem;">
+      <i class="fas fa-users-cog"></i> Pengaturan User & Password
+    </h3>
+    
+    <!-- Dropdown Pilih User -->
+    <div style="margin-bottom: 25px;">
+      <label style="display:block; margin-bottom: 10px; color: #94a3b8; font-weight: 600;">
+        <i class="fas fa-user-circle"></i> Pilih User untuk Edit
+      </label>
+      <select id="userSelectDropdown" 
+              style="width:100%; padding:14px; border-radius:10px; background:#0f172a; color:white; border:2px solid #334155; font-size: 1rem; cursor: pointer;"
+              onchange="loadSelectedUser()">
+        <option value="">-- Pilih User --</option>
+        <!-- Data akan diisi oleh JavaScript -->
+      </select>
+      <div style="margin-top: 10px; color: #64748b; font-size: 0.85rem;">
+        <i class="fas fa-info-circle"></i> Pilih user untuk mengedit display name dan password
+      </div>
+    </div>
+    
+    <!-- Form Edit User -->
+    <div id="userEditForm" style="display:none;">
+      <div style="display:flex; flex-direction:column; gap:20px; padding:25px; background:#0f172a; border-radius:15px; border:1px solid #334155;">
+        
+        <!-- Info User yang Dipilih -->
+        <div style="display:flex; align-items:center; gap:12px; padding-bottom:15px; border-bottom:1px solid #334155;">
+          <div style="background:linear-gradient(135deg, #38bdf8, #818cf8); padding:10px; border-radius:10px;">
+            <i class="fas fa-user" style="font-size: 1.2rem;"></i>
+          </div>
+          <div>
+            <div style="font-size:0.9rem; color:#94a3b8;">Sedang mengedit:</div>
+            <div id="currentUserInfo" style="font-size:1.2rem; font-weight:bold; color:#38bdf8;"></div>
+          </div>
+        </div>
+        
+        <!-- Form Input -->
+        <div style="display:flex; flex-direction:column; gap:15px;">
+          <!-- Display Name -->
+          <div>
+            <label style="display:block; margin-bottom:8px; color:#94a3b8; font-weight:600;">
+              <i class="fas fa-user-tag"></i> Display Name
+            </label>
+            <input type="text" 
+                   id="editDisplayName" 
+                   placeholder="Masukkan nama tampilan"
+                   style="width:100%; padding:14px; border-radius:10px; background:#1e293b; color:white; border:2px solid #334155; font-size: 1rem;">
+            <div style="margin-top:5px; color:#64748b; font-size:0.85rem;">
+              Nama ini akan muncul saat login dan di dashboard
             </div>
           </div>
+          
+          <!-- Password -->
+          <div>
+            <label style="display:block; margin-bottom:8px; color:#94a3b8; font-weight:600;">
+              <i class="fas fa-lock"></i> Password Baru
+            </label>
+            <input type="password" 
+                   id="editPassword" 
+                   placeholder="Masukkan password baru (kosongkan jika tidak ingin mengubah)"
+                   style="width:100%; padding:14px; border-radius:10px; background:#1e293b; color:white; border:2px solid #334155; font-size: 1rem;">
+            <div style="margin-top:5px; color:#64748b; font-size:0.85rem;">
+              Biarkan kosong jika tidak ingin mengubah password
+            </div>
+          </div>
+          
+          <!-- Konfirmasi Password -->
+          <div>
+            <label style="display:block; margin-bottom:8px; color:#94a3b8; font-weight:600;">
+              <i class="fas fa-lock"></i> Konfirmasi Password
+            </label>
+            <input type="password" 
+                   id="editPasswordConfirm" 
+                   placeholder="Konfirmasi password baru"
+                   style="width:100%; padding:14px; border-radius:10px; background:#1e293b; color:white; border:2px solid #334155; font-size: 1rem;">
+          </div>
+        </div>
+        
+        <!-- Tombol Aksi -->
+        <div style="display:flex; gap:12px; margin-top:10px;">
+          <button id="btnSaveUser" 
+                  style="flex:1; padding:16px; background:linear-gradient(135deg, #22c55e, #10b981); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <i class="fas fa-save"></i> Simpan Perubahan
+          </button>
+          <button onclick="resetUserForm()" 
+                  style="padding:16px 24px; background:linear-gradient(135deg, #f97316, #ea580c); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <i class="fas fa-redo"></i> Reset
+          </button>
+        </div>
+        
+        <!-- Status Message -->
+        <div id="userUpdateStatus" 
+             style="margin-top:15px; padding:12px; border-radius:8px; display:none;">
         </div>
       </div>
     </div>
+    
+    <!-- Loading State -->
+    <div id="userLoading" style="text-align:center; padding:40px; color:#94a3b8;">
+      <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 10px;"></i>
+      <div>Memuat data user...</div>
+    </div>
+    
+    <!-- No Users State -->
+    <div id="noUsersMessage" style="display:none; text-align:center; padding:40px; color:#94a3b8;">
+      <i class="fas fa-user-slash" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+      <div>Tidak ada data user ditemukan</div>
+    </div>
+  </div>
+</div>
 
     <footer>
       &copy; BTU KNC — Sistem Pemantauan Progres
