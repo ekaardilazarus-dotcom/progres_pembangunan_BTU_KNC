@@ -1,4 +1,4 @@
-// script.js - FINAL VERSION
+// script.js - FINAL FIXED VERSION
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUYtck_xszKJN0_5GREfiuxraUajGMaXwzldidxsCxlwzWo3iCEMb3a3HMdoqABUkA/exec';
 
 let currentRole = null;
@@ -38,9 +38,38 @@ function verifyLogin(role, password) {
   });
 }
 
-// ========== LOGIN HANDLER ==========
-// script.js - UPDATE DASHBOARD TITLE
-// ... (kode sebelumnya sama) ...
+// ========== UPDATE DASHBOARD TITLE ==========
+function updateDashboardTitle(role, displayName) {
+  console.log(`Updating title for ${role} to: Selamat datang Pak ${displayName}`);
+  
+  const pageElement = document.getElementById(role + 'Page');
+  console.log('Page element found:', !!pageElement);
+  
+  if (pageElement) {
+    // Coba beberapa selector
+    let titleElement = pageElement.querySelector('.page-header .page-title h2');
+    
+    if (!titleElement) {
+      titleElement = pageElement.querySelector('.page-title h2');
+    }
+    
+    if (!titleElement) {
+      titleElement = pageElement.querySelector('h2');
+    }
+    
+    console.log('Title element found:', !!titleElement);
+    
+    if (titleElement) {
+      console.log('Before update:', titleElement.textContent);
+      titleElement.textContent = `Selamat datang Pak ${displayName}`;
+      console.log('After update:', titleElement.textContent);
+    } else {
+      console.error('❌ Tidak ditemukan elemen h2 di page:', role + 'Page');
+      // Debug: cek struktur HTML
+      console.log('HTML structure:', pageElement.innerHTML.substring(0, 500));
+    }
+  }
+}
 
 // ========== LOGIN HANDLER ==========
 async function handleLogin() {
@@ -63,15 +92,19 @@ async function handleLogin() {
     submitBtn.textContent = 'Memeriksa...';
   }
   
+  console.log('Login attempt for:', currentRole, 'password:', '***');
+  
   try {
     const result = await verifyLogin(currentRole, password);
+    console.log('Login result:', result);
     
     if (result.success) {
-      // SUCCESS - Update UI dengan displayName dari kolom B
+      // SUCCESS
       if (modal) modal.style.display = 'none';
       
       // Gunakan displayName dari server, atau default
       const displayName = result.displayName || defaultDisplayNames[currentRole];
+      console.log('Display name to use:', displayName);
       
       // 1. Update role button text
       document.querySelectorAll(`[data-role="${currentRole}"] h3`).forEach(el => {
@@ -85,7 +118,7 @@ async function handleLogin() {
       sessionStorage.setItem('loggedRole', currentRole);
       sessionStorage.setItem('loggedDisplayName', displayName);
       
-      // Tampilkan dashboard
+      // 3. Tampilkan dashboard
       showPage(currentRole);
       
     } else {
@@ -106,42 +139,10 @@ async function handleLogin() {
   }
 }
 
-// ========== UPDATE DASHBOARD TITLE ==========
-function updateDashboardTitle(role, displayName) {
-  // Cari halaman dashboard berdasarkan role
-  const pageElement = document.getElementById(role + 'Page');
-  
-  if (pageElement) {
-    // Cari elemen title di dalam page
-    // Sesuaikan selector dengan HTML Anda
-    const selectors = [
-      '.page-title h2',
-      '.dashboard-title',
-      '.welcome-title',
-      'h1.page-title',
-      '.page-header h2'
-    ];
-    
-    for (const selector of selectors) {
-      const titleElement = pageElement.querySelector(selector);
-      if (titleElement) {
-        // Update text menjadi "Selamat datang Pak [displayName]"
-        titleElement.textContent = `Selamat datang Pak ${displayName}`;
-        break;
-      }
-    }
-    
-    // Jika tidak ditemukan dengan selector, coba ubah semua h2 di page
-    const allH2 = pageElement.querySelectorAll('h2');
-    if (allH2.length > 0) {
-      // Ambil h2 pertama sebagai title
-      allH2[0].textContent = `Selamat datang Pak ${displayName}`;
-    }
-  }
-}
-
-// ========== SHOW PAGE dengan update title ==========
+// ========== SHOW PAGE ==========
 function showPage(role) {
+  console.log('Showing page for:', role);
+  
   // Hide all pages
   document.querySelectorAll('.page-content').forEach(page => {
     page.style.display = 'none';
@@ -156,6 +157,7 @@ function showPage(role) {
   const pageElement = document.getElementById(role + 'Page');
   if (pageElement) {
     pageElement.style.display = 'block';
+    pageElement.setAttribute('aria-hidden', 'false');
     
     // Update title juga saat show page (untuk session restore)
     const savedName = sessionStorage.getItem('loggedDisplayName');
@@ -165,13 +167,40 @@ function showPage(role) {
   }
 }
 
-// ========== EVENT LISTENERS - tambah restore dashboard title ==========
+function goBack() {
+  // Show main container
+  document.querySelectorAll('.section-container').forEach(container => {
+    container.style.display = 'block';
+  });
+  
+  // Hide all pages
+  document.querySelectorAll('.page-content').forEach(page => {
+    page.style.display = 'none';
+    page.setAttribute('aria-hidden', 'true');
+  });
+}
+
+function clearSession() {
+  sessionStorage.removeItem('loggedRole');
+  sessionStorage.removeItem('loggedDisplayName');
+  currentRole = null;
+}
+
+// ========== EVENT LISTENERS ==========
 document.addEventListener('DOMContentLoaded', function() {
-  // ... (kode sebelumnya sama) ...
+  console.log('DOM loaded, initializing...');
+  
+  // Elements
+  const modal = document.getElementById('passwordModal');
+  const passwordInput = document.getElementById('passwordInput');
+  const submitBtn = document.getElementById('submitPassword');
+  const errorMsg = document.getElementById('errorMessage');
   
   // Check saved session
   const savedRole = sessionStorage.getItem('loggedRole');
   const savedName = sessionStorage.getItem('loggedDisplayName');
+  
+  console.log('Saved session:', { savedRole, savedName });
   
   if (savedRole && savedName) {
     // Auto login dengan session
@@ -185,88 +214,16 @@ document.addEventListener('DOMContentLoaded', function() {
     showPage(savedRole);
   }
   
-  // ... (kode selanjutnya sama) ...
-});
-
-// ========== DEBUG: Tambah fungsi untuk test dashboard title ==========
-window.updateAllTitles = function() {
-  const savedRole = sessionStorage.getItem('loggedRole');
-  const savedName = sessionStorage.getItem('loggedDisplayName');
-  
-  if (savedRole && savedName) {
-    updateDashboardTitle(savedRole, savedName);
-    console.log('Titles updated for:', savedName);
-  } else {
-    console.log('No session found');
-  }
-};
-
-// ========== PAGE FUNCTIONS ==========
-function showPage(role) {
-  // Hide all pages
-  document.querySelectorAll('.page-content').forEach(page => {
-    page.style.display = 'none';
-  });
-  
-  // Hide main container
-  document.querySelectorAll('.section-container').forEach(container => {
-    container.style.display = 'none';
-  });
-  
-  // Show selected page
-  const pageElement = document.getElementById(role + 'Page');
-  if (pageElement) {
-    pageElement.style.display = 'block';
-  }
-}
-
-function goBack() {
-  // Show main container
-  document.querySelectorAll('.section-container').forEach(container => {
-    container.style.display = 'block';
-  });
-  
-  // Hide all pages
-  document.querySelectorAll('.page-content').forEach(page => {
-    page.style.display = 'none';
-  });
-}
-
-function clearSession() {
-  sessionStorage.removeItem('loggedRole');
-  sessionStorage.removeItem('loggedDisplayName');
-  currentRole = null;
-}
-
-// ========== EVENT LISTENERS ==========
-document.addEventListener('DOMContentLoaded', function() {
-  // Elements
-  const modal = document.getElementById('passwordModal');
-  const passwordInput = document.getElementById('passwordInput');
-  const submitBtn = document.getElementById('submitPassword');
-  const errorMsg = document.getElementById('errorMessage');
-  
-  // Check saved session
-  const savedRole = sessionStorage.getItem('loggedRole');
-  const savedName = sessionStorage.getItem('loggedDisplayName');
-  
-  if (savedRole && savedName) {
-    // Auto login dengan session
-    document.querySelectorAll(`[data-role="${savedRole}"] h3`).forEach(el => {
-      el.textContent = savedName;
-    });
-    showPage(savedRole);
-  }
-  
   // Role button click
   document.addEventListener('click', function(e) {
     const roleBtn = e.target.closest('.role-btn');
     if (roleBtn) {
       currentRole = roleBtn.getAttribute('data-role');
+      console.log('Role button clicked:', currentRole);
       
       if (modal && currentRole) {
         // Update modal title with default name
-        const title = modal.querySelector('.modal-title');
+        const title = modal.querySelector('h2#modalTitle');
         if (title) {
           title.textContent = 'Login sebagai ' + (defaultDisplayNames[currentRole] || currentRole);
         }
@@ -320,6 +277,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const role = el.closest('.role-btn').getAttribute('data-role');
         el.textContent = defaultDisplayNames[role] || role;
       });
+      
+      // Reset dashboard titles
+      document.querySelectorAll('.page-content h2').forEach(h2 => {
+        if (h2.textContent.includes('Selamat datang Pak')) {
+          const role = h2.closest('.page-content').id.replace('Page', '');
+          h2.textContent = defaultDisplayNames[role] ? `Dashboard ${defaultDisplayNames[role]}` : `Dashboard ${role}`;
+        }
+      });
     }
   });
 });
@@ -329,7 +294,38 @@ window.testLogin = async function(role = 'user1', password = '11') {
   console.log('Testing login for:', role);
   const result = await verifyLogin(role, password);
   console.log('Result:', result);
+  
+  if (result.success) {
+    // Simulate UI update
+    const displayName = result.displayName || defaultDisplayNames[role];
+    console.log('Would update UI with:', displayName);
+    
+    // Test title update
+    updateDashboardTitle(role, displayName);
+  }
+  
   return result;
+};
+
+window.checkTitleElement = function(role = 'user1') {
+  const page = document.getElementById(role + 'Page');
+  console.log('Page:', page);
+  
+  if (page) {
+    const selectors = [
+      '.page-header .page-title h2',
+      '.page-title h2',
+      'h2'
+    ];
+    
+    selectors.forEach(selector => {
+      const element = page.querySelector(selector);
+      console.log(`Selector "${selector}":`, element);
+      if (element) {
+        console.log('Current text:', element.textContent);
+      }
+    });
+  }
 };
 
 window.clearAll = function() {
