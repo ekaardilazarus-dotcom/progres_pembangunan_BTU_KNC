@@ -1,6 +1,6 @@
 // script.js (ganti seluruh file lama dengan ini)
 // URL Web App Apps Script (ganti jika perlu)
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwa1-WqU4oYyeauUw17lxgHzlZKvkbSP9E7wt9fKGBaOq06sZ8L8w8Rldn08pjTJejK/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZYGrp9GI5zG4Zo-Qda-4O956fjChotqVwJc6fbO2V0LhExMnqfukDFwAKcHrEaQg/exec';
 
 let currentRole = null;
 let currentDisplayName = null;
@@ -20,30 +20,34 @@ function safeParseJSON(text) {
   try { return JSON.parse(text); } catch (e) { return null; }
 }
 
-// verifyRole: kirim form-encoded untuk menghindari preflight CORS
+// script.js - gunakan JSON saja (lebih sederhana)
 async function verifyRole(role, password) {
   try {
-    const body = new URLSearchParams();
-    body.append('role', role);
-    body.append('password', password);
-
-    const res = await fetch(APPS_SCRIPT_URL, {
+    // SELALU gunakan JSON format (direkomendasikan)
+    const response = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       headers: {
-        // gunakan form urlencoded agar request dianggap "simple" dan tidak memicu preflight
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        'Content-Type': 'application/json'
       },
-      body: body.toString()
+      body: JSON.stringify({
+        username: role,  // Kirim sebagai 'username'
+        password: password
+      })
     });
 
-    const text = await res.text();
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      return { success: false, message: 'Respons server tidak valid' };
-    }
+    const result = await response.json();
+    
+    // Debug log untuk development
+    console.log('Login response:', result);
+    
+    return result;
+    
   } catch (err) {
-    return { success: false, message: 'Gagal terhubung ke server' };
+    console.error('Network error:', err);
+    return {
+      success: false,
+      message: 'Gagal terhubung ke server'
+    };
   }
 }
 
