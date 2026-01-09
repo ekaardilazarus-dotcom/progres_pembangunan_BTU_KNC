@@ -1,6 +1,6 @@
 // script.js - UPDATE DENGAN DUA APPS SCRIPT URL
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSYfwX_VymaGBSyp28ntoQSZ619ikvVWx5FFo7ouDzy-Zck5RqdL1cSwYzYX330pub3A/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSV8VtMY-xfXHHbLXZKF8Ul-3dx6MSdav97v0SH4DqemUGxEj9I8LSy8cFhz7UXw/exec';
 
 let currentRole = null;
 
