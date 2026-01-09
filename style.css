@@ -90,26 +90,35 @@ h1 {
   align-items: center;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  background: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: white; /* Text white as requested */
 }
 
 .role-btn i {
   font-size: 2.5rem;
   margin-bottom: 10px;
+  color: white; /* Icon white as requested */
 }
 
 .role-btn h3 {
   font-size: 1.1rem;
   font-weight: 600;
+  color: white; /* Text white as requested */
 }
 
-.role-btn.user1 { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
-.role-btn.user2 { background: linear-gradient(135deg, #10b981, #059669); }
-.role-btn.user3 { background: linear-gradient(135deg, #6366f1, #4f46e5); }
-.role-btn.user4 { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.role-btn.manager { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-.role-btn.admin { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+.role-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Specific button backgrounds to make white text visible */
+.role-btn.user1 { background: #0ea5e9; }
+.role-btn.user2 { background: #10b981; }
+.role-btn.user3 { background: #6366f1; }
+.role-btn.user4 { background: #f59e0b; }
+.role-btn.manager { background: #8b5cf6; }
+.role-btn.admin { background: #f43f5e; }
 
 /* Page Content */
 .page-content {
