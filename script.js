@@ -1,5 +1,5 @@
-// script.js - FINAL FIXED VERSION
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxT34q7cdAm4CGroxZFFga6kefzQ9Py_RmSpa4eNUrKhrLJB47loCX_IAjkHhH6r1nF/exec';
+// script.js - UPDATE DENGAN USER MANAGEMENT
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 
 let currentRole = null;
 
@@ -12,6 +12,269 @@ const defaultDisplayNames = {
   'manager': 'MANAGEMENT',
   'admin': 'Admin'
 };
+
+// ========== USER MANAGEMENT FUNCTIONS ==========
+
+// Fungsi untuk memuat data user ke dropdown
+async function loadUsersForAdmin() {
+  console.log('Loading users for admin...');
+  
+  const dropdown = document.getElementById('userSelectDropdown');
+  const loading = document.getElementById('userLoading');
+  const noUsersMsg = document.getElementById('noUsersMessage');
+  const userEditForm = document.getElementById('userEditForm');
+  
+  if (!dropdown) return;
+  
+  // Tampilkan loading
+  if (loading) loading.style.display = 'block';
+  if (noUsersMsg) noUsersMsg.style.display = 'none';
+  if (userEditForm) userEditForm.style.display = 'none';
+  
+  try {
+    const users = await getUsersFromServer();
+    
+    // Reset dropdown
+    dropdown.innerHTML = '<option value="">-- Pilih User --</option>';
+    
+    if (users && users.length > 0) {
+      // Tambahkan setiap user ke dropdown
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.role;
+        option.textContent = `${user.role} - ${user.displayName || user.role}`;
+        option.setAttribute('data-displayname', user.displayName || user.role);
+        dropdown.appendChild(option);
+      });
+      
+      console.log(`Loaded ${users.length} users`);
+    } else {
+      if (noUsersMsg) noUsersMsg.style.display = 'block';
+    }
+    
+  } catch (error) {
+    console.error('Error loading users:', error);
+    showUserMessage('error', 'Gagal memuat data user: ' + error.message);
+  } finally {
+    if (loading) loading.style.display = 'none';
+  }
+}
+
+// Fungsi untuk mengambil data user dari server
+function getUsersFromServer() {
+  return new Promise((resolve) => {
+    const callbackName = 'usersCallback_' + Date.now();
+    
+    window[callbackName] = function(data) {
+      console.log('Users data response:', data);
+      
+      if (data.success && data.users) {
+        resolve(data.users);
+      } else {
+        console.error('Failed to get users:', data.message);
+        resolve([]);
+      }
+      
+      delete window[callbackName];
+      const script = document.getElementById('usersScript');
+      if (script) script.remove();
+    };
+    
+    const url = APPS_SCRIPT_URL + 
+      '?action=getUsers&callback=' + callbackName;
+    
+    console.log('Fetching users from:', url);
+    
+    const script = document.createElement('script');
+    script.id = 'usersScript';
+    script.src = url;
+    
+    document.body.appendChild(script);
+  });
+}
+
+// Fungsi ketika user dipilih dari dropdown
+function loadSelectedUser() {
+  const dropdown = document.getElementById('userSelectDropdown');
+  const editForm = document.getElementById('userEditForm');
+  const currentUserInfo = document.getElementById('currentUserInfo');
+  const selectedOption = dropdown.options[dropdown.selectedIndex];
+  
+  if (!dropdown.value) {
+    editForm.style.display = 'none';
+    return;
+  }
+  
+  // Tampilkan form edit
+  editForm.style.display = 'block';
+  
+  // Isi info user
+  const role = dropdown.value;
+  const displayName = selectedOption.getAttribute('data-displayname') || role;
+  
+  currentUserInfo.textContent = `${role} - ${displayName}`;
+  
+  // Isi field form
+  document.getElementById('editDisplayName').value = displayName;
+  document.getElementById('editPassword').value = '';
+  document.getElementById('editPasswordConfirm').value = '';
+  
+  // Reset status message
+  const statusDiv = document.getElementById('userUpdateStatus');
+  statusDiv.style.display = 'none';
+  statusDiv.className = '';
+  statusDiv.innerHTML = '';
+}
+
+// Fungsi untuk menyimpan perubahan user
+async function saveUserChanges() {
+  const dropdown = document.getElementById('userSelectDropdown');
+  const displayNameInput = document.getElementById('editDisplayName');
+  const passwordInput = document.getElementById('editPassword');
+  const confirmInput = document.getElementById('editPasswordConfirm');
+  const statusDiv = document.getElementById('userUpdateStatus');
+  const saveBtn = document.getElementById('btnSaveUser');
+  
+  if (!dropdown.value) {
+    showUserMessage('error', 'Pilih user terlebih dahulu');
+    return;
+  }
+  
+  const role = dropdown.value;
+  const newDisplayName = displayNameInput.value.trim();
+  const newPassword = passwordInput.value.trim();
+  const confirmPassword = confirmInput.value.trim();
+  
+  // Validasi
+  if (!newDisplayName) {
+    showUserMessage('error', 'Display name tidak boleh kosong');
+    return;
+  }
+  
+  if (newPassword && newPassword !== confirmPassword) {
+    showUserMessage('error', 'Password dan konfirmasi password tidak sama');
+    return;
+  }
+  
+  // Tampilkan loading
+  if (saveBtn) {
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    saveBtn.disabled = true;
+  }
+  
+  try {
+    const result = await updateUserOnServer(role, newDisplayName, newPassword);
+    
+    if (result.success) {
+      showUserMessage('success', result.message);
+      
+      // Update dropdown display name
+      const selectedOption = dropdown.options[dropdown.selectedIndex];
+      selectedOption.textContent = `${role} - ${newDisplayName}`;
+      selectedOption.setAttribute('data-displayname', newDisplayName);
+      
+      // Update current user info
+      document.getElementById('currentUserInfo').textContent = `${role} - ${newDisplayName}`;
+      
+      // Jika admin mengubah display name sendiri, update UI
+      if (currentRole === 'admin' && role === 'admin') {
+        updateDashboardTitle('admin', newDisplayName);
+      }
+      
+      // Reset password fields
+      passwordInput.value = '';
+      confirmInput.value = '';
+      
+      console.log('User updated successfully:', result);
+    } else {
+      showUserMessage('error', result.message || 'Gagal mengupdate user');
+    }
+    
+  } catch (error) {
+    console.error('Error saving user:', error);
+    showUserMessage('error', 'Gagal menyimpan: ' + error.message);
+  } finally {
+    // Restore button
+    if (saveBtn) {
+      saveBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
+      saveBtn.disabled = false;
+    }
+  }
+}
+
+// Fungsi untuk update user di server
+function updateUserOnServer(role, displayName, password) {
+  return new Promise((resolve) => {
+    const callbackName = 'updateUserCallback_' + Date.now();
+    
+    window[callbackName] = function(data) {
+      console.log('Update user response:', data);
+      resolve(data);
+      
+      delete window[callbackName];
+      const script = document.getElementById('updateUserScript');
+      if (script) script.remove();
+    };
+    
+    const url = APPS_SCRIPT_URL + 
+      '?action=updateUser&role=' + encodeURIComponent(role) + 
+      '&displayName=' + encodeURIComponent(displayName) + 
+      '&password=' + encodeURIComponent(password) + 
+      '&callback=' + callbackName;
+    
+    console.log('Updating user via:', url);
+    
+    const script = document.createElement('script');
+    script.id = 'updateUserScript';
+    script.src = url;
+    
+    document.body.appendChild(script);
+  });
+}
+
+// Fungsi untuk menampilkan pesan di form user
+function showUserMessage(type, message) {
+  const statusDiv = document.getElementById('userUpdateStatus');
+  if (!statusDiv) return;
+  
+  statusDiv.innerHTML = `
+    <div style="display:flex; align-items:center; gap:10px;">
+      <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" 
+         style="color: ${type === 'success' ? '#10b981' : '#f43f5e'}; font-size: 1.2rem;"></i>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  statusDiv.style.display = 'block';
+  statusDiv.className = '';
+  statusDiv.style.padding = '12px';
+  statusDiv.style.borderRadius = '8px';
+  statusDiv.style.backgroundColor = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)';
+  statusDiv.style.color = type === 'success' ? '#10b981' : '#f43f5e';
+  statusDiv.style.border = `1px solid ${type === 'success' ? '#10b981' : '#f43f5e'}`;
+  
+  // Auto hide setelah 5 detik untuk success message
+  if (type === 'success') {
+    setTimeout(() => {
+      statusDiv.style.display = 'none';
+    }, 5000);
+  }
+}
+
+// Fungsi untuk reset form user
+function resetUserForm() {
+  const dropdown = document.getElementById('userSelectDropdown');
+  dropdown.selectedIndex = 0;
+  
+  document.getElementById('userEditForm').style.display = 'none';
+  document.getElementById('editDisplayName').value = '';
+  document.getElementById('editPassword').value = '';
+  document.getElementById('editPasswordConfirm').value = '';
+  
+  const statusDiv = document.getElementById('userUpdateStatus');
+  statusDiv.style.display = 'none';
+}
 
 // ========== PROGRESS CALCULATION ==========
 function updateProgress(pageId) {
@@ -105,8 +368,6 @@ function updateDashboardTitle(role, displayName) {
       console.log('After update:', titleElement.textContent);
     } else {
       console.error('❌ Tidak ditemukan elemen h2 di page:', role + 'Page');
-      // Debug: cek struktur HTML
-      console.log('HTML structure:', pageElement.innerHTML.substring(0, 500));
     }
   }
 }
@@ -207,6 +468,13 @@ function showPage(role) {
     
     // Trigger initial progress calc
     updateProgress(role + 'Page');
+    
+    // Jika role admin, load user data untuk management
+    if (role === 'admin') {
+      setTimeout(() => {
+        loadUsersForAdmin();
+      }, 500);
+    }
   }
 }
 
@@ -325,6 +593,11 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       const targetContent = document.getElementById('tab-' + tabId);
       if (targetContent) targetContent.style.display = 'block';
+      
+      // Jika pindah ke tab users, load user data
+      if (tabId === 'users') {
+        loadUsersForAdmin();
+      }
     }
   });
 
@@ -375,6 +648,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 1500);
     }
   });
+  
+  // Save User button listener
+  document.addEventListener('click', function(e) {
+    if (e.target.id === 'btnSaveUser' || e.target.closest('#btnSaveUser')) {
+      saveUserChanges();
+    }
+  });
 });
 
 // ========== DEBUG FUNCTIONS ==========
@@ -416,42 +696,24 @@ window.checkTitleElement = function(role = 'user1') {
   }
 };
 
-function verifyLogin(role, password) {
-  return new Promise((resolve) => {
-    const callbackName = 'loginCallback_' + Date.now();
-    
-    window[callbackName] = function(data) {
-      console.log('=== LOGIN RESPONSE ===');
-      console.log('Full response:', data);
-      console.log('Success:', data.success);
-      console.log('Display Name:', data.displayName);
-      console.log('Message:', data.message);
-      console.log('======================');
-      
-      resolve(data);
-      delete window[callbackName];
-      
-      const script = document.getElementById('loginScript');
-      if (script) script.remove();
-    };
-    
-    const url = APPS_SCRIPT_URL + 
-      '?role=' + encodeURIComponent(role) + 
-      '&password=' + encodeURIComponent(password) + 
-      '&callback=' + callbackName;
-    
-    console.log('=== CALLING APPS SCRIPT ===');
-    console.log('URL:', url);
-    
-    const script = document.createElement('script');
-    script.id = 'loginScript';
-    script.src = url;
-    
-    document.body.appendChild(script);
-  });
-}
-
 window.clearAll = function() {
   sessionStorage.clear();
   location.reload();
+};
+
+window.testUserManagement = function() {
+  console.log('Testing user management...');
+  loadUsersForAdmin();
+};
+
+window.updateUserTest = function() {
+  const testData = {
+    role: 'user1',
+    displayName: 'Test User Updated',
+    password: 'newpassword123'
+  };
+  
+  updateUserOnServer(testData.role, testData.displayName, testData.password)
+    .then(result => console.log('Update result:', result))
+    .catch(error => console.error('Update error:', error));
 };
