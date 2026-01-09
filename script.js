@@ -39,6 +39,10 @@ function verifyLogin(role, password) {
 }
 
 // ========== LOGIN HANDLER ==========
+// script.js - UPDATE DASHBOARD TITLE
+// ... (kode sebelumnya sama) ...
+
+// ========== LOGIN HANDLER ==========
 async function handleLogin() {
   const modal = document.getElementById('passwordModal');
   const passwordInput = document.getElementById('passwordInput');
@@ -69,10 +73,13 @@ async function handleLogin() {
       // Gunakan displayName dari server, atau default
       const displayName = result.displayName || defaultDisplayNames[currentRole];
       
-      // Update semua button dengan role yang sama
+      // 1. Update role button text
       document.querySelectorAll(`[data-role="${currentRole}"] h3`).forEach(el => {
         el.textContent = displayName;
       });
+      
+      // 2. Update dashboard title
+      updateDashboardTitle(currentRole, displayName);
       
       // Simpan session
       sessionStorage.setItem('loggedRole', currentRole);
@@ -98,6 +105,101 @@ async function handleLogin() {
     }
   }
 }
+
+// ========== UPDATE DASHBOARD TITLE ==========
+function updateDashboardTitle(role, displayName) {
+  // Cari halaman dashboard berdasarkan role
+  const pageElement = document.getElementById(role + 'Page');
+  
+  if (pageElement) {
+    // Cari elemen title di dalam page
+    // Sesuaikan selector dengan HTML Anda
+    const selectors = [
+      '.page-title h2',
+      '.dashboard-title',
+      '.welcome-title',
+      'h1.page-title',
+      '.page-header h2'
+    ];
+    
+    for (const selector of selectors) {
+      const titleElement = pageElement.querySelector(selector);
+      if (titleElement) {
+        // Update text menjadi "Selamat datang Pak [displayName]"
+        titleElement.textContent = `Selamat datang Pak ${displayName}`;
+        break;
+      }
+    }
+    
+    // Jika tidak ditemukan dengan selector, coba ubah semua h2 di page
+    const allH2 = pageElement.querySelectorAll('h2');
+    if (allH2.length > 0) {
+      // Ambil h2 pertama sebagai title
+      allH2[0].textContent = `Selamat datang Pak ${displayName}`;
+    }
+  }
+}
+
+// ========== SHOW PAGE dengan update title ==========
+function showPage(role) {
+  // Hide all pages
+  document.querySelectorAll('.page-content').forEach(page => {
+    page.style.display = 'none';
+  });
+  
+  // Hide main container
+  document.querySelectorAll('.section-container').forEach(container => {
+    container.style.display = 'none';
+  });
+  
+  // Show selected page
+  const pageElement = document.getElementById(role + 'Page');
+  if (pageElement) {
+    pageElement.style.display = 'block';
+    
+    // Update title juga saat show page (untuk session restore)
+    const savedName = sessionStorage.getItem('loggedDisplayName');
+    if (savedName) {
+      updateDashboardTitle(role, savedName);
+    }
+  }
+}
+
+// ========== EVENT LISTENERS - tambah restore dashboard title ==========
+document.addEventListener('DOMContentLoaded', function() {
+  // ... (kode sebelumnya sama) ...
+  
+  // Check saved session
+  const savedRole = sessionStorage.getItem('loggedRole');
+  const savedName = sessionStorage.getItem('loggedDisplayName');
+  
+  if (savedRole && savedName) {
+    // Auto login dengan session
+    document.querySelectorAll(`[data-role="${savedRole}"] h3`).forEach(el => {
+      el.textContent = savedName;
+    });
+    
+    // Update dashboard title juga
+    updateDashboardTitle(savedRole, savedName);
+    
+    showPage(savedRole);
+  }
+  
+  // ... (kode selanjutnya sama) ...
+});
+
+// ========== DEBUG: Tambah fungsi untuk test dashboard title ==========
+window.updateAllTitles = function() {
+  const savedRole = sessionStorage.getItem('loggedRole');
+  const savedName = sessionStorage.getItem('loggedDisplayName');
+  
+  if (savedRole && savedName) {
+    updateDashboardTitle(savedRole, savedName);
+    console.log('Titles updated for:', savedName);
+  } else {
+    console.log('No session found');
+  }
+};
 
 // ========== PAGE FUNCTIONS ==========
 function showPage(role) {
