@@ -44,16 +44,62 @@
       <div class="section-container">
         <h2 class="section-title">Manager & Admin</h2>
         <div class="role-selector manager-set" id="managerSelector">
-          <button class="role-btn manager" data-role="manager" type="button" aria-label="Login sebagai Manager">
+          <button class="role-btn manager" data-role="manager" type="button" aria-label="Login sebagai MANAGEMENT">
             <i class="fas fa-user-tie"></i>
-            <h3>Manager</h3>
-            <span class="badge">Manajer Proyek</span>
+            <h3>MANAGEMENT</h3>
+            <span class="badge">Management Property</span>
           </button>
           <button class="role-btn admin" data-role="admin" type="button" aria-label="Login sebagai Admin">
             <i class="fas fa-user-secret"></i>
             <h3>Admin</h3>
             <span class="badge">Administrator Sistem</span>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: manager -->
+    <div class="page-content manager-page" id="managerPage" aria-hidden="true">
+      <div class="page-header">
+        <div class="page-title">
+          <i class="fas fa-user-tie"></i>
+          <h2>Management Property</h2>
+        </div>
+        <div style="display:flex; gap:25px; align-items:center;">
+          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
+            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu & Logout
+          </button>
+          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #22c55e, #10b981); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700; margin-left: 10px;">
+            <i class="fas fa-sync-alt"></i> Sinkronisasi Data
+          </button>
+        </div>
+      </div>
+
+      <div class="page-layout">
+        <div class="sidebar-kavling">
+          <div class="search-section">
+            <div class="search-box">
+              <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavlingManager" class="search-input-large" aria-label="Cari Blok atau Kavling">
+              <button class="btn-search" type="button"><i class="fas fa-search"></i></button>
+            </div>
+            
+            <div class="kavling-info-display" id="kavlingInfoManager">
+              <div class="info-item">
+                <span class="info-label">Blok/Kavling:</span>
+                <span class="info-value val-name">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Tipe:</span>
+                <span class="info-value val-type">-</span>
+              </div>
+            </div>
+
+            <div class="notes-section" style="margin-top: 20px;">
+              <h3 style="margin-bottom: 10px; color: #38bdf8;">Catatan Kondisi Property</h3>
+              <textarea id="propertyNotesManager" style="width: 100%; height: 150px; padding: 15px; border-radius: 12px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: none;" placeholder="Masukkan catatan kondisi property di sini..."></textarea>
+              <button class="btn-save-section" type="button" style="margin-top: 10px;"><i class="fas fa-save"></i> Simpan Catatan</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -79,10 +125,12 @@
           <i class="fas fa-hard-hat"></i>
           <h2>Dashboard Pelaksana 1</h2>
         </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <button class="back-btn" type="button"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
-          <button class="logout-btn" type="button" style="background:#ef4444; padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
-            <i class="fas fa-sign-out-alt"></i> Logout
+        <div style="display:flex; gap:25px; align-items:center;">
+          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
+            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu & Logout
+          </button>
+          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #22c55e, #10b981); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700; margin-left: 10px;">
+            <i class="fas fa-sync-alt"></i> Sinkronisasi Data
           </button>
         </div>
       </div>
@@ -103,19 +151,9 @@
                 <span class="info-label">Tipe:</span>
                 <span class="info-value val-type">-</span>
               </div>
-              <div class="info-item">
-                <span class="info-label">Progres:</span>
-                <span class="info-value val-progress">0%</span>
-              </div>
             </div>
 
-            <div class="kavling-list" role="list" aria-label="Daftar kavling">
-              <div class="kavling-item" data-type="Tipe A" role="listitem">Blok A1</div>
-              <div class="kavling-item" data-type="Tipe B" role="listitem">Blok A2</div>
-              <div class="kavling-item" data-type="Tipe A" role="listitem">Blok B1</div>
-              <div class="kavling-item" data-type="Tipe C" role="listitem">Blok C1</div>
-              <div class="kavling-item" data-type="Tipe B" role="listitem">Blok D1</div>
-            </div>
+            <!-- kavling list removed -->
           </div>
         </div>
 
@@ -203,10 +241,12 @@
           <i class="fas fa-hard-hat"></i>
           <h2>Dashboard Pelaksana 2</h2>
         </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <button class="back-btn" type="button"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
-          <button class="logout-btn" type="button" style="background:#ef4444; padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
-            <i class="fas fa-sign-out-alt"></i> Logout
+        <div style="display:flex; gap:25px; align-items:center;">
+          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
+            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu & Logout
+          </button>
+          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #22c55e, #10b981); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700; margin-left: 10px;">
+            <i class="fas fa-sync-alt"></i> Sinkronisasi Data
           </button>
         </div>
       </div>
@@ -227,18 +267,9 @@
                 <span class="info-label">Tipe:</span>
                 <span class="info-value val-type">-</span>
               </div>
-              <div class="info-item">
-                <span class="info-label">Progres:</span>
-                <span class="info-value val-progress">0%</span>
-              </div>
             </div>
 
-            <div class="kavling-list" role="list" aria-label="Daftar kavling">
-              <div class="kavling-item" data-type="Tipe A" role="listitem">Blok E1</div>
-              <div class="kavling-item" data-type="Tipe B" role="listitem">Blok E2</div>
-              <div class="kavling-item" data-type="Tipe A" role="listitem">Blok F1</div>
-              <div class="kavling-item" data-type="Tipe C" role="listitem">Blok G1</div>
-            </div>
+            <!-- kavling list removed -->
           </div>
         </div>
 
@@ -324,10 +355,12 @@
           <i class="fas fa-hard-hat"></i>
           <h2>Dashboard Pelaksana 3</h2>
         </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <button class="back-btn" type="button"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
-          <button class="logout-btn" type="button" style="background:#ef4444; padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
-            <i class="fas fa-sign-out-alt"></i> Logout
+        <div style="display:flex; gap:25px; align-items:center;">
+          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
+            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu & Logout
+          </button>
+          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #22c55e, #10b981); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700; margin-left: 10px;">
+            <i class="fas fa-sync-alt"></i> Sinkronisasi Data
           </button>
         </div>
       </div>
@@ -348,17 +381,9 @@
                 <span class="info-label">Tipe:</span>
                 <span class="info-value val-type">-</span>
               </div>
-              <div class="info-item">
-                <span class="info-label">Progres:</span>
-                <span class="info-value val-progress">0%</span>
-              </div>
             </div>
 
-            <div class="kavling-list" role="list" aria-label="Daftar kavling">
-              <div class="kavling-item" data-type="Tipe A" role="listitem">Blok H1</div>
-              <div class="kavling-item" data-type="Tipe B" role="listitem">Blok H2</div>
-              <div class="kavling-item" data-type="Tipe C" role="listitem">Blok I1</div>
-            </div>
+            <!-- kavling list removed -->
           </div>
         </div>
 
@@ -444,10 +469,12 @@
           <i class="fas fa-hard-hat"></i>
           <h2>Dashboard Pelaksana 4</h2>
         </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <button class="back-btn" type="button"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
-          <button class="logout-btn" type="button" style="background:#ef4444; padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
-            <i class="fas fa-sign-out-alt"></i> Logout
+        <div style="display:flex; gap:25px; align-items:center;">
+          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
+            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu & Logout
+          </button>
+          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #22c55e, #10b981); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700; margin-left: 10px;">
+            <i class="fas fa-sync-alt"></i> Sinkronisasi Data
           </button>
         </div>
       </div>
@@ -468,17 +495,9 @@
                 <span class="info-label">Tipe:</span>
                 <span class="info-value val-type">-</span>
               </div>
-              <div class="info-item">
-                <span class="info-label">Progres:</span>
-                <span class="info-value val-progress">0%</span>
-              </div>
             </div>
 
-            <div class="kavling-list" role="list" aria-label="Daftar kavling">
-              <div class="kavling-item" data-type="Tipe A" role="listitem">Blok J1</div>
-              <div class="kavling-item" data-type="Tipe B" role="listitem">Blok J2</div>
-              <div class="kavling-item" data-type="Tipe C" role="listitem">Blok K1</div>
-            </div>
+            <!-- kavling list removed -->
           </div>
         </div>
 
@@ -564,10 +583,12 @@
           <i class="fas fa-user-tie"></i>
           <h2>Dashboard Manager</h2>
         </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <button class="back-btn" type="button"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
-          <button class="logout-btn" type="button" style="background:#ef4444; padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
-            <i class="fas fa-sign-out-alt"></i> Logout
+        <div style="display:flex; gap:25px; align-items:center;">
+          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
+            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu & Logout
+          </button>
+          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #22c55e, #10b981); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700; margin-left: 10px;">
+            <i class="fas fa-sync-alt"></i> Sinkronisasi Data
           </button>
         </div>
       </div>
@@ -599,30 +620,128 @@
       <div class="page-header">
         <div class="page-title">
           <i class="fas fa-user-secret"></i>
-          <h2>Dashboard Admin</h2>
+          <h2>Panel Administrator</h2>
         </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <button class="back-btn" type="button"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
-          <button class="logout-btn" type="button" style="background:#ef4444; padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
-            <i class="fas fa-sign-out-alt"></i> Logout
+        <div style="display:flex; gap:25px; align-items:center;">
+          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700;">
+            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu & Logout
+          </button>
+          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #22c55e, #10b981); padding:10px 14px; border-radius:10px; color:white; border:none; font-weight:700; margin-left: 10px;">
+            <i class="fas fa-sync-alt"></i> Sinkronisasi Data
           </button>
         </div>
       </div>
 
-      <div class="page-layout">
-        <div class="page-body">
-          <div class="overall-rekap">
-            <div class="rekap-header">
-              <h3>Panel Admin</h3>
-              <span class="total-percent" aria-live="polite">0%</span>
-            </div>
-            <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
-          </div>
+      <!-- Admin Tabs -->
+      <div class="admin-tabs" style="display:flex; gap:10px; margin-bottom:20px; border-bottom: 2px solid #334155;">
+        <button class="admin-tab-btn active" data-tab="export" style="padding:10px 20px; background:none; border:none; color:white; cursor:pointer; font-weight:bold; border-bottom: 3px solid #38bdf8; transition: all 0.3s ease;">Search & Export</button>
+        <button class="admin-tab-btn" data-tab="users" style="padding:10px 20px; background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:bold; border-bottom: 3px solid transparent; transition: all 0.3s ease;">User Management</button>
+      </div>
 
-          <div class="verification-card">
-            <h3>Pengaturan Sistem</h3>
-            <p class="status-note">Akses admin: kelola pengguna, lihat log, dan konfigurasi.</p>
-            <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Pengaturan</button>
+      <!-- Tab Content: Export -->
+      <div id="tab-export" class="tab-content-item">
+        <div class="filter-section" style="background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155;">
+          <h3 style="margin-bottom:15px; color:#38bdf8; font-size: 1.1rem;"><i class="fas fa-filter"></i> Filter Progress Kavling</h3>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:15px;">
+            <select id="progressFilter" style="padding:12px; border-radius:8px; background:#0f172a; color:white; border:1px solid #334155; font-size: 0.95rem;">
+              <option value="all">Semua Status</option>
+              <option value="90-100">Selesai (90-100%)</option>
+              <option value="50-89">Progres (50-89%)</option>
+              <option value="10-49">Awal (10-49%)</option>
+              <option value="0-9">Belum Mulai (0-9%)</option>
+            </select>
+            <button class="btn-search" style="padding:12px; border-radius:8px; background:#38bdf8; color:white; border:none; cursor:pointer; font-weight:bold; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i class="fas fa-search"></i> Tampilkan Data
+            </button>
+            <button class="btn-export" style="padding:12px; border-radius:8px; background:#22c55e; color:white; border:none; cursor:pointer; font-weight:bold; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i class="fas fa-file-export"></i> Excel
+            </button>
+          </div>
+        </div>
+        
+        <div style="background: #1e293b; padding: 20px; border-radius: 12px; overflow-x: auto; border: 1px solid #334155;">
+          <table style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+            <thead>
+              <tr style="border-bottom: 2px solid #334155; color: #38bdf8;">
+                <th style="padding:15px;">Blok/Kavling</th>
+                <th style="padding:15px;">Progress (%)</th>
+                <th style="padding:15px;">Status</th>
+                <th style="padding:15px;">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody id="adminDataTable">
+              <tr>
+                <td colspan="4" style="padding:40px; text-align:center; color:#94a3b8;">
+                  <i class="fas fa-table" style="font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.5;"></i>
+                  Klik 'Tampilkan Data' untuk memuat list dari database
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Content: User Management -->
+      <div id="tab-users" class="tab-content-item" style="display:none;">
+        <div style="background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+          <h3 style="margin-bottom:20px; color:#38bdf8; font-size: 1.1rem;"><i class="fas fa-users-cog"></i> Pengaturan User & Password</h3>
+          <div id="userListAdmin" style="display:flex; flex-direction:column; gap:20px;">
+            <!-- User Item: Pelaksana 1 -->
+            <div style="display:flex; flex-direction:column; gap:12px; padding:20px; background:#0f172a; border-radius:12px; border:1px solid #334155;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom: 5px;">
+                <i class="fas fa-hard-hat" style="color:#38bdf8; font-size: 1.2rem;"></i>
+                <span style="font-weight:bold; font-size: 1.1rem;">Pelaksana 1</span>
+              </div>
+              <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                  <label style="font-size: 0.8rem; color: #94a3b8;">Username</label>
+                  <input type="text" placeholder="Username" value="user1" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
+                </div>
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                  <label style="font-size: 0.8rem; color: #94a3b8;">Password Baru</label>
+                  <input type="password" placeholder="Masukkan password baru" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
+                </div>
+              </div>
+              <button class="btn-update-user" style="padding:12px; background: linear-gradient(135deg, #38bdf8, #818cf8); color:white; border:none; border-radius:8px; cursor:pointer; font-weight: bold; margin-top: 5px;"><i class="fas fa-save"></i> Update Pelaksana 1</button>
+            </div>
+            
+            <!-- User Item: MANAGEMENT -->
+            <div style="display:flex; flex-direction:column; gap:12px; padding:20px; background:#0f172a; border-radius:12px; border:1px solid #334155;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom: 5px;">
+                <i class="fas fa-user-tie" style="color:#38bdf8; font-size: 1.2rem;"></i>
+                <span style="font-weight:bold; font-size: 1.1rem;">MANAGEMENT</span>
+              </div>
+              <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                  <label style="font-size: 0.8rem; color: #94a3b8;">Username</label>
+                  <input type="text" placeholder="Username" value="manager" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
+                </div>
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                  <label style="font-size: 0.8rem; color: #94a3b8;">Password Baru</label>
+                  <input type="password" placeholder="Masukkan password baru" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
+                </div>
+              </div>
+              <button class="btn-update-user" style="padding:12px; background: linear-gradient(135deg, #38bdf8, #818cf8); color:white; border:none; border-radius:8px; cursor:pointer; font-weight: bold; margin-top: 5px;"><i class="fas fa-save"></i> Update MANAGEMENT</button>
+            </div>
+            
+            <!-- User Item: Admin -->
+            <div style="display:flex; flex-direction:column; gap:12px; padding:20px; background:#0f172a; border-radius:12px; border:1px solid #334155;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom: 5px;">
+                <i class="fas fa-user-shield" style="color:#38bdf8; font-size: 1.2rem;"></i>
+                <span style="font-weight:bold; font-size: 1.1rem;">Admin</span>
+              </div>
+              <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                  <label style="font-size: 0.8rem; color: #94a3b8;">Username</label>
+                  <input type="text" placeholder="Username" value="admin" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
+                </div>
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                  <label style="font-size: 0.8rem; color: #94a3b8;">Password Baru</label>
+                  <input type="password" placeholder="Masukkan password baru" class="admin-input" style="padding:12px; border-radius:8px; background:#1e293b; color:white; border:1px solid #334155; width: 100%;">
+                </div>
+              </div>
+              <button class="btn-update-user" style="padding:12px; background: linear-gradient(135deg, #38bdf8, #818cf8); color:white; border:none; border-radius:8px; cursor:pointer; font-weight: bold; margin-top: 5px;"><i class="fas fa-save"></i> Update Admin</button>
+            </div>
           </div>
         </div>
       </div>
