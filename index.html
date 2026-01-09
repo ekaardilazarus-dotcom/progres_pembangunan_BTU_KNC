@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Progres Pembangunan BTU KNC</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
@@ -53,6 +53,18 @@
         </div>
       </div>
 
+    <!-- Password Modal -->
+    <div id="passwordModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Verifikasi Akses</h2>
+        <p>Silakan masukkan password untuk mengakses halaman ini.</p>
+        <input type="password" id="passwordInput" placeholder="Masukkan Password">
+        <div id="errorMessage" style="color: #f43f5e; margin-bottom: 15px; font-weight: 600;"></div>
+        <button id="submitPassword">Masuk</button>
+      </div>
+    </div>
+
       <!-- Halaman Pelaksana Lapangan 1 -->
       <div class="page-content user1-page" id="user1Page">
         <div class="page-header">
@@ -86,9 +98,6 @@
               </div>
             </div>
             <div class="kavling-list">
-              <div class="kavling-item" data-type="Tipe 36/72">Blok A - 01</div>
-              <div class="kavling-item" data-type="Tipe 45/90">Blok A - 02</div>
-              <div class="kavling-item" data-type="Tipe 36/72">Blok B - 05</div>
             </div>
           </div>
           
@@ -556,6 +565,6 @@
     </div>
   </div>
 
-  <script src="main.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
