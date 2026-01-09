@@ -55,37 +55,63 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.role-btn').forEach(button => {
     button.addEventListener('click', function () {
       currentRole = this.getAttribute('data-role');
-      if (modal) {
-        modal.style.display = 'flex';
-        if (input) {
-          input.value = '';
-          input.focus();
+      const passwordModal = document.getElementById('passwordModal');
+      const passwordInput = document.getElementById('passwordInput');
+      const errorMessage = document.getElementById('errorMessage');
+
+      if (passwordModal) {
+        passwordModal.style.display = 'flex';
+        console.log("Opening modal for role:", currentRole);
+        if (passwordInput) {
+          passwordInput.value = '';
+          passwordInput.focus();
         }
-        if (errorMsg) errorMsg.textContent = '';
+        if (errorMessage) errorMessage.textContent = '';
       }
     });
   });
 
   // Submit password
-  if (submitBtn) {
-    submitBtn.addEventListener('click', function () {
-      if (input && input.value === passwords[currentRole]) {
-        if (modal) modal.style.display = 'none';
+  const submitPassword = document.getElementById('submitPassword');
+  if (submitPassword) {
+    submitPassword.addEventListener('click', function () {
+      const passwordInput = document.getElementById('passwordInput');
+      const errorMessage = document.getElementById('errorMessage');
+      const passwordModal = document.getElementById('passwordModal');
+
+      console.log("Submitting password for role:", currentRole);
+      if (passwordInput && passwordInput.value === passwords[currentRole]) {
+        if (passwordModal) passwordModal.style.display = 'none';
         showPage(currentRole);
-      } else if (errorMsg) {
-        errorMsg.textContent = "Password salah!";
+      } else if (errorMessage) {
+        errorMessage.textContent = "Password salah!";
+      }
+    });
+  }
+
+  // Allow enter key to submit
+  const passwordInput = document.getElementById('passwordInput');
+  if (passwordInput) {
+    passwordInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        submitPassword.click();
       }
     });
   }
 
   // Tutup modal
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      if (modal) modal.style.display = 'none';
+  document.querySelectorAll('.close-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const passwordModal = document.getElementById('passwordModal');
+      if (passwordModal) passwordModal.style.display = 'none';
     });
-  }
+  });
+
   window.addEventListener('click', e => {
-    if (modal && e.target === modal) modal.style.display = 'none';
+    const passwordModal = document.getElementById('passwordModal');
+    if (passwordModal && e.target === passwordModal) {
+      passwordModal.style.display = 'none';
+    }
   });
 
   // Tombol kembali
@@ -118,7 +144,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const mainBar = page.querySelector('.total-bar');
     const mainLabel = page.querySelector('.total-percent');
     
-    if (mainBar) mainBar.style.width = overallPercent + '%';
+    if (mainBar) {
+      console.log("Updating main bar for", page.id, "to", overallPercent + "%");
+      mainBar.style.width = overallPercent + '%';
+    }
     if (mainLabel) mainLabel.textContent = overallPercent + '%';
 
     // Update Info Display
