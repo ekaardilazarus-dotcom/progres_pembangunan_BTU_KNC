@@ -33,6 +33,10 @@
             <i class="fas fa-hard-hat"></i>
             <h3>Pelaksana 3</h3>
           </div>
+          <div class="role-btn user4" data-role="user4">
+            <i class="fas fa-hard-hat"></i>
+            <h3>Pelaksana 4</h3>
+          </div>
         </div>
       </div>
 
@@ -91,13 +95,7 @@
                   <span class="info-label">Tipe:</span>
                   <span class="info-value val-type">-</span>
                 </div>
-                <div class="info-item">
-                  <span class="info-label">Progres:</span>
-                  <span class="info-value val-progress">0%</span>
-                </div>
               </div>
-            </div>
-            <div class="kavling-list">
             </div>
           </div>
           
@@ -206,16 +204,7 @@
                   <span class="info-label">Tipe:</span>
                   <span class="info-value val-type">-</span>
                 </div>
-                <div class="info-item">
-                  <span class="info-label">Progres:</span>
-                  <span class="info-value val-progress">0%</span>
-                </div>
               </div>
-            </div>
-            <div class="kavling-list">
-              <div class="kavling-item" data-type="Tipe 36/72">Blok C - 01</div>
-              <div class="kavling-item" data-type="Tipe 36/72">Blok C - 02</div>
-              <div class="kavling-item" data-type="Tipe 45/90">Blok D - 05</div>
             </div>
           </div>
           
@@ -324,16 +313,116 @@
                   <span class="info-label">Tipe:</span>
                   <span class="info-value val-type">-</span>
                 </div>
-                <div class="info-item">
-                  <span class="info-label">Progres:</span>
-                  <span class="info-value val-progress">0%</span>
-                </div>
               </div>
             </div>
-            <div class="kavling-list">
-              <div class="kavling-item" data-type="Tipe 36/72">Blok E - 01</div>
-              <div class="kavling-item" data-type="Tipe 36/72">Blok E - 02</div>
-              <div class="kavling-item" data-type="Tipe 45/90">Blok F - 05</div>
+          </div>
+          
+          <!-- Dashboard Kanan -->
+          <div class="page-body">
+            <!-- Rekap Keseluruhan -->
+            <div class="overall-rekap">
+              <div class="rekap-header">
+                <h3>Keseluruhan Progres Proyek</h3>
+                <span class="total-percent">0%</span>
+              </div>
+              <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
+            </div>
+
+            <!-- Tahap 1 -->
+            <div class="progress-section detailed" data-tahap="1">
+              <div class="section-header-flex">
+                <h3>Tahap 1: Struktur & Infrastruktur</h3>
+                <span class="sub-percent">0%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill tahap1" style="width: 0%"></div></div>
+              <div class="sub-tasks-grid">
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Land Clearing</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pondasi & Sloof</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Canopy</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Ring Blok</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Conduit + Inbow Doos</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Kotor</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Bersih</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Biotank</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plester</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Acian & Benangan</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cor Meja Dapur</label>
+              </div>
+              <button class="btn-save-section"><i class="fas fa-save"></i> Simpan Tahap 1</button>
+            </div>
+
+            <!-- Tahap 2 -->
+            <div class="progress-section detailed" data-tahap="2">
+              <div class="section-header-flex">
+                <h3>Tahap 2: Atap, Dinding & Lantai</h3>
+                <span class="sub-percent">0%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill tahap2" style="width: 0%"></div></div>
+              <div class="sub-tasks-grid">
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Atap Galv</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Genteng</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plafond</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Dinding</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Toilet & Dapur</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Instalasi Listrik</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Lantai</label>
+              </div>
+              <button class="btn-save-section"><i class="fas fa-save"></i> Simpan Tahap 2</button>
+            </div>
+
+            <!-- Tahap 3 -->
+            <div class="progress-section detailed" data-tahap="3">
+              <div class="section-header-flex">
+                <h3>Tahap 3: Finishing & Serah Terima</h3>
+                <span class="sub-percent">0%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill tahap3" style="width: 0%"></div></div>
+              <div class="sub-tasks-grid">
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Kusen Pintu & Jend.</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Daun Pintu & Jend.</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Dasar + Lapis Awal</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Fitting Lampu</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Fixture & Saniter</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Finish Interior</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Finish Exterior</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Bak Kontrol & Batas CP</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Paving Halaman</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> General Cleaning</label>
+                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> COMPLETE</label>
+              </div>
+              <button class="btn-save-section"><i class="fas fa-save"></i> Simpan Tahap 3</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Halaman Pelaksana Lapangan 4 -->
+      <div class="page-content user4-page" id="user4Page">
+        <div class="page-header">
+          <div class="page-title">
+            <i class="fas fa-hard-hat"></i>
+            <h2>Dashboard Pelaksana Lapangan 4</h2>
+          </div>
+          <button class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Menu</button>
+        </div>
+        <div class="page-layout">
+          <!-- Sidebar Kiri: Pemilih Kavling -->
+          <div class="sidebar-kavling">
+            <div class="search-section">
+              <div class="search-box">
+                <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavling4" class="search-input-large">
+                <button class="btn-search"><i class="fas fa-search"></i></button>
+              </div>
+              <div class="kavling-info-display" id="kavlingInfo4">
+                <div class="info-item">
+                  <span class="info-label">Blok/Kavling:</span>
+                  <span class="info-value val-name">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Tipe:</span>
+                  <span class="info-value val-type">-</span>
+                </div>
+              </div>
             </div>
           </div>
           
