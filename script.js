@@ -370,48 +370,59 @@ function updateSearchDatalist(kavlings) {
 }
 
 async function searchKavling() {
-  console.log('=== searchKavling CALLED ===');
-  
-  const searchInput = document.getElementById('searchKavling1');
-  console.log('Search input found:', !!searchInput);
-  console.log('Search input value:', searchInput ? searchInput.value : 'null');
-  
-  if (!searchInput) {
-    showProgressMessage('error', 'Input pencarian tidak ditemukan');
-    return;
-  }
-  
-  const kavlingName = searchInput.value.trim();
-  
-  if (!kavlingName) {
-    showProgressMessage('error', 'Masukkan nama kavling');
-    return;
-  }
-  
-  console.log('Fetching data for:', kavlingName);
+  console.log('=== FUNGSI searchKavling DIPANGGIL ===');
   
   try {
+    const searchInput = document.getElementById('searchKavling1');
+    console.log('Input element:', searchInput);
+    
+    if (!searchInput) {
+      alert('ERROR: Input pencarian tidak ditemukan!');
+      return;
+    }
+    
+    const kavlingName = searchInput.value.trim();
+    console.log('Nama kavling:', kavlingName);
+    
+    if (!kavlingName) {
+      alert('Masukkan nama kavling terlebih dahulu!');
+      searchInput.focus();
+      return;
+    }
+    
+    // Tampilkan loading
+    showProgressMessage('info', 'Mengambil data...');
+    
+    // Panggil server
+    console.log('Memanggil server untuk:', kavlingName);
     const data = await getKavlingDataFromServer(kavlingName);
-    console.log('Server response:', data);
+    console.log('Response dari server:', data);
     
     if (data.success) {
+      // Simpan ke variabel global
       selectedKavling = kavlingName;
-      console.log('selectedKavling set to:', selectedKavling);
+      currentKavlingData = data;
       
-      // Update UI dengan data kavling
+      console.log('✅ selectedKavling di-set:', selectedKavling);
+      
+      // Update UI
       updateKavlingInfo(data);
-      
-      // Load progress data ke checkbox
       loadProgressData(data.data);
       
-      console.log('Kavling data loaded successfully:', data);
+      showProgressMessage('success', `Data ${kavlingName} berhasil dimuat!`);
+      
+      // Enable sync button
+      const syncBtn = document.querySelector('.sync-btn');
+      if (syncBtn) syncBtn.disabled = false;
+      
     } else {
+      console.error('Server error:', data.message);
       showProgressMessage('error', data.message || 'Kavling tidak ditemukan');
     }
     
   } catch (error) {
-    console.error('Error searching kavling:', error);
-    showProgressMessage('error', 'Gagal memuat data kavling');
+    console.error('Error dalam searchKavling:', error);
+    showProgressMessage('error', 'Gagal mengambil data: ' + error.message);
   }
 }
 
@@ -995,6 +1006,25 @@ function clearSession() {
 }
 
 // ========== EVENT LISTENERS ==========
+
+// 1. Tombol search dengan ID spesifik
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'searchButton1' || e.target.closest('#searchButton1')) {
+    console.log('🔍 Tombol Search 1 diklik!');
+    searchKavling();
+  }
+});
+
+// 2. Atau gunakan event listener langsung (lebih reliable)
+setTimeout(() => {
+  const searchBtn = document.getElementById('searchButton1');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', function() {
+      console.log('Tombol search diklik via direct event listener');
+      searchKavling();
+    });
+  }
+}, 1000);
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM loaded, initializing...');
   
