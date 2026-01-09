@@ -369,9 +369,18 @@ function updateSearchDatalist(kavlings) {
   searchInput.setAttribute('list', datalistId);
 }
 
-// Fungsi untuk mencari kavling
 async function searchKavling() {
+  console.log('=== searchKavling CALLED ===');
+  
   const searchInput = document.getElementById('searchKavling1');
+  console.log('Search input found:', !!searchInput);
+  console.log('Search input value:', searchInput ? searchInput.value : 'null');
+  
+  if (!searchInput) {
+    showProgressMessage('error', 'Input pencarian tidak ditemukan');
+    return;
+  }
+  
   const kavlingName = searchInput.value.trim();
   
   if (!kavlingName) {
@@ -379,14 +388,15 @@ async function searchKavling() {
     return;
   }
   
-  console.log('Searching for kavling:', kavlingName);
+  console.log('Fetching data for:', kavlingName);
   
   try {
     const data = await getKavlingDataFromServer(kavlingName);
+    console.log('Server response:', data);
     
     if (data.success) {
       selectedKavling = kavlingName;
-      currentKavlingData = data;
+      console.log('selectedKavling set to:', selectedKavling);
       
       // Update UI dengan data kavling
       updateKavlingInfo(data);
@@ -1121,39 +1131,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Sync button listener
   document.addEventListener('click', function(e) {
-    const btn = e.target.closest('.sync-btn');
-    if (btn) {
-      const originalContent = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Menyinkronkan...';
-      
-      if (selectedKavling) {
-        // Reload current kavling data
-        getKavlingDataFromServer(selectedKavling)
-          .then(data => {
-            if (data.success) {
-              currentKavlingData = data;
-              loadProgressData(data.data);
-              showProgressMessage('success', 'Data berhasil disinkronisasi');
-            }
-          })
-          .catch(error => {
-            console.error('Error syncing data:', error);
-            showProgressMessage('error', 'Gagal menyinkronkan data');
-          })
-          .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = originalContent;
-          });
-      } else {
-        showProgressMessage('info', 'Pilih kavling terlebih dahulu');
+  const btn = e.target.closest('.sync-btn');
+  if (btn) {
+    console.log('=== SYNC BUTTON CLICKED ===');
+    console.log('selectedKavling value:', selectedKavling);
+    console.log('currentKavlingData:', currentKavlingData);
+    
+    if (!selectedKavling) {
+      showProgressMessage('error', 'Pilih kavling terlebih dahulu dengan mencari di kolom pencarian');
+      return;
+    }
+    
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Menyinkronkan...';
+    
+    getKavlingDataFromServer(selectedKavling)
+      .then(data => {
+        if (data.success) {
+          currentKavlingData = data;
+          loadProgressData(data.data);
+          showProgressMessage('success', 'Data berhasil disinkronisasi');
+        } else {
+          showProgressMessage('error', data.message || 'Gagal memuat data');
+        }
+      })
+      .catch(error => {
+        console.error('Sync error:', error);
+        showProgressMessage('error', 'Gagal menyinkronkan: ' + error.message);
+      })
+      .finally(() => {
         btn.disabled = false;
         btn.innerHTML = originalContent;
-      }
-    }
-  });
+      });
+  }
+});
   
   // Save User button listener
   document.addEventListener('click', function(e) {
@@ -1165,9 +1178,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Search button for kavling
   document.addEventListener('click', function(e) {
     if (e.target.closest('.btn-search')) {
-      const searchBtn = e.target.closest('.btn-search');
-      const searchInput = searchBtn.previousElementSibling;
-      
+    const searchBtn = e.target.closest('.btn-search');
+    const searchBox = searchBtn.closest('.search-box');
+    const searchInput = searchBox.querySelector('input[type="text"]');
       if (searchInput && searchInput.id === 'searchKavling1') {
         searchKavling();
       }
@@ -1175,11 +1188,12 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Enter key in kavling search
-  document.addEventListener('keypress', function(e) {
-    if (e.target.id === 'searchKavling1' && e.key === 'Enter') {
-      searchKavling();
-    }
-  });
+ document.addEventListener('keypress', function(e) {
+  if (e.target.id === 'searchKavling1' && e.key === 'Enter') {
+    console.log('Enter pressed on search input');
+    searchKavling();
+  }
+});
   
   // Save tahap buttons
   document.addEventListener('click', function(e) {
