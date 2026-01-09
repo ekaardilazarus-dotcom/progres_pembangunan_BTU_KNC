@@ -20,17 +20,28 @@ function safeParseJSON(text) {
   try { return JSON.parse(text); } catch (e) { return null; }
 }
 
+// verifyRole: kirim form-encoded untuk menghindari preflight CORS
 async function verifyRole(role, password) {
   try {
+    const body = new URLSearchParams();
+    body.append('role', role);
+    body.append('password', password);
+
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role, password })
+      headers: {
+        // gunakan form urlencoded agar request dianggap "simple" dan tidak memicu preflight
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+      },
+      body: body.toString()
     });
+
     const text = await res.text();
-    const data = safeParseJSON(text);
-    if (!data) return { success: false, message: 'Respons server tidak valid' };
-    return data;
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      return { success: false, message: 'Respons server tidak valid' };
+    }
   } catch (err) {
     return { success: false, message: 'Gagal terhubung ke server' };
   }
