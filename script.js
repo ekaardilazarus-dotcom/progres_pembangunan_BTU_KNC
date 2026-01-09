@@ -3,18 +3,18 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVYzY6hl8Y7B4X
 
 let currentRole = null;
 
-// Role mapping ke display name di sheet
-const roleToDisplayName = {
-  'user1': 'Laksana 1',
-  'user2': 'Laksana 2', 
-  'user3': 'Laksana 3',
-  'user4': 'Laksana 4',
-  'manager': 'Laksana 5',
-  'admin': 'Laksana 6'
+// Default display names (jika kolom B kosong)
+const defaultDisplayNames = {
+  'user1': 'Pelaksana 1',
+  'user2': 'Pelaksana 2', 
+  'user3': 'Pelaksana 3',
+  'user4': 'Pelaksana 4',
+  'manager': 'Manager',
+  'admin': 'Admin'
 };
 
-// ========== CORE LOGIN FUNCTION ==========
-function verifyLogin(username, password) {
+// ========== LOGIN FUNCTION ==========
+function verifyLogin(role, password) {
   return new Promise((resolve) => {
     const callbackName = 'loginCallback_' + Date.now();
     
@@ -23,22 +23,16 @@ function verifyLogin(username, password) {
       resolve(data);
       delete window[callbackName];
       
-      // Remove script tag
       const script = document.getElementById('loginScript');
       if (script) script.remove();
     };
     
     const script = document.createElement('script');
     script.id = 'loginScript';
-    
-    // Build URL dengan parameter
-    const url = APPS_SCRIPT_URL + 
-      '?username=' + encodeURIComponent(username) + 
+    script.src = APPS_SCRIPT_URL + 
+      '?role=' + encodeURIComponent(role) + 
       '&password=' + encodeURIComponent(password) + 
       '&callback=' + callbackName;
-    
-    console.log('Requesting:', url);
-    script.src = url;
     
     document.body.appendChild(script);
   });
@@ -65,30 +59,30 @@ async function handleLogin() {
     submitBtn.textContent = 'Memeriksa...';
   }
   
-  // Ambil username berdasarkan role yang diklik
-  const username = roleToDisplayName[currentRole];
-  
   try {
-    const result = await verifyLogin(username, password);
+    const result = await verifyLogin(currentRole, password);
     
     if (result.success) {
-      // LOGIN BERHASIL
+      // SUCCESS - Update UI dengan displayName dari kolom B
       if (modal) modal.style.display = 'none';
       
-      // Update button text dengan nama user
+      // Gunakan displayName dari server, atau default
+      const displayName = result.displayName || defaultDisplayNames[currentRole];
+      
+      // Update semua button dengan role yang sama
       document.querySelectorAll(`[data-role="${currentRole}"] h3`).forEach(el => {
-        el.textContent = result.displayName || username;
+        el.textContent = displayName;
       });
       
       // Simpan session
-      sessionStorage.setItem('loggedRole', result.role || currentRole);
-      sessionStorage.setItem('loggedDisplayName', result.displayName || username);
+      sessionStorage.setItem('loggedRole', currentRole);
+      sessionStorage.setItem('loggedDisplayName', displayName);
       
       // Tampilkan dashboard
-      showPage(result.role || currentRole);
+      showPage(currentRole);
       
     } else {
-      // LOGIN GAGAL
+      // FAILED
       if (errorMsg) errorMsg.textContent = result.message || 'Password salah';
       passwordInput.value = '';
       passwordInput.focus();
@@ -107,17 +101,17 @@ async function handleLogin() {
 
 // ========== PAGE FUNCTIONS ==========
 function showPage(role) {
-  // Sembunyikan semua halaman
+  // Hide all pages
   document.querySelectorAll('.page-content').forEach(page => {
     page.style.display = 'none';
   });
   
-  // Sembunyikan container utama
+  // Hide main container
   document.querySelectorAll('.section-container').forEach(container => {
     container.style.display = 'none';
   });
   
-  // Tampilkan halaman yang dipilih
+  // Show selected page
   const pageElement = document.getElementById(role + 'Page');
   if (pageElement) {
     pageElement.style.display = 'block';
@@ -125,12 +119,12 @@ function showPage(role) {
 }
 
 function goBack() {
-  // Tampilkan container utama
+  // Show main container
   document.querySelectorAll('.section-container').forEach(container => {
     container.style.display = 'block';
   });
   
-  // Sembunyikan semua halaman
+  // Hide all pages
   document.querySelectorAll('.page-content').forEach(page => {
     page.style.display = 'none';
   });
@@ -150,32 +144,32 @@ document.addEventListener('DOMContentLoaded', function() {
   const submitBtn = document.getElementById('submitPassword');
   const errorMsg = document.getElementById('errorMessage');
   
-  // Cek session yang tersimpan
+  // Check saved session
   const savedRole = sessionStorage.getItem('loggedRole');
   const savedName = sessionStorage.getItem('loggedDisplayName');
   
   if (savedRole && savedName) {
-    // Jika ada session, langsung masuk
+    // Auto login dengan session
     document.querySelectorAll(`[data-role="${savedRole}"] h3`).forEach(el => {
       el.textContent = savedName;
     });
     showPage(savedRole);
   }
   
-  // Klik role button
+  // Role button click
   document.addEventListener('click', function(e) {
     const roleBtn = e.target.closest('.role-btn');
     if (roleBtn) {
       currentRole = roleBtn.getAttribute('data-role');
       
       if (modal && currentRole) {
-        // Update judul modal
+        // Update modal title with default name
         const title = modal.querySelector('.modal-title');
         if (title) {
-          title.textContent = 'Login sebagai ' + (roleToDisplayName[currentRole] || currentRole);
+          title.textContent = 'Login sebagai ' + (defaultDisplayNames[currentRole] || currentRole);
         }
         
-        // Tampilkan modal
+        // Show modal
         modal.style.display = 'flex';
         if (passwordInput) {
           passwordInput.value = '';
@@ -191,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.addEventListener('click', handleLogin);
   }
   
-  // Enter key di password field
+  // Enter key in password
   if (passwordInput) {
     passwordInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter' && submitBtn) {
@@ -200,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Tutup modal
+  // Close modal
   document.addEventListener('click', function(e) {
     if (e.target.classList.contains('close-btn') || e.target === modal) {
       if (modal) modal.style.display = 'none';
@@ -219,29 +213,24 @@ document.addEventListener('DOMContentLoaded', function() {
       clearSession();
       goBack();
       
-      // Reset button text ke default
+      // Reset button text to default
       document.querySelectorAll('.role-btn h3').forEach(el => {
         const role = el.closest('.role-btn').getAttribute('data-role');
-        if (role === 'user1') el.textContent = 'Pelaksana 1';
-        else if (role === 'user2') el.textContent = 'Pelaksana 2';
-        else if (role === 'user3') el.textContent = 'Pelaksana 3';
-        else if (role === 'user4') el.textContent = 'Pelaksana 4';
-        else if (role === 'manager') el.textContent = 'Manager';
-        else if (role === 'admin') el.textContent = 'Admin';
+        el.textContent = defaultDisplayNames[role] || role;
       });
     }
   });
 });
 
 // ========== DEBUG FUNCTIONS ==========
-window.testLogin = async function(username = 'Laksana 1', password = '11') {
-  console.log('Testing login...');
-  const result = await verifyLogin(username, password);
+window.testLogin = async function(role = 'user1', password = '11') {
+  console.log('Testing login for:', role);
+  const result = await verifyLogin(role, password);
   console.log('Result:', result);
   return result;
 };
 
-window.clearLogin = function() {
-  clearSession();
+window.clearAll = function() {
+  sessionStorage.clear();
   location.reload();
 };
