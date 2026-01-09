@@ -1,5 +1,5 @@
 // script.js - FINAL VERSION
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVYzY6hl8Y7B4XHWOJS-f6LSSbxBvremKXejqfUJ8aWNPeqvQ0gV1L3O-kUk5QryrP/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUYtck_xszKJN0_5GREfiuxraUajGMaXwzldidxsCxlwzWo3iCEMb3a3HMdoqABUkA/exec';
 
 let currentRole = null;
 
