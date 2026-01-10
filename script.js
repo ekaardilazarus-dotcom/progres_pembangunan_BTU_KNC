@@ -1,6 +1,6 @@
-// script.js - VERSI DIPERBAIKI DENGAN EVENT LISTENER YANG BENAR
+// script.js - VERSI DIPERBAIKI DENGAN FUNGSI BARU
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwA_AXoMW2RlJp-gsrFrnIkFp0JEb_qk_neCXEd2nk8iYnaB8r8XlG9U_ZhxDznJAQrzA/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyX_CGCCi7omTBhHc-0PCHnmmVE4rGFwmVbPav5gvSXE41EaF5-US8aFkRBHXmnwuVZzg/exec';
 
 let currentRole = null;
 let selectedKavling = null;
@@ -27,53 +27,78 @@ async function loadKavlingList() {
   showGlobalLoading('Memuat daftar kavling...');
   
   try {
-    const kavlings = await getKavlingListFromServer();
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getKavlingList'
+    });
     
-    if (kavlings && kavlings.length > 0) {
-      updateAllKavlingSelects(kavlings);
-      console.log(`✅ Loaded ${kavlings.length} kavlings`);
+    if (result.success && result.kavlings && result.kavlings.length > 0) {
+      updateAllKavlingSelects(result.kavlings);
+      console.log(`✅ Loaded ${result.kavlings.length} kavlings`);
       
       if (selectedKavling) {
         setTimeout(() => {
           setSelectedKavlingInDropdowns(selectedKavling);
         }, 100);
       }
+      
+      return result.kavlings;
     } else {
-      console.log('❌ No kavlings found');
+      console.log('❌ No kavlings found:', result.message);
+      showProgressMessage('warning', 'Tidak ada data kavling ditemukan');
+      return [];
     }
     
   } catch (error) {
     console.error('❌ Error loading kavling list:', error);
     showProgressMessage('error', 'Gagal memuat daftar kavling');
+    return [];
   } finally {
     hideGlobalLoading();
   }
 }
 
-function getKavlingListFromServer() {
-  return new Promise((resolve) => {
-    const callbackName = 'kavlingListCallback_' + Date.now();
+// ========== FUNGSI HELPER GENERIC UNTUK SEMUA REQUEST ==========
+function getDataFromServer(url, params = {}) {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     
     window[callbackName] = function(data) {
-      console.log('Kavling list response:', data);
-      
-      if (data.success && data.kavlings) {
-        resolve(data.kavlings);
-      } else {
-        console.error('Failed to get kavling list:', data.message);
-        resolve([]);
-      }
-      
+      resolve(data);
       delete window[callbackName];
-      document.getElementById('kavlingListScript')?.remove();
+      
+      // Clean up script element
+      const scriptId = 'script_' + callbackName;
+      const scriptEl = document.getElementById(scriptId);
+      if (scriptEl) scriptEl.remove();
     };
     
-    const url = PROGRESS_APPS_SCRIPT_URL + 
-      '?action=getKavlingList&callback=' + callbackName;
+    // Build URL with parameters
+    let requestUrl = url + '?';
+    const urlParams = new URLSearchParams();
     
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null) {
+        if (typeof params[key] === 'object') {
+          urlParams.append(key, JSON.stringify(params[key]));
+        } else {
+          urlParams.append(key, params[key]);
+        }
+      }
+    });
+    
+    urlParams.append('callback', callbackName);
+    requestUrl += urlParams.toString();
+    
+    // Create and append script element
     const script = document.createElement('script');
-    script.id = 'kavlingListScript';
-    script.src = url;
+    script.id = 'script_' + callbackName;
+    script.src = requestUrl;
+    script.onerror = () => {
+      reject(new Error('Failed to load script'));
+      delete window[callbackName];
+      script.remove();
+    };
+    
     document.body.appendChild(script);
   });
 }
@@ -110,16 +135,22 @@ function updateKavlingSelect(selectElement, kavlings) {
   
   // Sort kavlings
   const sortedKavlings = [...kavlings].sort((a, b) => {
-    const aMatch = a.match(/([A-Z]+)(\d+)/);
-    const bMatch = b.match(/([A-Z]+)(\d+)/);
-    
-    if (aMatch && bMatch) {
-      if (aMatch[1] !== bMatch[1]) {
-        return aMatch[1].localeCompare(bMatch[1]);
+    // Try to extract block and number
+    const extractParts = (str) => {
+      const match = str.match(/([A-Za-z]+)[_ ]*(\d+)/);
+      if (match) {
+        return { block: match[1].toUpperCase(), number: parseInt(match[2]) };
       }
-      return parseInt(aMatch[2]) - parseInt(bMatch[2]);
+      return { block: str, number: 0 };
+    };
+    
+    const aParts = extractParts(a);
+    const bParts = extractParts(b);
+    
+    if (aParts.block !== bParts.block) {
+      return aParts.block.localeCompare(bParts.block);
     }
-    return a.localeCompare(b);
+    return aParts.number - bParts.number;
   });
   
   // Add options
@@ -147,7 +178,7 @@ function setSelectedKavlingInDropdowns(kavlingName) {
   
   selectIds.forEach(selectId => {
     const selectElement = document.getElementById(selectId);
-    if (selectElement) {
+    if (selectElement && Array.from(selectElement.options).some(opt => opt.value === kavlingName)) {
       selectElement.value = kavlingName;
     }
   });
@@ -176,7 +207,10 @@ async function searchKavling() {
     
     showGlobalLoading('Mengambil data kavling ' + kavlingName + '...');
     
-    const data = await getKavlingDataFromServer(kavlingName);
+    const data = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getKavlingData',
+      kavling: kavlingName
+    });
     
     if (data.success) {
       selectedKavling = kavlingName;
@@ -194,6 +228,13 @@ async function searchKavling() {
       
       showProgressMessage('success', `Data ${kavlingName} berhasil dimuat!`);
       
+      // Jika manager, tampilkan laporan summary
+      if (currentRole === 'manager') {
+        setTimeout(() => {
+          loadSummaryReport();
+        }, 500);
+      }
+      
     } else {
       showProgressMessage('error', data.message || 'Kavling tidak ditemukan');
       selectElement.value = '';
@@ -207,30 +248,12 @@ async function searchKavling() {
   }
 }
 
-function getKavlingDataFromServer(kavlingName) {
-  return new Promise((resolve) => {
-    const callbackName = 'kavlingDataCallback_' + Date.now();
-    
-    window[callbackName] = function(data) {
-      resolve(data);
-      delete window[callbackName];
-      document.getElementById('kavlingDataScript')?.remove();
-    };
-    
-    const url = PROGRESS_APPS_SCRIPT_URL + 
-      '?action=getKavlingData&kavling=' + encodeURIComponent(kavlingName) + 
-      '&callback=' + callbackName;
-    
-    const script = document.createElement('script');
-    script.id = 'kavlingDataScript';
-    script.src = url;
-    document.body.appendChild(script);
-  });
-}
-
 function extractLTandLB(tipeString) {
-  if (!tipeString || tipeString === '-') return { lt: "", lb: "" };
+  if (!tipeString || tipeString === '-' || tipeString === '/') {
+    return { lt: "", lb: "" };
+  }
   
+  // Handle various formats
   const parts = tipeString.split('/').map(part => part.trim());
   return {
     lt: parts[0] || "",
@@ -267,14 +290,24 @@ function updateKavlingInfo(data, pageId) {
   
   if (!infoDisplay) return;
   
+  const ltLb = extractLTandLB(data.tipe);
+  
   infoDisplay.innerHTML = `
     <div class="info-item">
       <span class="info-label">Blok/Kavling:</span>
       <span class="info-value val-name">${data.kavling || '-'}</span>
     </div>
     <div class="info-item">
-      <span class="info-label">Tipe:</span>
-      <span class="info-value val-type">${data.tipe || '-'}</span>
+      <span class="info-label">Luas Tanah (LT):</span>
+      <span class="info-value val-lt">${ltLb.lt || '-'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Luas Bangunan (LB):</span>
+      <span class="info-value val-lb">${ltLb.lb || '-'}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Total Progress:</span>
+      <span class="info-value val-progress">${data.data?.totalProgress || '0%'}</span>
     </div>
   `;
 }
@@ -294,6 +327,15 @@ function loadProgressData(progressData) {
       const checkbox = findCheckboxByTaskName(taskName, 1, rolePage);
       if (checkbox) {
         checkbox.checked = isChecked;
+        // Tambahkan visual feedback
+        const label = checkbox.closest('label');
+        if (label) {
+          if (isChecked) {
+            label.classList.add('task-completed');
+          } else {
+            label.classList.remove('task-completed');
+          }
+        }
       }
     });
   }
@@ -305,6 +347,14 @@ function loadProgressData(progressData) {
       const checkbox = findCheckboxByTaskName(taskName, 2, rolePage);
       if (checkbox) {
         checkbox.checked = isChecked;
+        const label = checkbox.closest('label');
+        if (label) {
+          if (isChecked) {
+            label.classList.add('task-completed');
+          } else {
+            label.classList.remove('task-completed');
+          }
+        }
       }
     });
   }
@@ -316,6 +366,14 @@ function loadProgressData(progressData) {
       const checkbox = findCheckboxByTaskName(taskName, 3, rolePage);
       if (checkbox) {
         checkbox.checked = isChecked;
+        const label = checkbox.closest('label');
+        if (label) {
+          if (isChecked) {
+            label.classList.add('task-completed');
+          } else {
+            label.classList.remove('task-completed');
+          }
+        }
       }
     });
   }
@@ -323,9 +381,12 @@ function loadProgressData(progressData) {
   // Load keterangan
   if (progressData.keterangan) {
     const commentEl = pageElement.querySelector('.progress-section[data-tahap="3"] .tahap-comments');
-    if (commentEl) commentEl.value = progressData.keterangan;
+    if (commentEl) {
+      commentEl.value = progressData.keterangan;
+    }
   }
     
+  // Update progress display
   updateTotalProgressDisplay(progressData.totalProgress || '0%', rolePage);
   updateProgress(rolePage);
 }
@@ -336,12 +397,43 @@ function findCheckboxByTaskName(taskName, tahap, pageId) {
   for (let checkbox of checkboxes) {
     const label = checkbox.closest('label');
     if (label) {
-      const labelText = label.textContent.trim().toLowerCase();
-      const searchTask = taskName.trim().toLowerCase();
-      if (labelText.includes(searchTask) || searchTask.includes(labelText)) {
+      const labelText = label.textContent.trim();
+      // Create mapping for common variations
+      const normalizedLabel = labelText.toLowerCase()
+        .replace(/[\.\-\/]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      const normalizedTask = taskName.toLowerCase()
+        .replace(/[\.\-\/]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (normalizedLabel.includes(normalizedTask) || normalizedTask.includes(normalizedLabel)) {
         return checkbox;
       }
     }
+  }
+  
+  // Fallback: try to find by index
+  const checkboxesList = Array.from(checkboxes);
+  const taskMappings = {
+    1: ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 'PAS.DDG S/D RING BLK', 
+        'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 'PIPA AIR BERSIH', 'BIOTANK', 'PLESTER', 
+        'ACIAN & BENANGAN', 'COR MEJA DAPUR'],
+    2: ['ATAP GALV.', 'GENTENG', 'PLAFOND', 'KERAMIK DINDING TOILET & DAPUR', 
+        'INSTS LISTRIK', 'KERAMIK LANTAI'],
+    3: ['KUSEN PINTU & JENDELA', 'DAUN PINTU & JENDELA', 'CAT DASAR + LAPIS AWAL', 
+        'FITTING LAMPU', 'FIXTURE & SANITER', 'CAT FINISH INTERIOR', 'CAT FINISH EXTERIOR', 
+        'BAK KONTROL & BATAS CARPORT', 'PAVING HALAMAN', 'GENERAL CLEANING', 
+        'COMPLETION / Penyelesaian akhir']
+  };
+  
+  const tasksForTahap = taskMappings[tahap] || [];
+  const taskIndex = tasksForTahap.indexOf(taskName);
+  
+  if (taskIndex >= 0 && taskIndex < checkboxesList.length) {
+    return checkboxesList[taskIndex];
   }
   
   return null;
@@ -353,16 +445,43 @@ function updateTotalProgressDisplay(totalProgress, pageId) {
   
   if (totalPercentElement) {
     totalPercentElement.textContent = totalProgress;
+    
+    // Add color coding based on percentage
+    const percentMatch = totalProgress.match(/(\d+)%/);
+    const percent = percentMatch ? parseInt(percentMatch[1]) : 0;
+    
+    totalPercentElement.className = 'total-percent';
+    if (percent >= 89) {
+      totalPercentElement.classList.add('progress-high');
+    } else if (percent >= 60) {
+      totalPercentElement.classList.add('progress-medium');
+    } else if (percent >= 10) {
+      totalPercentElement.classList.add('progress-low');
+    } else {
+      totalPercentElement.classList.add('progress-very-low');
+    }
   }
   
   if (totalBarElement) {
     const percentMatch = totalProgress.match(/(\d+)%/);
     const percent = percentMatch ? parseInt(percentMatch[1]) : 0;
     totalBarElement.style.width = percent + '%';
+    
+    // Update bar color
+    totalBarElement.className = 'total-bar';
+    if (percent >= 89) {
+      totalBarElement.classList.add('bar-high');
+    } else if (percent >= 60) {
+      totalBarElement.classList.add('bar-medium');
+    } else if (percent >= 10) {
+      totalBarElement.classList.add('bar-low');
+    } else {
+      totalBarElement.classList.add('bar-very-low');
+    }
   }
 }
 
-// ========== SAVE FUNCTIONS (TANPA LT/LB) ==========
+// ========== SAVE FUNCTIONS (DENGAN VALIDASI) ==========
 async function saveTahap1() {
   if (!selectedKavling || !currentKavlingData) {
     showProgressMessage('error', 'Pilih kavling terlebih dahulu');
@@ -400,13 +519,21 @@ async function saveTahap1() {
     tahapData[spreadsheetTaskName] = checkbox.checked;
   });
 
+  // Add LT and LB if available
+  if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
+  if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
+
   if (saveButton) {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveButton.disabled = true;
   }
   
   try {
-    const result = await saveTahapDataToServer('saveTahap1', selectedKavling, tahapData);
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'saveTahap1',
+      kavling: selectedKavling,
+      data: tahapData
+    });
     
     if (result.success) {
       showProgressMessage('success', result.message);
@@ -414,7 +541,7 @@ async function saveTahap1() {
       // Update current data
       if (currentKavlingData.data) {
         Object.keys(tahapData).forEach(taskName => {
-          if (currentKavlingData.data.tahap1[taskName] !== undefined) {
+          if (currentKavlingData.data.tahap1 && currentKavlingData.data.tahap1[taskName] !== undefined) {
             currentKavlingData.data.tahap1[taskName] = tahapData[taskName];
           }
         });
@@ -422,6 +549,20 @@ async function saveTahap1() {
       
       // Update progress display
       updateProgress(rolePage);
+      
+      // Update total progress in info display
+      if (result.totalProgress) {
+        updateTotalProgressDisplay(result.totalProgress, rolePage);
+        
+        // Update info display
+        const infoDisplay = document.getElementById(getKavlingInfoIdByRole(currentRole));
+        if (infoDisplay) {
+          const progressSpan = infoDisplay.querySelector('.val-progress');
+          if (progressSpan) {
+            progressSpan.textContent = result.totalProgress;
+          }
+        }
+      }
       
     } else {
       showProgressMessage('error', result.message || 'Gagal menyimpan tahap 1');
@@ -469,13 +610,21 @@ async function saveTahap2() {
     tahapData[spreadsheetTaskName] = checkbox.checked;
   });
 
+  // Add LT and LB if available
+  if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
+  if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
+
   if (saveButton) {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveButton.disabled = true;
   }
   
   try {
-    const result = await saveTahapDataToServer('saveTahap2', selectedKavling, tahapData);
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'saveTahap2',
+      kavling: selectedKavling,
+      data: tahapData
+    });
     
     if (result.success) {
       showProgressMessage('success', result.message);
@@ -483,7 +632,9 @@ async function saveTahap2() {
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap2) currentKavlingData.data.tahap2 = {};
         Object.keys(tahapData).forEach(taskName => {
-          currentKavlingData.data.tahap2[taskName] = tahapData[taskName];
+          if (taskName !== 'LT' && taskName !== 'LB') {
+            currentKavlingData.data.tahap2[taskName] = tahapData[taskName];
+          }
         });
       }
       
@@ -540,6 +691,10 @@ async function saveTahap3() {
     tahapData[spreadsheetTaskName] = checkbox.checked;
   });
 
+  // Add LT and LB if available
+  if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
+  if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
+  
   // Tambahkan komentar
   const commentEl = tahap3Section.querySelector('.tahap-comments');
   if (commentEl) {
@@ -552,7 +707,11 @@ async function saveTahap3() {
   }
   
   try {
-    const result = await saveTahapDataToServer('saveTahap3', selectedKavling, tahapData);
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'saveTahap3',
+      kavling: selectedKavling,
+      data: tahapData
+    });
     
     if (result.success) {
       showProgressMessage('success', result.message);
@@ -560,7 +719,9 @@ async function saveTahap3() {
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap3) currentKavlingData.data.tahap3 = {};
         Object.keys(tahapData).forEach(taskName => {
-          currentKavlingData.data.tahap3[taskName] = tahapData[taskName];
+          if (taskName !== 'LT' && taskName !== 'LB' && taskName !== 'Keterangan') {
+            currentKavlingData.data.tahap3[taskName] = tahapData[taskName];
+          }
         });
         // Update keterangan
         if (tahapData["Keterangan"]) {
@@ -583,29 +744,6 @@ async function saveTahap3() {
       saveButton.disabled = false;
     }
   }
-}
-
-function saveTahapDataToServer(action, kavling, data) {
-  return new Promise((resolve) => {
-    const callbackName = 'saveTahapCallback_' + Date.now();
-    
-    window[callbackName] = function(response) {
-      resolve(response);
-      delete window[callbackName];
-      document.getElementById('saveTahapScript')?.remove();
-    };
-    
-    const url = PROGRESS_APPS_SCRIPT_URL + 
-      '?action=' + action + 
-      '&kavling=' + encodeURIComponent(kavling) + 
-      '&data=' + encodeURIComponent(JSON.stringify(data)) + 
-      '&callback=' + callbackName;
-    
-    const script = document.createElement('script');
-    script.id = 'saveTahapScript';
-    script.src = url;
-    document.body.appendChild(script);
-  });
 }
 
 // ========== PROGRESS CALCULATION ==========
@@ -686,23 +824,43 @@ function showProgressMessage(type, message) {
       display: flex;
       align-items: center;
       gap: 10px;
+      transition: all 0.3s ease;
     `;
     document.body.appendChild(messageContainer);
   }
   
+  const icon = type === 'success' ? 'check-circle' : 
+               type === 'error' ? 'exclamation-circle' : 
+               type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+  
   messageContainer.innerHTML = `
-    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" 
-       style="color: ${type === 'success' ? '#10b981' : '#f43f5e'}; font-size: 1.2rem;"></i>
+    <i class="fas fa-${icon}" 
+       style="color: ${type === 'success' ? '#10b981' : type === 'error' ? '#f43f5e' : type === 'warning' ? '#f59e0b' : '#3b82f6'}; 
+              font-size: 1.2rem;"></i>
     <span>${message}</span>
   `;
   
   messageContainer.style.display = 'flex';
-  messageContainer.style.backgroundColor = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)';
-  messageContainer.style.color = type === 'success' ? '#10b981' : '#f43f5e';
-  messageContainer.style.border = `1px solid ${type === 'success' ? '#10b981' : '#f43f5e'}`;
+  messageContainer.style.backgroundColor = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 
+                                          type === 'error' ? 'rgba(244, 63, 94, 0.1)' :
+                                          type === 'warning' ? 'rgba(245, 158, 11, 0.1)' : 
+                                          'rgba(59, 130, 246, 0.1)';
+  messageContainer.style.color = type === 'success' ? '#10b981' : 
+                                type === 'error' ? '#f43f5e' :
+                                type === 'warning' ? '#f59e0b' : '#3b82f6';
+  messageContainer.style.border = `1px solid ${type === 'success' ? '#10b981' : 
+                                         type === 'error' ? '#f43f5e' :
+                                         type === 'warning' ? '#f59e0b' : '#3b82f6'}`;
   
+  // Auto hide after 3 seconds
   setTimeout(() => {
-    messageContainer.style.display = 'none';
+    if (messageContainer.style.display !== 'none') {
+      messageContainer.style.opacity = '0';
+      setTimeout(() => {
+        messageContainer.style.display = 'none';
+        messageContainer.style.opacity = '1';
+      }, 300);
+    }
   }, 3000);
 }
 
@@ -716,24 +874,10 @@ const defaultDisplayNames = {
   'admin': 'Admin'
 };
 
-function verifyLogin(role, password) {
-  return new Promise((resolve) => {
-    const callbackName = 'loginCallback_' + Date.now();
-    
-    window[callbackName] = function(data) {
-      resolve(data);
-      delete window[callbackName];
-      document.getElementById('loginScript')?.remove();
-    };
-    
-    const script = document.createElement('script');
-    script.id = 'loginScript';
-    script.src = USER_APPS_SCRIPT_URL + 
-      '?role=' + encodeURIComponent(role) + 
-      '&password=' + encodeURIComponent(password) + 
-      '&callback=' + callbackName;
-    
-    document.body.appendChild(script);
+async function verifyLogin(role, password) {
+  return await getDataFromServer(USER_APPS_SCRIPT_URL, {
+    role: role,
+    password: password
   });
 }
 
@@ -783,26 +927,40 @@ async function handleLogin() {
       
       const displayName = result.displayName || defaultDisplayNames[currentRole];
       
+      // Update role button text
       document.querySelectorAll(`[data-role="${currentRole}"] h3`).forEach(el => {
         el.textContent = displayName;
       });
       
       updateDashboardTitle(currentRole, displayName);
       
+      // Save session
       sessionStorage.setItem('loggedRole', currentRole);
       sessionStorage.setItem('loggedDisplayName', displayName);
+      sessionStorage.setItem('loginTime', new Date().toISOString());
       
       showPage(currentRole);
+      
+      // Show welcome message
+      showProgressMessage('success', `Selamat datang, ${displayName}!`);
       
     } else {
       if (errorMsg) errorMsg.textContent = result.message || 'Password salah';
       passwordInput.value = '';
       passwordInput.focus();
+      passwordInput.select();
+      
+      // Shake animation for error
+      passwordInput.classList.add('shake-animation');
+      setTimeout(() => {
+        passwordInput.classList.remove('shake-animation');
+      }, 500);
     }
     
   } catch (error) {
     console.error('Login error:', error);
     if (errorMsg) errorMsg.textContent = 'Gagal menghubungi server';
+    showProgressMessage('error', 'Koneksi error. Periksa internet Anda.');
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
@@ -812,6 +970,7 @@ async function handleLogin() {
 }
 
 function showPage(role) {
+  // Hide all pages
   document.querySelectorAll('.page-content').forEach(page => {
     page.style.display = 'none';
   });
@@ -820,23 +979,35 @@ function showPage(role) {
     container.style.display = 'none';
   });
   
+  // Show selected page
   const pageElement = document.getElementById(role + 'Page');
   if (pageElement) {
     pageElement.style.display = 'block';
     pageElement.setAttribute('aria-hidden', 'false');
     
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Update title
     const savedName = sessionStorage.getItem('loggedDisplayName');
     if (savedName) {
       updateDashboardTitle(role, savedName);
     }
     
+    // Initial progress calculation
     updateProgress(role + 'Page');
     
+    // Load specific data based on role
     if (role === 'admin') {
       setTimeout(() => {
         loadUsersForAdmin();
       }, 500);
-    } else if (role.startsWith('user') || role === 'manager') {
+    } else if (role === 'manager') {
+      setTimeout(() => {
+        loadKavlingList();
+        loadActivityLog();
+      }, 500);
+    } else if (role.startsWith('user')) {
       setTimeout(() => {
         loadKavlingList();
       }, 500);
@@ -845,10 +1016,12 @@ function showPage(role) {
 }
 
 function goBack() {
+  // Show all section containers
   document.querySelectorAll('.section-container').forEach(container => {
     container.style.display = 'block';
   });
   
+  // Hide all page contents
   document.querySelectorAll('.page-content').forEach(page => {
     page.style.display = 'none';
     page.setAttribute('aria-hidden', 'true');
@@ -858,9 +1031,17 @@ function goBack() {
 function clearSession() {
   sessionStorage.removeItem('loggedRole');
   sessionStorage.removeItem('loggedDisplayName');
+  sessionStorage.removeItem('loginTime');
   currentRole = null;
   selectedKavling = null;
   currentKavlingData = null;
+  
+  // Clear any pending timeouts/intervals
+  const highestId = window.setTimeout(() => {}, 0);
+  for (let i = 0; i < highestId; i++) {
+    window.clearTimeout(i);
+    window.clearInterval(i);
+  }
 }
 
 // ========== SYNC FUNCTION ==========
@@ -875,16 +1056,26 @@ async function syncData() {
   
   try {
     showGlobalLoading('Sinkronisasi data...');
+    
+    // Sync kavling list
     await loadKavlingList();
     
+    // Sync current kavling data if selected
     if (selectedKavling) {
-      const data = await getKavlingDataFromServer(selectedKavling);
+      const data = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+        action: 'getKavlingData',
+        kavling: selectedKavling
+      });
+      
       if (data.success) {
         currentKavlingData = data;
         loadProgressData(data.data);
         showProgressMessage('success', 'Data berhasil disinkronisasi!');
       }
+    } else {
+      showProgressMessage('info', 'Daftar kavling diperbarui');
     }
+    
   } catch (error) {
     console.error('Sync error:', error);
     showProgressMessage('error', 'Gagal sinkronisasi data');
@@ -897,41 +1088,14 @@ async function syncData() {
   }
 }
 
-// ========== TOMBOL LAINNYA ==========
+// ========== ADD KAVLING FUNCTIONS ==========
 function handleAddKavling() {
   const modal = document.getElementById('addKavlingModal');
   if (modal) {
     modal.style.display = 'flex';
-    document.getElementById('newKavlingName').focus();
-  }
-}
-
-function handleSaveNotes() {
-  if (!selectedKavling || !currentRole) {
-    showProgressMessage('error', 'Pilih kavling terlebih dahulu');
-    return;
-  }
-  
-  const rolePage = currentRole + 'Page';
-  const notesTextarea = document.querySelector(`#${rolePage} #propertyNotesManager`);
-  if (!notesTextarea) return;
-  
-  const notes = notesTextarea.value.trim();
-  showProgressMessage('info', 'Catatan disimpan secara lokal');
-  // Catatan: Simpan ke server jika diperlukan
-}
-
-// ========== ADD KAVLING FUNCTIONS ==========
-async function handleAddKavling() {
-  const modal = document.getElementById('addKavlingModal');
-  if (modal) {
-    modal.style.display = 'flex';
-    document.getElementById('newKavlingName').focus();
-    
-    // Reset form
-    document.getElementById('newKavlingName').value = '';
-    document.getElementById('newKavlingLT').value = '';
-    document.getElementById('newKavlingLB').value = '';
+    setTimeout(() => {
+      document.getElementById('newKavlingName').focus();
+    }, 100);
   }
 }
 
@@ -954,11 +1118,22 @@ async function submitNewKavling() {
     return;
   }
   
-  // Validasi format: harus mengandung blok dan nomor (contoh: M1_11, A_05)
-  const namePattern = /^[A-Z]+\d*_\d+$/i;
-  if (!namePattern.test(kavlingName)) {
-    showProgressMessage('error', 'Format nama kavling salah. Contoh: M1_11, A_05');
+  // Validasi format (optional, bisa disesuaikan)
+  if (kavlingName.length < 2) {
+    showProgressMessage('error', 'Nama kavling terlalu pendek');
     nameInput.focus();
+    return;
+  }
+  
+  if (!lt || lt === '0') {
+    showProgressMessage('error', 'Luas tanah (LT) harus diisi');
+    ltInput.focus();
+    return;
+  }
+  
+  if (!lb || lb === '0') {
+    showProgressMessage('error', 'Luas bangunan (LB) harus diisi');
+    lbInput.focus();
     return;
   }
   
@@ -970,7 +1145,12 @@ async function submitNewKavling() {
   try {
     showGlobalLoading('Menambahkan kavling baru...');
     
-    const result = await addKavlingToServer(kavlingName, lt, lb);
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'addNewKavling',
+      name: kavlingName,
+      lt: lt,
+      lb: lb
+    });
     
     if (result.success) {
       showProgressMessage('success', result.message);
@@ -979,7 +1159,12 @@ async function submitNewKavling() {
       const modal = document.getElementById('addKavlingModal');
       if (modal) modal.style.display = 'none';
       
-      // Refresh list kavling
+      // Clear form
+      nameInput.value = '';
+      ltInput.value = '';
+      lbInput.value = '';
+      
+      // Refresh list kavling setelah 1 detik
       setTimeout(() => {
         loadKavlingList();
       }, 1000);
@@ -993,38 +1178,200 @@ async function submitNewKavling() {
     showProgressMessage('error', 'Gagal menambahkan kavling: ' + error.message);
   } finally {
     if (submitBtn) {
-      submitBtn.innerHTML = 'Simpan Kavling Baru';
+      submitBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Kavling Baru';
       submitBtn.disabled = false;
     }
     hideGlobalLoading();
   }
 }
 
-function addKavlingToServer(name, lt, lb) {
-  return new Promise((resolve) => {
-    const callbackName = 'addKavlingCallback_' + Date.now();
+// ========== MANAGER FUNCTIONS (LAPORAN & LOG) ==========
+async function loadSummaryReport() {
+  try {
+    showGlobalLoading('Mengambil laporan summary...');
     
-    window[callbackName] = function(response) {
-      resolve(response);
-      delete window[callbackName];
-      document.getElementById('addKavlingScript')?.remove();
-    };
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getSummaryReport'
+    });
     
-    const url = PROGRESS_APPS_SCRIPT_URL + 
-      '?action=addNewKavling' +
-      '&name=' + encodeURIComponent(name) +
-      '&lt=' + encodeURIComponent(lt) +
-      '&lb=' + encodeURIComponent(lb) +
-      '&callback=' + callbackName;
+    if (result.success) {
+      displaySummaryReport(result);
+    } else {
+      showProgressMessage('error', result.message || 'Gagal mengambil laporan');
+    }
     
-    const script = document.createElement('script');
-    script.id = 'addKavlingScript';
-    script.src = url;
-    document.body.appendChild(script);
-  });
+  } catch (error) {
+    console.error('Error loading summary report:', error);
+    showProgressMessage('error', 'Gagal mengambil laporan');
+  } finally {
+    hideGlobalLoading();
+  }
 }
 
-// ========== UPDATE SETUP DYNAMIC EVENT LISTENERS ==========
+function displaySummaryReport(summaryData) {
+  const container = document.getElementById('summaryReportContainer');
+  if (!container) return;
+  
+  const timestamp = new Date(summaryData.timestamp || new Date()).toLocaleString('id-ID');
+  
+  let html = `
+    <div class="summary-header">
+      <h3><i class="fas fa-chart-bar"></i> Laporan Summary Progress Kavling</h3>
+      <p class="summary-timestamp">Diperbarui: ${timestamp}</p>
+    </div>
+    
+    <div class="summary-stats">
+      <div class="stat-card stat-total">
+        <div class="stat-icon">
+          <i class="fas fa-home"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">${summaryData.totalKavlings || 0}</div>
+          <div class="stat-label">Total Kavling</div>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-completed">
+        <div class="stat-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">${summaryData.categories?.completed?.count || 0}</div>
+          <div class="stat-label">Selesai (89-100%)</div>
+          <div class="stat-percent">${summaryData.categories?.completed?.percentage || 0}%</div>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-almost">
+        <div class="stat-icon">
+          <i class="fas fa-hourglass-half"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">${summaryData.categories?.almostCompleted?.count || 0}</div>
+          <div class="stat-label">Hampir Selesai (60-88%)</div>
+          <div class="stat-percent">${summaryData.categories?.almostCompleted?.percentage || 0}%</div>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-progress">
+        <div class="stat-icon">
+          <i class="fas fa-tools"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">${summaryData.categories?.inProgress?.count || 0}</div>
+          <div class="stat-label">Sedang Berjalan (10-59%)</div>
+          <div class="stat-percent">${summaryData.categories?.inProgress?.percentage || 0}%</div>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-low">
+        <div class="stat-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">${summaryData.categories?.lowProgress?.count || 0}</div>
+          <div class="stat-label">Progress Rendah (0-9%)</div>
+          <div class="stat-percent">${summaryData.categories?.lowProgress?.percentage || 0}%</div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Tambahkan daftar kavling jika ada
+  if (summaryData.topCompleted && summaryData.topCompleted.length > 0) {
+    html += `
+      <div class="summary-section">
+        <h4><i class="fas fa-trophy"></i> Top 5 Kavling Terlengkap</h4>
+        <div class="kavling-list">
+    `;
+    
+    summaryData.topCompleted.forEach((kavling, index) => {
+      html += `
+        <div class="kavling-item">
+          <div class="kavling-rank">${index + 1}</div>
+          <div class="kavling-info">
+            <div class="kavling-name">${kavling.kavling}</div>
+            <div class="kavling-details">LT: ${kavling.lt || '-'} | LB: ${kavling.lb || '-'}</div>
+          </div>
+          <div class="kavling-progress progress-high">${kavling.totalProgress}</div>
+        </div>
+      `;
+    });
+    
+    html += `</div></div>`;
+  }
+  
+  container.innerHTML = html;
+}
+
+async function loadActivityLog() {
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getActivityLog',
+      limit: 20
+    });
+    
+    if (result.success && result.logs) {
+      displayActivityLog(result.logs);
+    }
+    
+  } catch (error) {
+    console.error('Error loading activity log:', error);
+  }
+}
+
+function displayActivityLog(logs) {
+  const container = document.getElementById('activityLogContainer');
+  if (!container) return;
+  
+  if (logs.length === 0) {
+    container.innerHTML = '<p class="no-data">Belum ada aktivitas yang tercatat</p>';
+    return;
+  }
+  
+  let html = `
+    <div class="activity-header">
+      <h4><i class="fas fa-history"></i> Log Aktivitas Terakhir</h4>
+      <span class="activity-count">${logs.length} aktivitas</span>
+    </div>
+    <div class="activity-list">
+  `;
+  
+  logs.forEach(log => {
+    const time = new Date(log.timestamp).toLocaleString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: 'short'
+    });
+    
+    const icon = log.action === 'LOGIN' ? 'sign-in-alt' :
+                 log.action.includes('UPDATE') ? 'edit' :
+                 log.action === 'ADD_KAVLING' ? 'plus-circle' :
+                 log.action === 'EXPORT_REPORT' ? 'file-export' : 'info-circle';
+    
+    html += `
+      <div class="activity-item">
+        <div class="activity-icon">
+          <i class="fas fa-${icon}"></i>
+        </div>
+        <div class="activity-content">
+          <div class="activity-title">${log.description || log.action}</div>
+          <div class="activity-details">
+            ${log.kavling ? `<span class="activity-kavling">${log.kavling}</span>` : ''}
+            ${log.user ? `<span class="activity-user">${log.user}</span>` : ''}
+            <span class="activity-time">${time}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// ========== SETUP EVENT LISTENER DINAMIS ==========
 function setupDynamicEventListeners() {
   console.log('Setting up dynamic event listeners...');
   
@@ -1066,22 +1413,18 @@ function setupDynamicEventListeners() {
   // 6. Tombol "Kembali ke Menu Awal & Logout" di semua halaman
   document.querySelectorAll('.logout-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-      clearSession();
-      goBack();
-      
-      // Reset button text to default
-      document.querySelectorAll('.role-btn h3').forEach(el => {
-        const role = el.closest('.role-btn').getAttribute('data-role');
-        el.textContent = defaultDisplayNames[role] || role;
-      });
-      
-      // Reset dashboard titles
-      document.querySelectorAll('.page-content h2').forEach(h2 => {
-        if (h2.textContent.includes('Selamat datang Pak')) {
-          const role = h2.closest('.page-content').id.replace('Page', '');
-          h2.textContent = defaultDisplayNames[role] ? `Dashboard ${defaultDisplayNames[role]}` : `Dashboard ${role}`;
-        }
-      });
+      if (confirm('Apakah Anda yakin ingin logout?')) {
+        clearSession();
+        goBack();
+        
+        // Reset button text to default
+        document.querySelectorAll('.role-btn h3').forEach(el => {
+          const role = el.closest('.role-btn').getAttribute('data-role');
+          el.textContent = defaultDisplayNames[role] || role;
+        });
+        
+        showProgressMessage('info', 'Anda telah logout');
+      }
     });
   });
   
@@ -1101,9 +1444,6 @@ function setupDynamicEventListeners() {
           saveTahap2();
         } else if (tahap === '3') {
           saveTahap3();
-        } else {
-          // Untuk manager save atau lainnya
-          handleSaveNotes();
         }
       }
     });
@@ -1125,144 +1465,34 @@ function setupDynamicEventListeners() {
     }
   });
   
-  // 9. Tombol Save di Admin (jika ada)
-  const btnSaveUser = document.getElementById('btnSaveUser');
-  if (btnSaveUser) {
-    btnSaveUser.addEventListener('click', function() {
-      // Handle user save
-      console.log('User save clicked');
-    });
-  }
-  
-  // 10. Tombol close modal lainnya
-  document.querySelectorAll('.close-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const modal = btn.closest('.modal');
-      if (modal) modal.style.display = 'none';
-    });
-  });
-  
-  // 11. Checkbox change listener for progress
+  // 9. Checkbox change listener for progress
   document.addEventListener('change', function(e) {
     if (e.target.classList.contains('sub-task')) {
       const page = e.target.closest('.page-content');
       if (page) {
         updateProgress(page.id);
+        
+        // Visual feedback for completion
+        const label = e.target.closest('label');
+        if (label) {
+          if (e.target.checked) {
+            label.classList.add('task-completed');
+          } else {
+            label.classList.remove('task-completed');
+          }
+        }
       }
     }
   });
   
-  // 12. Enter key pada form tambah kavling
+  // 10. Enter key pada form tambah kavling
   document.addEventListener('keypress', function(e) {
     if (e.target.id === 'newKavlingName' && e.key === 'Enter') {
       submitNewKavling();
-    }
-  });
-  
-  console.log('Dynamic event listeners setup complete');
-}
-
-
-// ========== SETUP EVENT LISTENER DINAMIS ==========
-function setupDynamicEventListeners() {
-  console.log('Setting up dynamic event listeners...');
-  
-  // 1. Tombol "Tambah Kavling" di semua halaman
-  document.querySelectorAll('.btn-add-kavling').forEach(btn => {
-    btn.addEventListener('click', handleAddKavling);
-  });
-  
-  // 2. Tombol "Sinkronkan Data" di semua halaman
-  document.querySelectorAll('.sync-btn').forEach(btn => {
-    btn.addEventListener('click', syncData);
-  });
-  
-  // 3. Tombol "Kembali ke Menu Awal & Logout" di semua halaman
-  document.querySelectorAll('.logout-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      clearSession();
-      goBack();
-      
-      // Reset button text to default
-      document.querySelectorAll('.role-btn h3').forEach(el => {
-        const role = el.closest('.role-btn').getAttribute('data-role');
-        el.textContent = defaultDisplayNames[role] || role;
-      });
-      
-      // Reset dashboard titles
-      document.querySelectorAll('.page-content h2').forEach(h2 => {
-        if (h2.textContent.includes('Selamat datang Pak')) {
-          const role = h2.closest('.page-content').id.replace('Page', '');
-          h2.textContent = defaultDisplayNames[role] ? `Dashboard ${defaultDisplayNames[role]}` : `Dashboard ${role}`;
-        }
-      });
-    });
-  });
-  
-  // 4. Tombol "Simpan Tahap" di semua halaman
-  document.querySelectorAll('.btn-save-section').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const section = btn.closest('.progress-section');
-      if (section) {
-        const tahap = section.getAttribute('data-tahap');
-        
-        if (tahap === '1') {
-          saveTahap1();
-        } else if (tahap === '2') {
-          saveTahap2();
-        } else if (tahap === '3') {
-          saveTahap3();
-        } else {
-          // Untuk manager save atau lainnya
-          handleSaveNotes();
-        }
-      }
-    });
-  });
-  
-  // 5. Tombol search kavling (dropdown change)
-  const selectIds = [
-    'searchKavlingUser1',
-    'searchKavlingUser2', 
-    'searchKavlingUser3',
-    'searchKavlingUser4',
-    'searchKavlingManager'
-  ];
-  
-  selectIds.forEach(selectId => {
-    const selectElement = document.getElementById(selectId);
-    if (selectElement) {
-      selectElement.addEventListener('change', searchKavling);
-    }
-  });
-  
-  // 6. Tombol Save di Admin (jika ada)
-  const btnSaveUser = document.getElementById('btnSaveUser');
-  if (btnSaveUser) {
-    btnSaveUser.addEventListener('click', function() {
-      // Handle user save
-      console.log('User save clicked');
-    });
-  }
-  
-  // 7. Tombol close modal
-  document.querySelectorAll('.close-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const modal = btn.closest('.modal');
-      if (modal) modal.style.display = 'none';
-    });
-  });
-  
-  // 8. Checkbox change listener for progress
-  document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('sub-task')) {
-      const page = e.target.closest('.page-content');
-      if (page) {
-        updateProgress(page.id);
-      }
+    } else if (e.target.id === 'newKavlingLT' && e.key === 'Enter') {
+      document.getElementById('newKavlingLB').focus();
+    } else if (e.target.id === 'newKavlingLB' && e.key === 'Enter') {
+      submitNewKavling();
     }
   });
   
@@ -1300,7 +1530,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (modal && currentRole) {
         const title = modal.querySelector('h2#modalTitle');
         if (title) {
-          title.textContent = 'Login sebagai ' + (defaultDisplayNames[currentRole] || currentRole);
+          const displayName = defaultDisplayNames[currentRole] || currentRole;
+          title.textContent = 'Login sebagai ' + displayName;
         }
         
         modal.style.display = 'flex';
@@ -1337,6 +1568,7 @@ document.addEventListener('DOMContentLoaded', function() {
     passwordModal.addEventListener('click', function(e) {
       if (e.target === passwordModal) {
         passwordModal.style.display = 'none';
+        currentRole = null;
       }
     });
   }
@@ -1347,6 +1579,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tabBtn) {
       const tabId = tabBtn.getAttribute('data-tab');
       
+      // Update active tab
       document.querySelectorAll('.admin-tab-btn').forEach(btn => {
         btn.classList.remove('active');
         btn.style.color = '#94a3b8';
@@ -1356,36 +1589,164 @@ document.addEventListener('DOMContentLoaded', function() {
       tabBtn.style.color = 'white';
       tabBtn.style.borderBottom = '3px solid #38bdf8';
       
+      // Show corresponding content
       document.querySelectorAll('.tab-content-item').forEach(content => {
         content.style.display = 'none';
       });
       const targetContent = document.getElementById('tab-' + tabId);
       if (targetContent) targetContent.style.display = 'block';
       
+      // Load data for tab
       if (tabId === 'users') {
         loadUsersForAdmin();
+      } else if (tabId === 'reports') {
+        loadSummaryReport();
+        loadActivityLog();
       }
     }
   });
+  
+  // Initialize mobile enhancements
+  initializeMobileEnhancements();
 });
 
 // ========== ADMIN FUNCTIONS ==========
 async function loadUsersForAdmin() {
   try {
-    // Fungsi untuk mengambil data user
-    // Implementasi sesuai kebutuhan
-    console.log('Loading users for admin...');
+    showGlobalLoading('Memuat data pengguna...');
+    
+    const result = await getDataFromServer(USER_APPS_SCRIPT_URL, {
+      action: 'getUsers'
+    });
+    
+    if (result.success && result.users) {
+      displayUsersForAdmin(result.users);
+    } else {
+      showProgressMessage('error', result.message || 'Gagal memuat data pengguna');
+    }
+    
   } catch (error) {
     console.error('Error loading users:', error);
+    showProgressMessage('error', 'Gagal memuat data pengguna');
+  } finally {
+    hideGlobalLoading();
   }
 }
 
-function resetUserForm() {
-  const form = document.getElementById('userEditForm');
-  if (form) form.style.display = 'none';
+function displayUsersForAdmin(users) {
+  const container = document.getElementById('usersListContainer');
+  if (!container) return;
   
-  const dropdown = document.getElementById('userSelectDropdown');
-  if (dropdown) dropdown.value = '';
+  if (!users || users.length === 0) {
+    container.innerHTML = '<p class="no-data">Tidak ada data pengguna</p>';
+    return;
+  }
+  
+  let html = `
+    <div class="users-header">
+      <h4><i class="fas fa-users"></i> Daftar Pengguna</h4>
+      <span class="users-count">${users.length} pengguna</span>
+    </div>
+    <div class="users-list">
+  `;
+  
+  users.forEach(user => {
+    const roleName = defaultDisplayNames[user.role] || user.role;
+    
+    html += `
+      <div class="user-item">
+        <div class="user-info">
+          <div class="user-role">${roleName}</div>
+          <div class="user-name">${user.displayName || '-'}</div>
+          <div class="user-id">ID: ${user.id}</div>
+        </div>
+        <div class="user-actions">
+          <button class="btn-edit-user" data-role="${user.role}" 
+                  data-name="${user.displayName || ''}">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  
+  html += `</div>`;
+  container.innerHTML = html;
+  
+  // Add event listeners to edit buttons
+  document.querySelectorAll('.btn-edit-user').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const role = this.getAttribute('data-role');
+      const name = this.getAttribute('data-name');
+      showEditUserModal(role, name);
+    });
+  });
+}
+
+function showEditUserModal(role, currentName) {
+  const modal = document.getElementById('editUserModal');
+  if (!modal) return;
+  
+  const roleName = defaultDisplayNames[role] || role;
+  document.getElementById('editUserRole').textContent = roleName;
+  document.getElementById('editUserName').value = currentName || '';
+  document.getElementById('editUserPassword').value = '';
+  
+  // Store role for saving
+  modal.setAttribute('data-role', role);
+  
+  modal.style.display = 'flex';
+  document.getElementById('editUserName').focus();
+}
+
+async function saveUserChanges() {
+  const modal = document.getElementById('editUserModal');
+  const role = modal.getAttribute('data-role');
+  const newName = document.getElementById('editUserName').value.trim();
+  const newPassword = document.getElementById('editUserPassword').value.trim();
+  
+  if (!role) {
+    showProgressMessage('error', 'Role tidak ditemukan');
+    return;
+  }
+  
+  if (!newName) {
+    showProgressMessage('error', 'Nama tidak boleh kosong');
+    document.getElementById('editUserName').focus();
+    return;
+  }
+  
+  try {
+    showGlobalLoading('Menyimpan perubahan pengguna...');
+    
+    const result = await getDataFromServer(USER_APPS_SCRIPT_URL, {
+      action: 'updateUser',
+      role: role,
+      displayName: newName,
+      password: newPassword
+    });
+    
+    if (result.success) {
+      showProgressMessage('success', result.message);
+      
+      // Close modal
+      modal.style.display = 'none';
+      
+      // Refresh user list
+      setTimeout(() => {
+        loadUsersForAdmin();
+      }, 500);
+      
+    } else {
+      showProgressMessage('error', result.message || 'Gagal menyimpan perubahan');
+    }
+    
+  } catch (error) {
+    console.error('Error saving user changes:', error);
+    showProgressMessage('error', 'Gagal menyimpan perubahan');
+  } finally {
+    hideGlobalLoading();
+  }
 }
 
 // ========== MOBILE ENHANCEMENTS ==========
@@ -1394,11 +1755,24 @@ function initializeMobileEnhancements() {
     document.body.classList.add('touch-device');
     
     // Improve touch targets
-    document.querySelectorAll('button, input[type="checkbox"], label').forEach(el => {
+    document.querySelectorAll('button, input[type="checkbox"], label, select').forEach(el => {
       if (!el.style.minHeight) {
         el.style.minHeight = '44px';
       }
     });
+    
+    // Prevent zoom on input focus
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+      el.addEventListener('focus', function() {
+        this.style.fontSize = '16px';
+      });
+    });
+  }
+  
+  // Handle viewport for mobile
+  const viewportMeta = document.querySelector('meta[name="viewport"]');
+  if (viewportMeta && window.innerWidth <= 768) {
+    viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
   }
 }
 
@@ -1422,10 +1796,309 @@ window.testProgressSystem = function() {
   loadKavlingList();
 };
 
-window.testButtons = function() {
-  console.log('Available buttons:');
-  console.log('Add kavling buttons:', document.querySelectorAll('.btn-add-kavling').length);
-  console.log('Sync buttons:', document.querySelectorAll('.sync-btn').length);
-  console.log('Logout buttons:', document.querySelectorAll('.logout-btn').length);
-  console.log('Save section buttons:', document.querySelectorAll('.btn-save-section').length);
+window.clearAllData = function() {
+  if (confirm('Hapus semua data session lokal?')) {
+    clearSession();
+    localStorage.clear();
+    sessionStorage.clear();
+    showProgressMessage('success', 'Data lokal berhasil dihapus');
+    location.reload();
+  }
 };
+
+// Add CSS for new elements
+const style = document.createElement('style');
+style.textContent = `
+  .task-completed {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+    border-left: 3px solid #10b981 !important;
+  }
+  
+  .progress-high { color: #10b981; font-weight: bold; }
+  .progress-medium { color: #f59e0b; }
+  .progress-low { color: #3b82f6; }
+  .progress-very-low { color: #94a3b8; }
+  
+  .bar-high { background-color: #10b981 !important; }
+  .bar-medium { background-color: #f59e0b !important; }
+  .bar-low { background-color: #3b82f6 !important; }
+  .bar-very-low { background-color: #94a3b8 !important; }
+  
+  .shake-animation {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+  
+  /* Summary Report Styles */
+  .summary-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  
+  .summary-header h3 {
+    color: #1e293b;
+    margin-bottom: 5px;
+  }
+  
+  .summary-timestamp {
+    color: #64748b;
+    font-size: 0.9rem;
+  }
+  
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  
+  .stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .stat-icon {
+    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .stat-total .stat-icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+  .stat-completed .stat-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+  .stat-almost .stat-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+  .stat-progress .stat-icon { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+  .stat-low .stat-icon { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
+  
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1e293b;
+  }
+  
+  .stat-label {
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+  
+  .stat-percent {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  
+  .summary-section {
+    margin-top: 25px;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .summary-section h4 {
+    color: #1e293b;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .kavling-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .kavling-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .kavling-rank {
+    background: #3b82f6;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 15px;
+  }
+  
+  .kavling-info {
+    flex: 1;
+  }
+  
+  .kavling-name {
+    font-weight: 600;
+    color: #1e293b;
+  }
+  
+  .kavling-details {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  
+  .kavling-progress {
+    font-weight: bold;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+  
+  /* Activity Log Styles */
+  .activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .activity-count {
+    background: #3b82f6;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+  }
+  
+  .activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 5px;
+  }
+  
+  .activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+  }
+  
+  .activity-icon {
+    color: #3b82f6;
+    font-size: 1.2rem;
+    margin-top: 2px;
+  }
+  
+  .activity-title {
+    font-weight: 500;
+    color: #1e293b;
+    margin-bottom: 4px;
+  }
+  
+  .activity-details {
+    display: flex;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #64748b;
+    flex-wrap: wrap;
+  }
+  
+  .activity-kavling, .activity-user, .activity-time {
+    background: #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  
+  /* Users List Styles */
+  .users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .users-count {
+    background: #10b981;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+  }
+  
+  .users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .user-role {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+  }
+  
+  .user-name {
+    color: #475569;
+    font-size: 0.95rem;
+  }
+  
+  .user-id {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    margin-top: 2px;
+  }
+  
+  .btn-edit-user {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  
+  .btn-edit-user:hover {
+    background: #2563eb;
+  }
+  
+  .no-data {
+    text-align: center;
+    color: #94a3b8;
+    font-style: italic;
+    padding: 30px;
+  }
+`;
+document.head.appendChild(style);
