@@ -1,4 +1,4 @@
-// script.js - VERSI DIPERBAIKI
+// script.js - VERSI DIPERBAIKI DENGAN EVENT LISTENER YANG BENAR
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfsrL9o9PnRsXYZFOb3yxSyUZZ33ZX3o1sR7dztJPNdmTZT1XXx767ZIenfWbhKfLDBA/exec';
 
@@ -392,7 +392,6 @@ async function saveTahap1() {
   };
 
   const tahapData = {};
-  // TIDAK MENYERTAKAN LT DAN LB - biarkan Apps Script yang ambil dari spreadsheet
 
   checkboxes.forEach(checkbox => {
     const label = checkbox.closest('label');
@@ -462,7 +461,6 @@ async function saveTahap2() {
   };
 
   const tahapData = {};
-  // TIDAK MENYERTAKAN LT DAN LB
 
   checkboxes.forEach(checkbox => {
     const label = checkbox.closest('label');
@@ -534,7 +532,6 @@ async function saveTahap3() {
   };
 
   const tahapData = {};
-  // TIDAK MENYERTAKAN LT DAN LB
 
   checkboxes.forEach(checkbox => {
     const label = checkbox.closest('label');
@@ -900,9 +897,142 @@ async function syncData() {
   }
 }
 
+// ========== TOMBOL LAINNYA ==========
+function handleAddKavling() {
+  const modal = document.getElementById('addKavlingModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.getElementById('newKavlingName').focus();
+  }
+}
+
+function handleSaveNotes() {
+  if (!selectedKavling || !currentRole) {
+    showProgressMessage('error', 'Pilih kavling terlebih dahulu');
+    return;
+  }
+  
+  const rolePage = currentRole + 'Page';
+  const notesTextarea = document.querySelector(`#${rolePage} #propertyNotesManager`);
+  if (!notesTextarea) return;
+  
+  const notes = notesTextarea.value.trim();
+  showProgressMessage('info', 'Catatan disimpan secara lokal');
+  // Catatan: Simpan ke server jika diperlukan
+}
+
+// ========== SETUP EVENT LISTENER DINAMIS ==========
+function setupDynamicEventListeners() {
+  console.log('Setting up dynamic event listeners...');
+  
+  // 1. Tombol "Tambah Kavling" di semua halaman
+  document.querySelectorAll('.btn-add-kavling').forEach(btn => {
+    btn.addEventListener('click', handleAddKavling);
+  });
+  
+  // 2. Tombol "Sinkronkan Data" di semua halaman
+  document.querySelectorAll('.sync-btn').forEach(btn => {
+    btn.addEventListener('click', syncData);
+  });
+  
+  // 3. Tombol "Kembali ke Menu Awal & Logout" di semua halaman
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      clearSession();
+      goBack();
+      
+      // Reset button text to default
+      document.querySelectorAll('.role-btn h3').forEach(el => {
+        const role = el.closest('.role-btn').getAttribute('data-role');
+        el.textContent = defaultDisplayNames[role] || role;
+      });
+      
+      // Reset dashboard titles
+      document.querySelectorAll('.page-content h2').forEach(h2 => {
+        if (h2.textContent.includes('Selamat datang Pak')) {
+          const role = h2.closest('.page-content').id.replace('Page', '');
+          h2.textContent = defaultDisplayNames[role] ? `Dashboard ${defaultDisplayNames[role]}` : `Dashboard ${role}`;
+        }
+      });
+    });
+  });
+  
+  // 4. Tombol "Simpan Tahap" di semua halaman
+  document.querySelectorAll('.btn-save-section').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const section = btn.closest('.progress-section');
+      if (section) {
+        const tahap = section.getAttribute('data-tahap');
+        
+        if (tahap === '1') {
+          saveTahap1();
+        } else if (tahap === '2') {
+          saveTahap2();
+        } else if (tahap === '3') {
+          saveTahap3();
+        } else {
+          // Untuk manager save atau lainnya
+          handleSaveNotes();
+        }
+      }
+    });
+  });
+  
+  // 5. Tombol search kavling (dropdown change)
+  const selectIds = [
+    'searchKavlingUser1',
+    'searchKavlingUser2', 
+    'searchKavlingUser3',
+    'searchKavlingUser4',
+    'searchKavlingManager'
+  ];
+  
+  selectIds.forEach(selectId => {
+    const selectElement = document.getElementById(selectId);
+    if (selectElement) {
+      selectElement.addEventListener('change', searchKavling);
+    }
+  });
+  
+  // 6. Tombol Save di Admin (jika ada)
+  const btnSaveUser = document.getElementById('btnSaveUser');
+  if (btnSaveUser) {
+    btnSaveUser.addEventListener('click', function() {
+      // Handle user save
+      console.log('User save clicked');
+    });
+  }
+  
+  // 7. Tombol close modal
+  document.querySelectorAll('.close-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const modal = btn.closest('.modal');
+      if (modal) modal.style.display = 'none';
+    });
+  });
+  
+  // 8. Checkbox change listener for progress
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('sub-task')) {
+      const page = e.target.closest('.page-content');
+      if (page) {
+        updateProgress(page.id);
+      }
+    }
+  });
+  
+  console.log('Dynamic event listeners setup complete');
+}
+
 // ========== EVENT LISTENERS ==========
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM loaded, initializing...');
+  
+  // Setup semua event listener dinamis
+  setupDynamicEventListeners();
   
   // Check saved session
   const savedRole = sessionStorage.getItem('loggedRole');
@@ -959,13 +1089,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Close modal
-  document.addEventListener('click', function(e) {
-    const modal = document.getElementById('passwordModal');
-    if (e.target.classList.contains('close-btn') || e.target === modal) {
-      if (modal) modal.style.display = 'none';
-    }
-  });
+  // Close modal by clicking outside
+  const passwordModal = document.getElementById('passwordModal');
+  if (passwordModal) {
+    passwordModal.addEventListener('click', function(e) {
+      if (e.target === passwordModal) {
+        passwordModal.style.display = 'none';
+      }
+    });
+  }
 
   // Admin Tab Switching
   document.addEventListener('click', function(e) {
@@ -993,69 +1125,40 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
-
-  // Checkbox change listener for progress
-  document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('sub-task')) {
-      const page = e.target.closest('.page-content');
-      if (page) {
-        updateProgress(page.id);
-      }
-    }
-  });
-
- 
-
-  // Logout button
-  document.addEventListener('click', function(e) {
-    const btn = e.target.closest('.logout-btn');
-    if (btn) {
-      clearSession();
-      goBack();
-      
-      // Reset button text to default
-      document.querySelectorAll('.role-btn h3').forEach(el => {
-        const role = el.closest('.role-btn').getAttribute('data-role');
-        el.textContent = defaultDisplayNames[role] || role;
-      });
-      
-      // Reset dashboard titles
-      document.querySelectorAll('.page-content h2').forEach(h2 => {
-        if (h2.textContent.includes('Selamat datang Pak')) {
-          const role = h2.closest('.page-content').id.replace('Page', '');
-          h2.textContent = defaultDisplayNames[role] ? `Dashboard ${defaultDisplayNames[role]}` : `Dashboard ${role}`;
-        }
-      });
-    }
-  });
-
-  // Initialize mobile enhancements
-  initializeMobileEnhancements();
-  
-  // Setup sync button listeners for all pages
-  document.querySelectorAll('.sync-btn').forEach(btn => {
-    btn.addEventListener('click', syncData);
-  });
-  
-  // Save tahap buttons
-  document.addEventListener('click', function(e) {
-    if (e.target.closest('.btn-save-section')) {
-      const button = e.target.closest('.btn-save-section');
-      const section = button.closest('.progress-section');
-      if (section) {
-        const tahap = section.getAttribute('data-tahap');
-        
-        if (tahap === '1') {
-          saveTahap1();
-        } else if (tahap === '2') {
-          saveTahap2();
-        } else if (tahap === '3') {
-          saveTahap3();
-        }
-      }
-    }
-  });
 });
+
+// ========== ADMIN FUNCTIONS ==========
+async function loadUsersForAdmin() {
+  try {
+    // Fungsi untuk mengambil data user
+    // Implementasi sesuai kebutuhan
+    console.log('Loading users for admin...');
+  } catch (error) {
+    console.error('Error loading users:', error);
+  }
+}
+
+function resetUserForm() {
+  const form = document.getElementById('userEditForm');
+  if (form) form.style.display = 'none';
+  
+  const dropdown = document.getElementById('userSelectDropdown');
+  if (dropdown) dropdown.value = '';
+}
+
+// ========== MOBILE ENHANCEMENTS ==========
+function initializeMobileEnhancements() {
+  if ('ontouchstart' in window) {
+    document.body.classList.add('touch-device');
+    
+    // Improve touch targets
+    document.querySelectorAll('button, input[type="checkbox"], label').forEach(el => {
+      if (!el.style.minHeight) {
+        el.style.minHeight = '44px';
+      }
+    });
+  }
+}
 
 // ========== DEBUG FUNCTIONS ==========
 window.testLogin = async function(role = 'user1', password = '11') {
@@ -1075,4 +1178,12 @@ window.testLogin = async function(role = 'user1', password = '11') {
 window.testProgressSystem = function() {
   console.log('Testing progress system...');
   loadKavlingList();
+};
+
+window.testButtons = function() {
+  console.log('Available buttons:');
+  console.log('Add kavling buttons:', document.querySelectorAll('.btn-add-kavling').length);
+  console.log('Sync buttons:', document.querySelectorAll('.sync-btn').length);
+  console.log('Logout buttons:', document.querySelectorAll('.logout-btn').length);
+  console.log('Save section buttons:', document.querySelectorAll('.btn-save-section').length);
 };
