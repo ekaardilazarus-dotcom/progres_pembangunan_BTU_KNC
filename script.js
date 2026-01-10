@@ -292,6 +292,99 @@ function resetUserForm() {
   statusDiv.style.display = 'none';
 }
 
+// ========== INITIALIZATION ==========
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM Content Loaded. Initializing app...');
+  
+  // Attach event listeners to all sync buttons
+  document.querySelectorAll('.sync-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      console.log('Sync button clicked');
+      // Panggil loadKavlingList untuk merefresh datalist dari server
+      loadKavlingList();
+      
+      // Jika ada kavling yang sedang terpilih, refresh datanya juga
+      if (selectedKavling) {
+        searchKavling();
+      }
+    });
+  });
+  document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const role = btn.getAttribute('data-role');
+      console.log('Role button clicked:', role);
+      // ... logic to show password modal and login
+    });
+  });
+
+  // Event Listeners for Add Kavling
+  document.querySelectorAll('.btn-add-kavling').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('addKavlingModal').style.display = 'flex';
+    });
+  });
+
+  document.getElementById('closeAddKavling')?.addEventListener('click', () => {
+    document.getElementById('addKavlingModal').style.display = 'none';
+  });
+
+  document.getElementById('submitNewKavling')?.addEventListener('click', async () => {
+    const nameInput = document.getElementById('newKavlingName');
+    const lbInput = document.getElementById('newKavlingLB');
+    const ltInput = document.getElementById('newKavlingLT');
+    const name = nameInput.value.trim();
+    const lb = lbInput.value.trim();
+    const lt = ltInput.value.trim();
+
+    if (!name) {
+      alert('Nama Kavling wajib diisi!');
+      return;
+    }
+
+    showGlobalLoading('Menambahkan kavling baru...');
+    try {
+      const result = await addNewKavlingToServer(name, lb, lt);
+      if (result.success) {
+        showProgressMessage('success', 'Kavling baru berhasil ditambahkan!');
+        document.getElementById('addKavlingModal').style.display = 'none';
+        nameInput.value = '';
+        lbInput.value = '';
+        ltInput.value = '';
+        loadKavlingList(); // Refresh list
+      } else {
+        showProgressMessage('error', result.message || 'Gagal menambahkan kavling');
+      }
+    } catch (error) {
+      console.error('Error adding kavling:', error);
+      showProgressMessage('error', 'Terjadi kesalahan: ' + error.message);
+    } finally {
+      hideGlobalLoading();
+    }
+  });
+});
+
+async function addNewKavlingToServer(name, lb, lt) {
+  return new Promise((resolve) => {
+    const callbackName = 'addKavlingCallback_' + Date.now();
+    window[callbackName] = (data) => {
+      resolve(data);
+      delete window[callbackName];
+      document.getElementById('addKavlingScript')?.remove();
+    };
+
+    const url = PROGRESS_APPS_SCRIPT_URL + 
+      '?action=addKavling&kavling=' + encodeURIComponent(name) + 
+      '&lb=' + encodeURIComponent(lb) + 
+      '&lt=' + encodeURIComponent(lt) + 
+      '&callback=' + callbackName;
+
+    const script = document.createElement('script');
+    script.id = 'addKavlingScript';
+    script.src = url;
+    document.body.appendChild(script);
+  });
+}
+
 // ========== FUNGSI DATA PROGRESS PELAKSANA 1 ==========
 
 let selectedKavling = null;
@@ -436,6 +529,10 @@ async function searchKavling() {
       selectedKavling = kavlingName;
       currentKavlingData = data;
       
+      // Simpan LB dan LT ke level atas agar mudah diakses saat menyimpan
+      currentKavlingData.lb = data.lb || "";
+      currentKavlingData.lt = data.lt || "";
+      
       console.log('✅ selectedKavling di-set:', selectedKavling);
       
       // Update UI
@@ -541,6 +638,11 @@ function loadProgressData(progressData) {
   // Tahap 3 (tanpa COMPLETE)
   if (progressData.tahap3) {
     Object.keys(progressData.tahap3).forEach(taskName => {
+      if (taskName === "KETERANGAN_TAHAP3") {
+        const commentEl = pageElement.querySelector('.progress-section[data-tahap="3"] .tahap-comments');
+        if (commentEl) commentEl.value = progressData.tahap3[taskName] || "";
+        return;
+      }
       const isChecked = progressData.tahap3[taskName];
       const checkbox = findCheckboxByTaskName(taskName, 3, rolePage);
       if (checkbox) {
@@ -601,38 +703,46 @@ async function saveTahap1() {
   
   const rolePage = currentRole + 'Page';
   const tahap1Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="1"]`);
-  if (!tahap1Section) {
-    console.error('Section Tahap 1 tidak ditemukan untuk page:', rolePage);
-    return;
-  }
+  if (!tahap1Section) return;
   
   const checkboxes = tahap1Section.querySelectorAll('.sub-task');
   const saveButton = tahap1Section.querySelector('.btn-save-section');
   
-    // Tahap 1
-    const t1Mapping = {
-        "Land Clearing": "LAND CLEARING",
-        "Pondasi": "PONDASI",
-        "Sloof": "SLOOF",
-        "Pas.Ddg S/D2 Canopy": "PAS.DDG S/D2 CANOPY",
-        "Pas.Ddg S/D Ring Blk": "PAS.DDG S/D RING BLK",
-        "Conduit + Inbow Doos": "CONDUIT+INBOW DOOS",
-        "Pipa Air Kotor": "PIPA AIR KOTOR",
-        "Pipa Air Bersih": "PIPA AIR BERSIH",
-        "Biotank": "BIOTANK",
-        "Plester": "PLESTER",
-        "Acian & Benangan": "ACIAN & BENANGAN",
-        "Cor Meja Dapur": "COR MEJA DAPUR"
-    };
+  // Urutan Database A-AG:
+  // BLOK, LT, LB, LAND CLEARING, PONDASI, SLOOF, PAS.DDG S/D2 CANOPY, PAS.DDG S/D RING BLK, 
+  // CONDUIT+INBOW DOOS, PIPA AIR KOTOR, PIPA AIR BERSIH, BIOTANK, PLESTER, ACIAN & BENANGAN, 
+  // COR MEJA DAPUR, ATAP GALV., GENTENG, PLAFOND, KERAMIK DINDING TOILET & DAPUR, 
+  // INSTS LISTRIK, KERAMIK LANTAI, KUSEN PINTU & JENDELA, DAUN PINTU & JENDELA, 
+  // CAT DASAR + LAPIS AWAL, FITTING LAMPU, FIXTURE & SANITER, CAT FINISH INTERIOR, 
+  // CAT FINISH EXTERIOR, BAK KONTROL & BATAS CARPORT, PAVING HALAMAN, 
+  // GENERAL CLEANING, Completion, Keterangan
 
-    const tahapData = {};
-    checkboxes.forEach(checkbox => {
-        const label = checkbox.closest('label');
-        const uiTaskName = label.textContent.trim();
-        const spreadsheetTaskName = t1Mapping[uiTaskName] || uiTaskName;
-        tahapData[spreadsheetTaskName] = checkbox.checked;
-    });
-  
+  const t1Mapping = {
+    "Land Clearing": "LAND CLEARING",
+    "Pondasi": "PONDASI",
+    "Sloof": "SLOOF",
+    "Pas.Ddg S/D2 Canopy": "PAS.DDG S/D2 CANOPY",
+    "Pas.Ddg S/D Ring Blk": "PAS.DDG S/D RING BLK",
+    "Conduit + Inbow Doos": "CONDUIT+INBOW DOOS",
+    "Pipa Air Kotor": "PIPA AIR KOTOR",
+    "Pipa Air Bersih": "PIPA AIR BERSIH",
+    "Biotank": "BIOTANK",
+    "Plester": "PLESTER",
+    "Acian & Benangan": "ACIAN & BENANGAN",
+    "Cor Meja Dapur": "COR MEJA DAPUR"
+  };
+
+  const tahapData = {};
+  tahapData["LT"] = currentKavlingData.lt || "";
+  tahapData["LB"] = currentKavlingData.lb || "";
+
+  checkboxes.forEach(checkbox => {
+    const label = checkbox.closest('label');
+    const uiTaskName = label.textContent.trim();
+    const spreadsheetTaskName = t1Mapping[uiTaskName] || uiTaskName;
+    tahapData[spreadsheetTaskName] = checkbox.checked;
+  });
+
   // Show loading
   if (saveButton) {
     const originalText = saveButton.innerHTML;
@@ -682,16 +792,13 @@ async function saveTahap2() {
   
   const rolePage = currentRole + 'Page';
   const tahap2Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="2"]`);
-  if (!tahap2Section) {
-    console.error('Section Tahap 2 tidak ditemukan untuk page:', rolePage);
-    return;
-  }
+  if (!tahap2Section) return;
   
   const checkboxes = tahap2Section.querySelectorAll('.sub-task');
   const saveButton = tahap2Section.querySelector('.btn-save-section');
   
   const t2Mapping = {
-    "Atap Galv": "ATAP GALV",
+    "Atap Galv": "ATAP GALV.",
     "Genteng": "GENTENG",
     "Plafond": "PLAFOND",
     "Keramik Dinding Toilet & Dapur": "KERAMIK DINDING TOILET & DAPUR",
@@ -700,13 +807,16 @@ async function saveTahap2() {
   };
 
   const tahapData = {};
+  tahapData["LT"] = currentKavlingData.lt || "";
+  tahapData["LB"] = currentKavlingData.lb || "";
+
   checkboxes.forEach(checkbox => {
     const label = checkbox.closest('label');
     const uiTaskName = label.textContent.trim();
     const spreadsheetTaskName = t2Mapping[uiTaskName] || uiTaskName;
     tahapData[spreadsheetTaskName] = checkbox.checked;
   });
-  
+
   if (saveButton) {
     const originalText = saveButton.innerHTML;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
@@ -752,10 +862,7 @@ async function saveTahap3() {
   
   const rolePage = currentRole + 'Page';
   const tahap3Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="3"]`);
-  if (!tahap3Section) {
-    console.error('Section Tahap 3 tidak ditemukan untuk page:', rolePage);
-    return;
-  }
+  if (!tahap3Section) return;
   
   const checkboxes = tahap3Section.querySelectorAll('.sub-task');
   const saveButton = tahap3Section.querySelector('.btn-save-section');
@@ -770,16 +877,26 @@ async function saveTahap3() {
     "Cat Finish Exterior": "CAT FINISH EXTERIOR",
     "Bak Kontrol & Batas Carport": "BAK KONTROL & BATAS CARPORT",
     "Paving Halaman": "PAVING HALAMAN",
-    "General Cleaning": "GENERAL CLEANING"
+    "General Cleaning": "GENERAL CLEANING",
+    "Completion": "Completion"
   };
 
   const tahapData = {};
+  tahapData["LT"] = currentKavlingData.lt || "";
+  tahapData["LB"] = currentKavlingData.lb || "";
+
   checkboxes.forEach(checkbox => {
     const label = checkbox.closest('label');
     const uiTaskName = label.textContent.trim();
     const spreadsheetTaskName = t3Mapping[uiTaskName] || uiTaskName;
     tahapData[spreadsheetTaskName] = checkbox.checked;
   });
+
+  // Tambahkan komentar ke data yang akan dikirim
+  const commentEl = tahap3Section.querySelector('.tahap-comments');
+  if (commentEl) {
+    tahapData["Keterangan"] = commentEl.value;
+  }
   
   if (saveButton) {
     const originalText = saveButton.innerHTML;
