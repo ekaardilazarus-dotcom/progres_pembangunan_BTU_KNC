@@ -268,14 +268,25 @@ async function searchKavling() {
         loadProgressData(data.data);
       }
       
-      showToast('success', `Data ${kavlingName} berhasil dimuat!`);
-      
+      // ===== PERBAIKAN DI SINI =====
       if (currentRole === 'manager') {
-        setTimeout(() => {
-          loadSummaryReport();
-          loadPropertyNotes();
-        }, 500);
+        // Load catatan untuk kavling yang dipilih
+        loadPropertyNotes(kavlingName);
+        
+        // Update badge kavling
+        updateKavlingBadge(kavlingName);
+        
+        // Jika di tab reports, load laporan
+        const activeTab = document.querySelector('#managerPage .admin-tab-btn.active');
+        if (activeTab && activeTab.getAttribute('data-tab') === 'reports') {
+          setTimeout(() => {
+            loadSummaryReport();
+          }, 500);
+        }
       }
+      // ========================
+      
+      showToast('success', `Data ${kavlingName} berhasil dimuat!`);
       
     } else {
       showToast('error', data.message || 'Kavling tidak ditemukan');
@@ -358,6 +369,166 @@ function updateKavlingInfo(data, pageId) {
         <span class="info-value val-type">${data.tipe || '-'}</span>
       </div>
     `;
+  }
+}
+
+// ========== MANAGER NOTES FUNCTIONS ==========
+async function loadPropertyNotes(kavlingName = null) {
+  const targetKavling = kavlingName || selectedKavling;
+  
+  if (!targetKavling) {
+    // Reset notes jika tidak ada kavling yang dipilih
+    const notesEl = document.getElementById('propertyNotesManager');
+    if (notesEl) {
+      notesEl.value = '';
+      notesEl.placeholder = 'Pilih kavling terlebih dahulu untuk melihat catatan';
+    }
+    return;
+  }
+  
+  const notesEl = document.getElementById('propertyNotesManager');
+  if (!notesEl) return;
+  
+  try {
+    // Tampilkan loading state
+    const originalPlaceholder = notesEl.placeholder;
+    notesEl.placeholder = 'Memuat catatan...';
+    notesEl.disabled = true;
+    
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getPropertyNotes',
+      kavling: targetKavling
+    });
+    
+    notesEl.disabled = false;
+    
+    if (result.success) {
+      notesEl.value = result.notes || '';
+      notesEl.placeholder = 'Masukkan catatan kondisi property di sini...';
+      
+      // Update character counter
+      updateNotesCounter(notesEl.value.length);
+      
+    } else {
+      notesEl.value = '';
+      notesEl.placeholder = 'Tidak ada catatan untuk kavling ini';
+    }
+  } catch (error) {
+    console.error('Error loading property notes:', error);
+    const notesEl = document.getElementById('propertyNotesManager');
+    if (notesEl) {
+      notesEl.value = '';
+      notesEl.placeholder = 'Gagal memuat catatan. Coba lagi.';
+      notesEl.disabled = false;
+    }
+  }
+}
+
+function updateKavlingBadge(kavlingName) {
+  const badge = document.getElementById('currentKavlingBadge');
+  if (badge) {
+    badge.textContent = kavlingName;
+  } else {
+    // Create badge jika belum ada
+    const notesHeader = document.querySelector('.notes-section h3');
+    if (notesHeader && kavlingName) {
+      const badge = document.createElement('span');
+      badge.id = 'currentKavlingBadge';
+      badge.style.cssText = 'background: #38bdf8; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-left: 10px;';
+      badge.textContent = kavlingName;
+      notesHeader.appendChild(badge);
+    }
+  }
+}
+
+function updateNotesCounter(charCount) {
+  let counter = document.getElementById('notesCharCounter');
+  if (!counter) {
+    counter = document.createElement('div');
+    counter.id = 'notesCharCounter';
+    counter.style.cssText = 'font-size: 0.8rem; color: #94a3b8; text-align: right; margin-top: 5px;';
+    
+    const notesSection = document.querySelector('.notes-section');
+    if (notesSection) {
+      const saveBtn = notesSection.querySelector('.btn-save-section');
+      if (saveBtn) {
+        notesSection.insertBefore(counter, saveBtn);
+      } else {
+        notesSection.appendChild(counter);
+      }
+    }
+  }
+  
+  counter.textContent = `${charCount} karakter`;
+  
+  // Warn jika terlalu panjang
+  if (charCount > 1000) {
+    counter.style.color = '#f59e0b';
+  } else if (charCount > 2000) {
+    counter.style.color = '#f43f5e';
+  } else {
+    counter.style.color = '#94a3b8';
+  }
+}
+
+async function savePropertyNotes() {
+  if (!selectedKavling) {
+    showToast('error', 'Pilih kavling terlebih dahulu');
+    return;
+  }
+  
+  const notesEl = document.getElementById('propertyNotesManager');
+  const saveBtn = document.querySelector('#tab-notes .btn-save-section');
+  if (!notesEl) return;
+  
+  const notes = notesEl.value.trim();
+  
+  // Simpan draft ke localStorage
+  if (selectedKavling) {
+    localStorage.setItem(`notes_draft_${selectedKavling}`, notes);
+  }
+  
+  const ltLb = currentKavlingData ? extractLTandLB(currentKavlingData.tipe) : {lt: '', lb: ''};
+  const totalProgress = currentKavlingData?.data?.totalProgress || '0%';
+  
+  if (saveBtn) {
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    saveBtn.disabled = true;
+  }
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'savePropertyNotes',
+      kavling: selectedKavling,
+      notes: notes,
+      data: {
+        'LT': ltLb.lt,
+        'LB': ltLb.lb,
+        'Persentase Keseluruhan': totalProgress
+      },
+      user: currentRole || 'manager'
+    });
+    
+    if (result.success) {
+      showToast('success', `Catatan untuk ${selectedKavling} berhasil disimpan!`);
+      
+      // Update counter
+      updateNotesCounter(notes.length);
+      
+      // Hapus draft dari localStorage setelah sukses save
+      localStorage.removeItem(`notes_draft_${selectedKavling}`);
+      
+    } else {
+      showToast('error', result.message || 'Gagal menyimpan catatan');
+    }
+  } catch (error) {
+    console.error('Error saving property notes:', error);
+    showToast('error', 'Gagal menyimpan: ' + error.message);
+  } finally {
+    if (saveBtn) {
+      saveBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Catatan';
+      saveBtn.disabled = false;
+    }
   }
 }
 
@@ -603,7 +774,8 @@ async function saveTahap1() {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveTahap1',
       kavling: selectedKavling,
-      data: tahapData
+      data: tahapData,
+      user: currentRole
     });
     
     if (result.success) {
@@ -673,7 +845,8 @@ async function saveTahap2() {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveTahap2',
       kavling: selectedKavling,
-      data: tahapData
+      data: tahapData,
+      user: currentRole
     });
     
     if (result.success) {
@@ -751,7 +924,8 @@ async function saveTahap3() {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveTahap3',
       kavling: selectedKavling,
-      data: tahapData
+      data: tahapData,
+      user: currentRole
     });
     
     if (result.success) {
@@ -780,74 +954,7 @@ async function saveTahap3() {
   }
 }
 
-// ========== MANAGER FUNCTIONS ==========
-async function loadPropertyNotes() {
-  if (!selectedKavling) return;
-  
-  const notesEl = document.getElementById('propertyNotesManager');
-  if (!notesEl) return;
-  
-  try {
-    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
-      action: 'getPropertyNotes',
-      kavling: selectedKavling
-    });
-    
-    if (result.success) {
-      notesEl.value = result.notes || '';
-    }
-  } catch (error) {
-    console.error('Error loading property notes:', error);
-  }
-}
-
-async function savePropertyNotes() {
-  if (!selectedKavling) {
-    showToast('error', 'Pilih kavling terlebih dahulu');
-    return;
-  }
-  
-  const notesEl = document.getElementById('propertyNotesManager');
-  const saveBtn = document.querySelector('#tab-notes .btn-save-section');
-  if (!notesEl) return;
-  
-  const notes = notesEl.value;
-  const ltLb = currentKavlingData ? extractLTandLB(currentKavlingData.tipe) : {lt: '', lb: ''};
-  const totalProgress = currentKavlingData?.data?.totalProgress || '0%';
-  
-  if (saveBtn) {
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
-    saveBtn.disabled = true;
-  }
-  
-  try {
-    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
-      action: 'savePropertyNotes',
-      kavling: selectedKavling,
-      notes: notes,
-      data: {
-        'LT': ltLb.lt,
-        'LB': ltLb.lb,
-        'Persentase Keseluruhan': totalProgress
-      }
-    });
-    
-    if (result.success) {
-      showToast('success', 'Catatan dan data kavling berhasil disimpan');
-    } else {
-      showToast('error', result.message || 'Gagal menyimpan catatan');
-    }
-  } catch (error) {
-    console.error('Error saving property notes:', error);
-    showToast('error', 'Gagal menyimpan: ' + error.message);
-  } finally {
-    if (saveBtn) {
-      saveBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Catatan';
-      saveBtn.disabled = false;
-    }
-  }
-}
-
+// ========== SUMMARY REPORT FUNCTIONS ==========
 async function loadSummaryReport() {
   try {
     showGlobalLoading('Mengambil laporan summary...');
@@ -1354,6 +1461,14 @@ function setupManagerTabs() {
   const tabBtns = document.querySelectorAll('#managerPage .admin-tab-btn');
   const tabContents = document.querySelectorAll('#managerPage .tab-content-item');
   
+  // Set active tab pertama kali
+  if (tabBtns.length > 0 && !document.querySelector('#managerPage .admin-tab-btn.active')) {
+    tabBtns[0].classList.add('active');
+    const firstTabId = tabBtns[0].getAttribute('data-tab');
+    const firstTab = document.getElementById(`tab-${firstTabId}`);
+    if (firstTab) firstTab.classList.add('active');
+  }
+  
   tabBtns.forEach(btn => {
     btn.addEventListener('click', function() {
       const tabId = this.getAttribute('data-tab');
@@ -1368,9 +1483,12 @@ function setupManagerTabs() {
       if (targetTab) {
         targetTab.classList.add('active');
         
-        // Jika tab laporan, load report
+        // Load data sesuai tab
         if (tabId === 'reports') {
           setTimeout(loadSummaryReport, 100);
+        } else if (tabId === 'notes' && selectedKavling) {
+          // Load notes jika ada kavling yang dipilih
+          loadPropertyNotes(selectedKavling);
         }
       }
     });
@@ -1380,6 +1498,14 @@ function setupManagerTabs() {
 function setupAdminTabs() {
   const tabBtns = document.querySelectorAll('#adminPage .admin-tab-btn');
   const tabContents = document.querySelectorAll('#adminPage .tab-content-item');
+  
+  // Set active tab pertama kali
+  if (tabBtns.length > 0 && !document.querySelector('#adminPage .admin-tab-btn.active')) {
+    tabBtns[0].classList.add('active');
+    const firstTabId = tabBtns[0].getAttribute('data-tab');
+    const firstTab = document.getElementById(`tab-${firstTabId}-admin`);
+    if (firstTab) firstTab.classList.add('active');
+  }
   
   // Tambahkan tombol sync di tab laporan admin
   const adminButtons = document.getElementById('adminButtons');
@@ -1513,6 +1639,20 @@ function setupDynamicEventListeners() {
       if (e.key === 'Enter') {
         handleLogin();
       }
+    });
+  }
+  
+  // Auto-save draft untuk notes
+  const notesTextarea = document.getElementById('propertyNotesManager');
+  if (notesTextarea) {
+    let saveDraftTimeout;
+    notesTextarea.addEventListener('input', function() {
+      clearTimeout(saveDraftTimeout);
+      saveDraftTimeout = setTimeout(() => {
+        if (selectedKavling && this.value.trim() !== '') {
+          localStorage.setItem(`notes_draft_${selectedKavling}`, this.value);
+        }
+      }, 1000);
     });
   }
 }
