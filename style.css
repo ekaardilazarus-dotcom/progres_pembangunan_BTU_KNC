@@ -992,13 +992,55 @@ footer {
   background: #475569;
 }
 
-/* ===== SUMMARY REPORT STYLES ===== */
-.summary-container {
-  background: #1e293b;
-  border-radius: 15px;
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* Pelaksana Tabs - Browser Style */
+.pelaksana-tabs {
+  background: #0f172a;
+  padding: 10px 10px 0 10px;
+  gap: 4px;
+  border-bottom: 2px solid #334155;
+  border-radius: 12px 12px 0 0;
 }
+
+.pelaksana-tabs .admin-tab-btn {
+  background: #1e293b;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 0;
+  color: #94a3b8;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.pelaksana-tabs .admin-tab-btn:hover {
+  background: #334155;
+}
+
+/* Tab Colors */
+.pelaksana-tabs .admin-tab-btn[data-tab="tahap1"].active {
+  background: #38bdf8;
+  color: white;
+}
+.pelaksana-tabs .admin-tab-btn[data-tab="tahap2"].active {
+  background: #10b981;
+  color: white;
+}
+.pelaksana-tabs .admin-tab-btn[data-tab="tahap3"].active {
+  background: #fbbf24;
+  color: white;
+}
+
+.pelaksana-tab-content {
+  border: 2px solid #334155;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 15px;
+  background: #1e293b;
+}
+
+/* Match content border/glow to active tab color */
+.user1-page[data-active-tab="tahap1"] .pelaksana-tab-content { border-color: #38bdf8; }
+.user1-page[data-active-tab="tahap2"] .pelaksana-tab-content { border-color: #10b981; }
+.user1-page[data-active-tab="tahap3"] .pelaksana-tab-content { border-color: #fbbf24; }
 
 .summary-header {
   margin-bottom: 25px;
