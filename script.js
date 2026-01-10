@@ -921,6 +921,248 @@ function handleSaveNotes() {
   // Catatan: Simpan ke server jika diperlukan
 }
 
+// ========== ADD KAVLING FUNCTIONS ==========
+async function handleAddKavling() {
+  const modal = document.getElementById('addKavlingModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.getElementById('newKavlingName').focus();
+    
+    // Reset form
+    document.getElementById('newKavlingName').value = '';
+    document.getElementById('newKavlingLT').value = '';
+    document.getElementById('newKavlingLB').value = '';
+  }
+}
+
+async function submitNewKavling() {
+  const nameInput = document.getElementById('newKavlingName');
+  const ltInput = document.getElementById('newKavlingLT');
+  const lbInput = document.getElementById('newKavlingLB');
+  const submitBtn = document.getElementById('submitNewKavling');
+  
+  if (!nameInput || !ltInput || !lbInput || !submitBtn) return;
+  
+  const kavlingName = nameInput.value.trim();
+  const lt = ltInput.value.trim();
+  const lb = lbInput.value.trim();
+  
+  // Validasi
+  if (!kavlingName) {
+    showProgressMessage('error', 'Nama kavling harus diisi');
+    nameInput.focus();
+    return;
+  }
+  
+  // Validasi format: harus mengandung blok dan nomor (contoh: M1_11, A_05)
+  const namePattern = /^[A-Z]+\d*_\d+$/i;
+  if (!namePattern.test(kavlingName)) {
+    showProgressMessage('error', 'Format nama kavling salah. Contoh: M1_11, A_05');
+    nameInput.focus();
+    return;
+  }
+  
+  if (submitBtn) {
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menambahkan...';
+    submitBtn.disabled = true;
+  }
+  
+  try {
+    showGlobalLoading('Menambahkan kavling baru...');
+    
+    const result = await addKavlingToServer(kavlingName, lt, lb);
+    
+    if (result.success) {
+      showProgressMessage('success', result.message);
+      
+      // Tutup modal
+      const modal = document.getElementById('addKavlingModal');
+      if (modal) modal.style.display = 'none';
+      
+      // Refresh list kavling
+      setTimeout(() => {
+        loadKavlingList();
+      }, 1000);
+      
+    } else {
+      showProgressMessage('error', result.message || 'Gagal menambahkan kavling');
+    }
+    
+  } catch (error) {
+    console.error('Error adding kavling:', error);
+    showProgressMessage('error', 'Gagal menambahkan kavling: ' + error.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.innerHTML = 'Simpan Kavling Baru';
+      submitBtn.disabled = false;
+    }
+    hideGlobalLoading();
+  }
+}
+
+function addKavlingToServer(name, lt, lb) {
+  return new Promise((resolve) => {
+    const callbackName = 'addKavlingCallback_' + Date.now();
+    
+    window[callbackName] = function(response) {
+      resolve(response);
+      delete window[callbackName];
+      document.getElementById('addKavlingScript')?.remove();
+    };
+    
+    const url = PROGRESS_APPS_SCRIPT_URL + 
+      '?action=addNewKavling' +
+      '&name=' + encodeURIComponent(name) +
+      '&lt=' + encodeURIComponent(lt) +
+      '&lb=' + encodeURIComponent(lb) +
+      '&callback=' + callbackName;
+    
+    const script = document.createElement('script');
+    script.id = 'addKavlingScript';
+    script.src = url;
+    document.body.appendChild(script);
+  });
+}
+
+// ========== UPDATE SETUP DYNAMIC EVENT LISTENERS ==========
+function setupDynamicEventListeners() {
+  console.log('Setting up dynamic event listeners...');
+  
+  // 1. Tombol "Tambah Kavling" di semua halaman
+  document.querySelectorAll('.btn-add-kavling').forEach(btn => {
+    btn.addEventListener('click', handleAddKavling);
+  });
+  
+  // 2. Tombol Submit di modal tambah kavling
+  const submitNewKavlingBtn = document.getElementById('submitNewKavling');
+  if (submitNewKavlingBtn) {
+    submitNewKavlingBtn.addEventListener('click', submitNewKavling);
+  }
+  
+  // 3. Tombol close modal tambah kavling
+  const closeAddKavlingBtn = document.getElementById('closeAddKavling');
+  if (closeAddKavlingBtn) {
+    closeAddKavlingBtn.addEventListener('click', function() {
+      const modal = document.getElementById('addKavlingModal');
+      if (modal) modal.style.display = 'none';
+    });
+  }
+  
+  // 4. Close modal dengan klik di luar
+  const addKavlingModal = document.getElementById('addKavlingModal');
+  if (addKavlingModal) {
+    addKavlingModal.addEventListener('click', function(e) {
+      if (e.target === addKavlingModal) {
+        addKavlingModal.style.display = 'none';
+      }
+    });
+  }
+  
+  // 5. Tombol "Sinkronkan Data" di semua halaman
+  document.querySelectorAll('.sync-btn').forEach(btn => {
+    btn.addEventListener('click', syncData);
+  });
+  
+  // 6. Tombol "Kembali ke Menu Awal & Logout" di semua halaman
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      clearSession();
+      goBack();
+      
+      // Reset button text to default
+      document.querySelectorAll('.role-btn h3').forEach(el => {
+        const role = el.closest('.role-btn').getAttribute('data-role');
+        el.textContent = defaultDisplayNames[role] || role;
+      });
+      
+      // Reset dashboard titles
+      document.querySelectorAll('.page-content h2').forEach(h2 => {
+        if (h2.textContent.includes('Selamat datang Pak')) {
+          const role = h2.closest('.page-content').id.replace('Page', '');
+          h2.textContent = defaultDisplayNames[role] ? `Dashboard ${defaultDisplayNames[role]}` : `Dashboard ${role}`;
+        }
+      });
+    });
+  });
+  
+  // 7. Tombol "Simpan Tahap" di semua halaman
+  document.querySelectorAll('.btn-save-section').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const section = btn.closest('.progress-section');
+      if (section) {
+        const tahap = section.getAttribute('data-tahap');
+        
+        if (tahap === '1') {
+          saveTahap1();
+        } else if (tahap === '2') {
+          saveTahap2();
+        } else if (tahap === '3') {
+          saveTahap3();
+        } else {
+          // Untuk manager save atau lainnya
+          handleSaveNotes();
+        }
+      }
+    });
+  });
+  
+  // 8. Tombol search kavling (dropdown change)
+  const selectIds = [
+    'searchKavlingUser1',
+    'searchKavlingUser2', 
+    'searchKavlingUser3',
+    'searchKavlingUser4',
+    'searchKavlingManager'
+  ];
+  
+  selectIds.forEach(selectId => {
+    const selectElement = document.getElementById(selectId);
+    if (selectElement) {
+      selectElement.addEventListener('change', searchKavling);
+    }
+  });
+  
+  // 9. Tombol Save di Admin (jika ada)
+  const btnSaveUser = document.getElementById('btnSaveUser');
+  if (btnSaveUser) {
+    btnSaveUser.addEventListener('click', function() {
+      // Handle user save
+      console.log('User save clicked');
+    });
+  }
+  
+  // 10. Tombol close modal lainnya
+  document.querySelectorAll('.close-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const modal = btn.closest('.modal');
+      if (modal) modal.style.display = 'none';
+    });
+  });
+  
+  // 11. Checkbox change listener for progress
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('sub-task')) {
+      const page = e.target.closest('.page-content');
+      if (page) {
+        updateProgress(page.id);
+      }
+    }
+  });
+  
+  // 12. Enter key pada form tambah kavling
+  document.addEventListener('keypress', function(e) {
+    if (e.target.id === 'newKavlingName' && e.key === 'Enter') {
+      submitNewKavling();
+    }
+  });
+  
+  console.log('Dynamic event listeners setup complete');
+}
+
+
 // ========== SETUP EVENT LISTENER DINAMIS ==========
 function setupDynamicEventListeners() {
   console.log('Setting up dynamic event listeners...');
