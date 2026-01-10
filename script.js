@@ -1,18 +1,10 @@
-// script.js - UPDATE DENGAN DROPDOWN MOBILE-FRIENDLY
+// script.js - VERSI DIPERBAIKI
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfsrL9o9PnRsXYZFOb3yxSyUZZ33ZX3o1sR7dztJPNdmTZT1XXx767ZIenfWbhKfLDBA/exec';
 
 let currentRole = null;
-
-// Default display names (jika kolom B kosong)
-const defaultDisplayNames = {
-  'user1': 'Pelaksana 1',
-  'user2': 'Pelaksana 2', 
-  'user3': 'Pelaksana 3',
-  'user4': 'Pelaksana 4',
-  'manager': 'MANAGEMENT',
-  'admin': 'Admin'
-};
+let selectedKavling = null;
+let currentKavlingData = null;
 
 // ========== UTILITY FUNCTIONS ==========
 function showGlobalLoading(text = 'Mohon Tunggu...') {
@@ -29,12 +21,7 @@ function hideGlobalLoading() {
   if (modal) modal.style.display = 'none';
 }
 
-// ========== FUNGSI UNTUK SELECT DROPDOWN ==========
-
-let selectedKavling = null;
-let currentKavlingData = null;
-
-// Fungsi untuk memuat list kavling ke semua select dropdown
+// ========== KAVLING FUNCTIONS ==========
 async function loadKavlingList() {
   console.log('Loading kavling list...');
   showGlobalLoading('Memuat daftar kavling...');
@@ -43,22 +30,16 @@ async function loadKavlingList() {
     const kavlings = await getKavlingListFromServer();
     
     if (kavlings && kavlings.length > 0) {
-      // Update semua select dropdown
       updateAllKavlingSelects(kavlings);
-      
       console.log(`✅ Loaded ${kavlings.length} kavlings`);
       
-      // Jika ada kavling yang dipilih sebelumnya, set ulang
-      if (selectedKavling && kavlings.includes(selectedKavling)) {
+      if (selectedKavling) {
         setTimeout(() => {
           setSelectedKavlingInDropdowns(selectedKavling);
         }, 100);
       }
-      
-      showProgressMessage('success', `Daftar kavling diperbarui (${kavlings.length} data)`);
     } else {
       console.log('❌ No kavlings found');
-      showProgressMessage('info', 'Tidak ada data kavling ditemukan');
     }
     
   } catch (error) {
@@ -69,7 +50,6 @@ async function loadKavlingList() {
   }
 }
 
-// Fungsi untuk mengambil list kavling dari server
 function getKavlingListFromServer() {
   return new Promise((resolve) => {
     const callbackName = 'kavlingListCallback_' + Date.now();
@@ -85,47 +65,38 @@ function getKavlingListFromServer() {
       }
       
       delete window[callbackName];
-      const script = document.getElementById('kavlingListScript');
-      if (script) script.remove();
+      document.getElementById('kavlingListScript')?.remove();
     };
     
     const url = PROGRESS_APPS_SCRIPT_URL + 
       '?action=getKavlingList&callback=' + callbackName;
     
-    console.log('Fetching kavling list from:', url);
-    
     const script = document.createElement('script');
     script.id = 'kavlingListScript';
     script.src = url;
-    
     document.body.appendChild(script);
   });
 }
 
-// Update semua select dropdown di semua halaman
 function updateAllKavlingSelects(kavlings) {
   const selectIds = [
-    'searchKavling1',
-    'searchKavling2', 
-    'searchKavling3',
-    'searchKavling4',
+    'searchKavlingUser1',
+    'searchKavlingUser2', 
+    'searchKavlingUser3',
+    'searchKavlingUser4',
     'searchKavlingManager'
   ];
   
   selectIds.forEach(selectId => {
     const selectElement = document.getElementById(selectId);
     if (selectElement) {
-      updateKavlingSelectWithGrouping(selectElement, kavlings);
+      updateKavlingSelect(selectElement, kavlings);
     }
   });
 }
 
-// Update select dropdown dengan grouping berdasarkan blok
-function updateKavlingSelectWithGrouping(selectElement, kavlings) {
-  // Simpan nilai yang sedang dipilih
+function updateKavlingSelect(selectElement, kavlings) {
   const currentValue = selectElement.value;
-  
-  // Clear existing options kecuali placeholder
   selectElement.innerHTML = '<option value="">-- Pilih Kavling --</option>';
   
   if (!kavlings || kavlings.length === 0) {
@@ -137,73 +108,40 @@ function updateKavlingSelectWithGrouping(selectElement, kavlings) {
     return;
   }
   
-  // Group kavlings by block (e.g., "M1_11" -> "M1")
-  const grouped = {};
-  
-  kavlings.forEach(kavling => {
-    const match = kavling.match(/^([A-Z]+\d*)/);
-    const block = match ? match[0] : 'Lainnya';
+  // Sort kavlings
+  const sortedKavlings = [...kavlings].sort((a, b) => {
+    const aMatch = a.match(/([A-Z]+)(\d+)/);
+    const bMatch = b.match(/([A-Z]+)(\d+)/);
     
-    if (!grouped[block]) {
-      grouped[block] = [];
+    if (aMatch && bMatch) {
+      if (aMatch[1] !== bMatch[1]) {
+        return aMatch[1].localeCompare(bMatch[1]);
+      }
+      return parseInt(aMatch[2]) - parseInt(bMatch[2]);
     }
-    grouped[block].push(kavling);
+    return a.localeCompare(b);
   });
   
-  // Sort blocks alphabetically
-  const sortedBlocks = Object.keys(grouped).sort((a, b) => {
-    // Sort by letter then number
-    const aMatch = a.match(/([A-Z]+)(\d*)/);
-    const bMatch = b.match(/([A-Z]+)(\d*)/);
-    
-    if (aMatch[1] !== bMatch[1]) {
-      return aMatch[1].localeCompare(bMatch[1]);
-    }
-    const aNum = parseInt(aMatch[2] || 0);
-    const bNum = parseInt(bMatch[2] || 0);
-    return aNum - bNum;
+  // Add options
+  sortedKavlings.forEach(kavling => {
+    const option = document.createElement('option');
+    option.value = kavling;
+    option.textContent = kavling;
+    selectElement.appendChild(option);
   });
   
-  // Add options with optgroups
-  sortedBlocks.forEach(block => {
-    const optgroup = document.createElement('optgroup');
-    optgroup.label = `Blok ${block}`;
-    optgroup.className = 'optgroup-label';
-    
-    // Sort kavlings within block numerically
-    grouped[block].sort((a, b) => {
-      const numA = parseInt(a.match(/_(\d+)/)?.[1] || a.match(/(\d+)/)?.[0] || 0);
-      const numB = parseInt(b.match(/_(\d+)/)?.[1] || b.match(/(\d+)/)?.[0] || 0);
-      return numA - numB;
-    });
-    
-    grouped[block].forEach(kavling => {
-      const option = document.createElement('option');
-      option.value = kavling;
-      option.textContent = kavling;
-      
-      // Tambahkan class berdasarkan progress (opsional - bisa diisi nanti)
-      // option.className = getProgressClass(kavling);
-      
-      optgroup.appendChild(option);
-    });
-    
-    selectElement.appendChild(optgroup);
-  });
-  
-  // Restore previous selection if it exists in new list
+  // Restore selection
   if (currentValue && kavlings.includes(currentValue)) {
     selectElement.value = currentValue;
   }
 }
 
-// Set selected kavling di semua dropdown
 function setSelectedKavlingInDropdowns(kavlingName) {
   const selectIds = [
-    'searchKavling1',
-    'searchKavling2', 
-    'searchKavling3',
-    'searchKavling4',
+    'searchKavlingUser1',
+    'searchKavlingUser2', 
+    'searchKavlingUser3',
+    'searchKavlingUser4',
     'searchKavlingManager'
   ];
   
@@ -215,17 +153,13 @@ function setSelectedKavlingInDropdowns(kavlingName) {
   });
 }
 
-// ========== FUNGSI SEARCH KAVLING DENGAN SELECT DROPDOWN ==========
 async function searchKavling() {
   console.log('=== FUNGSI searchKavling DIPANGGIL ===');
   
   try {
     const rolePage = currentRole + 'Page';
-    const roleNum = currentRole.match(/\d+$/);
-    const selectId = 'searchKavling' + (roleNum ? roleNum[0] : 'Manager');
+    const selectId = getSelectIdByRole(currentRole);
     const selectElement = document.getElementById(selectId);
-    
-    console.log('Select element:', selectElement);
     
     if (!selectElement) {
       alert('ERROR: Dropdown kavling tidak ditemukan!');
@@ -233,7 +167,6 @@ async function searchKavling() {
     }
     
     const kavlingName = selectElement.value.trim();
-    console.log('Nama kavling selected:', kavlingName);
     
     if (!kavlingName) {
       alert('Pilih kavling terlebih dahulu dari dropdown!');
@@ -241,41 +174,28 @@ async function searchKavling() {
       return;
     }
     
-    // Tampilkan loading
     showGlobalLoading('Mengambil data kavling ' + kavlingName + '...');
     
-    // Panggil server
-    console.log('Memanggil server untuk:', kavlingName);
     const data = await getKavlingDataFromServer(kavlingName);
-    console.log('Response dari server:', data);
     
     if (data.success) {
-      // Simpan ke variabel global
       selectedKavling = kavlingName;
       currentKavlingData = data;
       
-      // Set di semua dropdown
       setSelectedKavlingInDropdowns(kavlingName);
       
-      // Ekstrak LT dan LB dari tipe string
+      // Ekstrak LT dan LB dari tipe
       const ltLb = extractLTandLB(data.tipe);
       currentKavlingData.lt = ltLb.lt;
       currentKavlingData.lb = ltLb.lb;
       
-      console.log('LT/LB extracted:', ltLb);
-      console.log('✅ selectedKavling di-set:', selectedKavling);
-      
-      // Update UI
       updateKavlingInfo(data, rolePage);
       loadProgressData(data.data);
       
       showProgressMessage('success', `Data ${kavlingName} berhasil dimuat!`);
       
     } else {
-      console.error('Server error:', data.message);
       showProgressMessage('error', data.message || 'Kavling tidak ditemukan');
-      
-      // Reset selection
       selectElement.value = '';
     }
     
@@ -287,39 +207,30 @@ async function searchKavling() {
   }
 }
 
-// Fungsi untuk mengambil data kavling dari server
 function getKavlingDataFromServer(kavlingName) {
   return new Promise((resolve) => {
     const callbackName = 'kavlingDataCallback_' + Date.now();
     
     window[callbackName] = function(data) {
-      console.log('Kavling data response:', data);
       resolve(data);
-      
       delete window[callbackName];
-      const script = document.getElementById('kavlingDataScript');
-      if (script) script.remove();
+      document.getElementById('kavlingDataScript')?.remove();
     };
     
     const url = PROGRESS_APPS_SCRIPT_URL + 
       '?action=getKavlingData&kavling=' + encodeURIComponent(kavlingName) + 
       '&callback=' + callbackName;
     
-    console.log('Fetching kavling data from:', url);
-    
     const script = document.createElement('script');
     script.id = 'kavlingDataScript';
     script.src = url;
-    
     document.body.appendChild(script);
   });
 }
 
-// Ekstrak LT dan LB dari string tipe
 function extractLTandLB(tipeString) {
   if (!tipeString || tipeString === '-') return { lt: "", lb: "" };
   
-  // Format: "LT / LB" atau "36 / 72"
   const parts = tipeString.split('/').map(part => part.trim());
   return {
     lt: parts[0] || "",
@@ -327,11 +238,32 @@ function extractLTandLB(tipeString) {
   };
 }
 
-// ========== FUNGSI HELPER LAIN ==========
+function getSelectIdByRole(role) {
+  const selectIds = {
+    'user1': 'searchKavlingUser1',
+    'user2': 'searchKavlingUser2', 
+    'user3': 'searchKavlingUser3',
+    'user4': 'searchKavlingUser4',
+    'manager': 'searchKavlingManager'
+  };
+  return selectIds[role] || 'searchKavlingManager';
+}
 
-// Fungsi untuk update info kavling di sidebar
+function getKavlingInfoIdByRole(role) {
+  const infoIds = {
+    'user1': 'kavlingInfoUser1',
+    'user2': 'kavlingInfoUser2', 
+    'user3': 'kavlingInfoUser3',
+    'user4': 'kavlingInfoUser4',
+    'manager': 'kavlingInfoManager'
+  };
+  return infoIds[role] || 'kavlingInfoManager';
+}
+
 function updateKavlingInfo(data, pageId) {
-  const infoDisplay = document.querySelector(`#${pageId} .kavling-info-display`);
+  const role = currentRole;
+  const infoId = getKavlingInfoIdByRole(role);
+  const infoDisplay = document.getElementById(infoId);
   
   if (!infoDisplay) return;
   
@@ -347,15 +279,13 @@ function updateKavlingInfo(data, pageId) {
   `;
 }
 
-// Fungsi untuk memuat data progress ke checkbox
+// ========== PROGRESS FUNCTIONS ==========
 function loadProgressData(progressData) {
   if (!progressData) return;
   
   const rolePage = currentRole + 'Page';
   const pageElement = document.getElementById(rolePage);
   if (!pageElement) return;
-
-  console.log('Loading progress data for:', rolePage, progressData);
 
   // Tahap 1
   if (progressData.tahap1) {
@@ -390,20 +320,16 @@ function loadProgressData(progressData) {
     });
   }
 
-  // Load keterangan di textarea
+  // Load keterangan
   if (progressData.keterangan) {
     const commentEl = pageElement.querySelector('.progress-section[data-tahap="3"] .tahap-comments');
     if (commentEl) commentEl.value = progressData.keterangan;
   }
     
-  // Update total progress
   updateTotalProgressDisplay(progressData.totalProgress || '0%', rolePage);
-  
-  // Hitung progress per tahap untuk update UI bar
   updateProgress(rolePage);
 }
 
-// Helper untuk mencari checkbox berdasarkan nama task
 function findCheckboxByTaskName(taskName, tahap, pageId) {
   const checkboxes = document.querySelectorAll(`#${pageId} .progress-section[data-tahap="${tahap}"] .sub-task`);
   
@@ -412,7 +338,6 @@ function findCheckboxByTaskName(taskName, tahap, pageId) {
     if (label) {
       const labelText = label.textContent.trim().toLowerCase();
       const searchTask = taskName.trim().toLowerCase();
-      // Gunakan includes untuk pencocokan yang lebih fleksibel
       if (labelText.includes(searchTask) || searchTask.includes(labelText)) {
         return checkbox;
       }
@@ -422,7 +347,6 @@ function findCheckboxByTaskName(taskName, tahap, pageId) {
   return null;
 }
 
-// Update total progress display
 function updateTotalProgressDisplay(totalProgress, pageId) {
   const totalPercentElement = document.querySelector(`#${pageId} .total-percent`);
   const totalBarElement = document.querySelector(`#${pageId} .total-bar`);
@@ -432,104 +356,13 @@ function updateTotalProgressDisplay(totalProgress, pageId) {
   }
   
   if (totalBarElement) {
-    // Extract percentage number
     const percentMatch = totalProgress.match(/(\d+)%/);
     const percent = percentMatch ? parseInt(percentMatch[1]) : 0;
     totalBarElement.style.width = percent + '%';
   }
 }
 
-// Fungsi untuk sinkronisasi data
-async function syncData() {
-  const rolePage = currentRole + 'Page';
-  const syncBtn = document.querySelector(`#${rolePage} .sync-btn`);
-  
-  if (syncBtn) {
-    syncBtn.disabled = true;
-    syncBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Sinkronisasi...';
-  }
-  
-  try {
-    showGlobalLoading('Sinkronisasi data...');
-    await loadKavlingList();
-    
-    // Jika ada kavling yang sedang dipilih, ambil ulang datanya
-    if (selectedKavling) {
-      const data = await getKavlingDataFromServer(selectedKavling);
-      if (data.success) {
-        currentKavlingData = data;
-        loadProgressData(data.data);
-        showProgressMessage('success', 'Data berhasil disinkronisasi!');
-      }
-    }
-  } catch (error) {
-    console.error('Sync error:', error);
-    showProgressMessage('error', 'Gagal sinkronisasi data');
-  } finally {
-    if (syncBtn) {
-      syncBtn.disabled = false;
-      syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sinkronisasi';
-    }
-    hideGlobalLoading();
-  }
-}
-
-// ========== FITUR MOBILE ENHANCEMENT ==========
-
-// Inisialisasi fitur mobile-friendly
-function initializeMobileEnhancements() {
-  // Check if we're on mobile
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  // Setup semua select dropdown
-  const selectElements = document.querySelectorAll('select[id^="searchKavling"]');
-  
-  selectElements.forEach(select => {
-    // Auto-search ketika kavling dipilih
-    select.addEventListener('change', function() {
-      if (this.value.trim() !== '') {
-        searchKavling();
-      }
-    });
-    
-    // Keyboard navigation untuk dropdown panjang
-    if (!isMobile) {
-      select.addEventListener('keydown', function(e) {
-        if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-          // User typed a character - jump to matching option
-          const char = e.key.toLowerCase();
-          const options = Array.from(this.options);
-          
-          for (let i = 0; i < options.length; i++) {
-            if (options[i].text.toLowerCase().startsWith(char)) {
-              this.selectedIndex = i;
-              break;
-            }
-          }
-        }
-      });
-    }
-    
-    // Touch feedback untuk mobile
-    if (isMobile) {
-      select.addEventListener('touchstart', function() {
-        this.style.transform = 'scale(0.98)';
-      });
-      
-      select.addEventListener('touchend', function() {
-        this.style.transform = 'scale(1)';
-      });
-      
-      // Pastikan font size cukup besar untuk mobile
-      select.style.fontSize = '16px';
-      select.style.minHeight = '50px';
-    }
-  });
-}
-
-// ========== FUNGSI SAVE TAHAP (tetap sama) ==========
-
-// Fungsi untuk menyimpan tahap 1
+// ========== SAVE FUNCTIONS (TANPA LT/LB) ==========
 async function saveTahap1() {
   if (!selectedKavling || !currentKavlingData) {
     showProgressMessage('error', 'Pilih kavling terlebih dahulu');
@@ -559,8 +392,7 @@ async function saveTahap1() {
   };
 
   const tahapData = {};
-  tahapData["LT"] = currentKavlingData.lt || "";
-  tahapData["LB"] = currentKavlingData.lb || "";
+  // TIDAK MENYERTAKAN LT DAN LB - biarkan Apps Script yang ambil dari spreadsheet
 
   checkboxes.forEach(checkbox => {
     const label = checkbox.closest('label');
@@ -569,16 +401,13 @@ async function saveTahap1() {
     tahapData[spreadsheetTaskName] = checkbox.checked;
   });
 
-  // Show loading
   if (saveButton) {
-    const originalText = saveButton.innerHTML;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveButton.disabled = true;
   }
   
   try {
-    const overallPercent = calculateOverallPercent(rolePage);
-    const result = await saveTahapDataToServer('saveTahap1', selectedKavling, tahapData, overallPercent);
+    const result = await saveTahapDataToServer('saveTahap1', selectedKavling, tahapData);
     
     if (result.success) {
       showProgressMessage('success', result.message);
@@ -592,7 +421,9 @@ async function saveTahap1() {
         });
       }
       
-      console.log('Tahap 1 saved successfully:', result);
+      // Update progress display
+      updateProgress(rolePage);
+      
     } else {
       showProgressMessage('error', result.message || 'Gagal menyimpan tahap 1');
     }
@@ -601,7 +432,6 @@ async function saveTahap1() {
     console.error('Error saving tahap 1:', error);
     showProgressMessage('error', 'Gagal menyimpan: ' + error.message);
   } finally {
-    // Restore button
     if (saveButton) {
       saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 1';
       saveButton.disabled = false;
@@ -609,7 +439,6 @@ async function saveTahap1() {
   }
 }
 
-// Fungsi untuk menyimpan tahap 2
 async function saveTahap2() {
   if (!selectedKavling || !currentKavlingData) {
     showProgressMessage('error', 'Pilih kavling terlebih dahulu');
@@ -633,8 +462,7 @@ async function saveTahap2() {
   };
 
   const tahapData = {};
-  tahapData["LT"] = currentKavlingData.lt || "";
-  tahapData["LB"] = currentKavlingData.lb || "";
+  // TIDAK MENYERTAKAN LT DAN LB
 
   checkboxes.forEach(checkbox => {
     const label = checkbox.closest('label');
@@ -644,14 +472,12 @@ async function saveTahap2() {
   });
 
   if (saveButton) {
-    const originalText = saveButton.innerHTML;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveButton.disabled = true;
   }
   
   try {
-    const overallPercent = calculateOverallPercent(rolePage);
-    const result = await saveTahapDataToServer('saveTahap2', selectedKavling, tahapData, overallPercent);
+    const result = await saveTahapDataToServer('saveTahap2', selectedKavling, tahapData);
     
     if (result.success) {
       showProgressMessage('success', result.message);
@@ -663,7 +489,8 @@ async function saveTahap2() {
         });
       }
       
-      console.log('Tahap 2 saved successfully:', result);
+      updateProgress(rolePage);
+      
     } else {
       showProgressMessage('error', result.message || 'Gagal menyimpan tahap 2');
     }
@@ -679,7 +506,6 @@ async function saveTahap2() {
   }
 }
 
-// Fungsi untuk menyimpan tahap 3
 async function saveTahap3() {
   if (!selectedKavling || !currentKavlingData) {
     showProgressMessage('error', 'Pilih kavling terlebih dahulu');
@@ -708,8 +534,7 @@ async function saveTahap3() {
   };
 
   const tahapData = {};
-  tahapData["LT"] = currentKavlingData.lt || "";
-  tahapData["LB"] = currentKavlingData.lb || "";
+  // TIDAK MENYERTAKAN LT DAN LB
 
   checkboxes.forEach(checkbox => {
     const label = checkbox.closest('label');
@@ -718,21 +543,19 @@ async function saveTahap3() {
     tahapData[spreadsheetTaskName] = checkbox.checked;
   });
 
-  // Tambahkan komentar ke data yang akan dikirim
+  // Tambahkan komentar
   const commentEl = tahap3Section.querySelector('.tahap-comments');
   if (commentEl) {
     tahapData["Keterangan"] = commentEl.value;
   }
   
   if (saveButton) {
-    const originalText = saveButton.innerHTML;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveButton.disabled = true;
   }
   
   try {
-    const overallPercent = calculateOverallPercent(rolePage);
-    const result = await saveTahapDataToServer('saveTahap3', selectedKavling, tahapData, overallPercent);
+    const result = await saveTahapDataToServer('saveTahap3', selectedKavling, tahapData);
     
     if (result.success) {
       showProgressMessage('success', result.message);
@@ -748,7 +571,8 @@ async function saveTahap3() {
         }
       }
       
-      console.log('Tahap 3 saved successfully:', result);
+      updateProgress(rolePage);
+      
     } else {
       showProgressMessage('error', result.message || 'Gagal menyimpan tahap 3');
     }
@@ -764,79 +588,27 @@ async function saveTahap3() {
   }
 }
 
-// Fungsi helper untuk menyimpan data tahap ke server
-function saveTahapDataToServer(action, kavling, data, totalProgress) {
+function saveTahapDataToServer(action, kavling, data) {
   return new Promise((resolve) => {
     const callbackName = 'saveTahapCallback_' + Date.now();
     
     window[callbackName] = function(response) {
-      console.log('Save tahap response:', response);
       resolve(response);
-      
       delete window[callbackName];
-      const script = document.getElementById('saveTahapScript');
-      if (script) script.remove();
+      document.getElementById('saveTahapScript')?.remove();
     };
     
-    let url = PROGRESS_APPS_SCRIPT_URL + 
+    const url = PROGRESS_APPS_SCRIPT_URL + 
       '?action=' + action + 
       '&kavling=' + encodeURIComponent(kavling) + 
       '&data=' + encodeURIComponent(JSON.stringify(data)) + 
       '&callback=' + callbackName;
-      
-    if (totalProgress !== undefined) {
-      url += '&totalProgress=' + encodeURIComponent(totalProgress + '%');
-    }
-    
-    console.log('Saving tahap data via:', url);
     
     const script = document.createElement('script');
     script.id = 'saveTahapScript';
     script.src = url;
-    
     document.body.appendChild(script);
   });
-}
-
-// Fungsi untuk menampilkan pesan progress
-function showProgressMessage(type, message) {
-  let messageContainer = document.getElementById('progressMessage');
-  
-  if (!messageContainer) {
-    messageContainer = document.createElement('div');
-    messageContainer.id = 'progressMessage';
-    messageContainer.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1000;
-      padding: 15px 20px;
-      border-radius: 10px;
-      font-weight: 600;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      max-width: 300px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    `;
-    document.body.appendChild(messageContainer);
-  }
-  
-  messageContainer.innerHTML = `
-    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" 
-       style="color: ${type === 'success' ? '#10b981' : '#f43f5e'}; font-size: 1.2rem;"></i>
-    <span>${message}</span>
-  `;
-  
-  messageContainer.style.display = 'flex';
-  messageContainer.style.backgroundColor = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)';
-  messageContainer.style.color = type === 'success' ? '#10b981' : '#f43f5e';
-  messageContainer.style.border = `1px solid ${type === 'success' ? '#10b981' : '#f43f5e'}`;
-  
-  // Auto hide setelah 3 detik
-  setTimeout(() => {
-    messageContainer.style.display = 'none';
-  }, 3000);
 }
 
 // ========== PROGRESS CALCULATION ==========
@@ -881,7 +653,6 @@ function updateProgress(pageId) {
 
     const sectionPercent = weight > 0 ? Math.round((sectionCompleted / weight) * 100) : 0;
     
-    // Update section UI
     const sectionBar = section.querySelector('.progress-fill');
     const sectionText = section.querySelector('.sub-percent');
     
@@ -898,19 +669,64 @@ function updateProgress(pageId) {
   if (totalPercent) totalPercent.textContent = overallPercent + '%';
 }
 
-// ========== LOGIN & SESSION FUNCTIONS ==========
+// ========== MESSAGE FUNCTIONS ==========
+function showProgressMessage(type, message) {
+  let messageContainer = document.getElementById('progressMessage');
+  
+  if (!messageContainer) {
+    messageContainer = document.createElement('div');
+    messageContainer.id = 'progressMessage';
+    messageContainer.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      max-width: 300px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    `;
+    document.body.appendChild(messageContainer);
+  }
+  
+  messageContainer.innerHTML = `
+    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" 
+       style="color: ${type === 'success' ? '#10b981' : '#f43f5e'}; font-size: 1.2rem;"></i>
+    <span>${message}</span>
+  `;
+  
+  messageContainer.style.display = 'flex';
+  messageContainer.style.backgroundColor = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)';
+  messageContainer.style.color = type === 'success' ? '#10b981' : '#f43f5e';
+  messageContainer.style.border = `1px solid ${type === 'success' ? '#10b981' : '#f43f5e'}`;
+  
+  setTimeout(() => {
+    messageContainer.style.display = 'none';
+  }, 3000);
+}
+
+// ========== LOGIN FUNCTIONS ==========
+const defaultDisplayNames = {
+  'user1': 'Pelaksana 1',
+  'user2': 'Pelaksana 2', 
+  'user3': 'Pelaksana 3',
+  'user4': 'Pelaksana 4',
+  'manager': 'MANAGEMENT',
+  'admin': 'Admin'
+};
 
 function verifyLogin(role, password) {
   return new Promise((resolve) => {
     const callbackName = 'loginCallback_' + Date.now();
     
     window[callbackName] = function(data) {
-      console.log('Login response:', data);
       resolve(data);
       delete window[callbackName];
-      
-      const script = document.getElementById('loginScript');
-      if (script) script.remove();
+      document.getElementById('loginScript')?.remove();
     };
     
     const script = document.createElement('script');
@@ -925,11 +741,7 @@ function verifyLogin(role, password) {
 }
 
 function updateDashboardTitle(role, displayName) {
-  console.log(`Updating title for ${role} to: Selamat datang Pak ${displayName}`);
-  
   const pageElement = document.getElementById(role + 'Page');
-  console.log('Page element found:', !!pageElement);
-  
   if (pageElement) {
     let titleElement = pageElement.querySelector('.page-header .page-title h2');
     
@@ -941,14 +753,8 @@ function updateDashboardTitle(role, displayName) {
       titleElement = pageElement.querySelector('h2');
     }
     
-    console.log('Title element found:', !!titleElement);
-    
     if (titleElement) {
-      console.log('Before update:', titleElement.textContent);
       titleElement.textContent = `Selamat datang Pak ${displayName}`;
-      console.log('After update:', titleElement.textContent);
-    } else {
-      console.error('❌ Tidak ditemukan elemen h2 di page:', role + 'Page');
     }
   }
 }
@@ -967,42 +773,31 @@ async function handleLogin() {
     return;
   }
   
-  // Loading state
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Memeriksa...';
   }
   
-  console.log('Login attempt for:', currentRole, 'password:', '***');
-  
   try {
     const result = await verifyLogin(currentRole, password);
-    console.log('Login result:', result);
     
     if (result.success) {
-      // SUCCESS
       if (modal) modal.style.display = 'none';
       
       const displayName = result.displayName || defaultDisplayNames[currentRole];
-      console.log('Display name to use:', displayName);
       
-      // Update role button text
       document.querySelectorAll(`[data-role="${currentRole}"] h3`).forEach(el => {
         el.textContent = displayName;
       });
       
-      // Update dashboard title
       updateDashboardTitle(currentRole, displayName);
       
-      // Simpan session
       sessionStorage.setItem('loggedRole', currentRole);
       sessionStorage.setItem('loggedDisplayName', displayName);
       
-      // Tampilkan dashboard
       showPage(currentRole);
       
     } else {
-      // FAILED
       if (errorMsg) errorMsg.textContent = result.message || 'Password salah';
       passwordInput.value = '';
       passwordInput.focus();
@@ -1020,40 +815,31 @@ async function handleLogin() {
 }
 
 function showPage(role) {
-  console.log('Showing page for:', role);
-  
-  // Hide all pages
   document.querySelectorAll('.page-content').forEach(page => {
     page.style.display = 'none';
   });
   
-  // Hide main container
   document.querySelectorAll('.section-container').forEach(container => {
     container.style.display = 'none';
   });
   
-  // Show selected page
   const pageElement = document.getElementById(role + 'Page');
   if (pageElement) {
     pageElement.style.display = 'block';
     pageElement.setAttribute('aria-hidden', 'false');
     
-    // Update title juga saat show page (untuk session restore)
     const savedName = sessionStorage.getItem('loggedDisplayName');
     if (savedName) {
       updateDashboardTitle(role, savedName);
     }
     
-    // Trigger initial progress calc
     updateProgress(role + 'Page');
     
-    // Load data khusus berdasarkan role
     if (role === 'admin') {
       setTimeout(() => {
         loadUsersForAdmin();
       }, 500);
-    } else if (role.startsWith('user')) {
-      // Untuk pelaksana, load kavling list
+    } else if (role.startsWith('user') || role === 'manager') {
       setTimeout(() => {
         loadKavlingList();
       }, 500);
@@ -1062,12 +848,10 @@ function showPage(role) {
 }
 
 function goBack() {
-  // Show main container
   document.querySelectorAll('.section-container').forEach(container => {
     container.style.display = 'block';
   });
   
-  // Hide all pages
   document.querySelectorAll('.page-content').forEach(page => {
     page.style.display = 'none';
     page.setAttribute('aria-hidden', 'true');
@@ -1078,36 +862,57 @@ function clearSession() {
   sessionStorage.removeItem('loggedRole');
   sessionStorage.removeItem('loggedDisplayName');
   currentRole = null;
+  selectedKavling = null;
+  currentKavlingData = null;
 }
 
-// ========== USER MANAGEMENT FUNCTIONS (sama) ==========
+// ========== SYNC FUNCTION ==========
+async function syncData() {
+  const rolePage = currentRole + 'Page';
+  const syncBtn = document.querySelector(`#${rolePage} .sync-btn`);
+  
+  if (syncBtn) {
+    syncBtn.disabled = true;
+    syncBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Sinkronisasi...';
+  }
+  
+  try {
+    showGlobalLoading('Sinkronisasi data...');
+    await loadKavlingList();
+    
+    if (selectedKavling) {
+      const data = await getKavlingDataFromServer(selectedKavling);
+      if (data.success) {
+        currentKavlingData = data;
+        loadProgressData(data.data);
+        showProgressMessage('success', 'Data berhasil disinkronisasi!');
+      }
+    }
+  } catch (error) {
+    console.error('Sync error:', error);
+    showProgressMessage('error', 'Gagal sinkronisasi data');
+  } finally {
+    if (syncBtn) {
+      syncBtn.disabled = false;
+      syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sinkronisasi';
+    }
+    hideGlobalLoading();
+  }
+}
 
-// ... (user management functions tetap sama seperti sebelumnya)
-// ... (loadUsersForAdmin, getUsersFromServer, loadSelectedUser, saveUserChanges, etc.)
-
-// ========== INITIALIZATION ==========
+// ========== EVENT LISTENERS ==========
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM loaded, initializing...');
-  
-  // Elements
-  const modal = document.getElementById('passwordModal');
-  const passwordInput = document.getElementById('passwordInput');
-  const submitBtn = document.getElementById('submitPassword');
-  const errorMsg = document.getElementById('errorMessage');
   
   // Check saved session
   const savedRole = sessionStorage.getItem('loggedRole');
   const savedName = sessionStorage.getItem('loggedDisplayName');
   
-  console.log('Saved session:', { savedRole, savedName });
-  
   if (savedRole && savedName) {
-    // Auto login dengan session
     document.querySelectorAll(`[data-role="${savedRole}"] h3`).forEach(el => {
       el.textContent = savedName;
     });
     
-    // Update dashboard title juga
     updateDashboardTitle(savedRole, savedName);
     
     showPage(savedRole);
@@ -1118,32 +923,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const roleBtn = e.target.closest('.role-btn');
     if (roleBtn) {
       currentRole = roleBtn.getAttribute('data-role');
-      console.log('Role button clicked:', currentRole);
       
+      const modal = document.getElementById('passwordModal');
       if (modal && currentRole) {
-        // Update modal title with default name
         const title = modal.querySelector('h2#modalTitle');
         if (title) {
           title.textContent = 'Login sebagai ' + (defaultDisplayNames[currentRole] || currentRole);
         }
         
-        // Show modal
         modal.style.display = 'flex';
+        const passwordInput = document.getElementById('passwordInput');
         if (passwordInput) {
           passwordInput.value = '';
           passwordInput.focus();
         }
+        const errorMsg = document.getElementById('errorMessage');
         if (errorMsg) errorMsg.textContent = '';
       }
     }
   });
   
-  // Submit button
+  // Submit password
+  const submitBtn = document.getElementById('submitPassword');
   if (submitBtn) {
     submitBtn.addEventListener('click', handleLogin);
   }
   
   // Enter key in password
+  const passwordInput = document.getElementById('passwordInput');
   if (passwordInput) {
     passwordInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter' && submitBtn) {
@@ -1154,6 +961,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Close modal
   document.addEventListener('click', function(e) {
+    const modal = document.getElementById('passwordModal');
     if (e.target.classList.contains('close-btn') || e.target === modal) {
       if (modal) modal.style.display = 'none';
     }
@@ -1165,7 +973,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tabBtn) {
       const tabId = tabBtn.getAttribute('data-tab');
       
-      // Update buttons
       document.querySelectorAll('.admin-tab-btn').forEach(btn => {
         btn.classList.remove('active');
         btn.style.color = '#94a3b8';
@@ -1175,14 +982,12 @@ document.addEventListener('DOMContentLoaded', function() {
       tabBtn.style.color = 'white';
       tabBtn.style.borderBottom = '3px solid #38bdf8';
       
-      // Update content
       document.querySelectorAll('.tab-content-item').forEach(content => {
         content.style.display = 'none';
       });
       const targetContent = document.getElementById('tab-' + tabId);
       if (targetContent) targetContent.style.display = 'block';
       
-      // Jika pindah ke tab users, load user data
       if (tabId === 'users') {
         loadUsersForAdmin();
       }
@@ -1198,6 +1003,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
+
+ 
 
   // Logout button
   document.addEventListener('click', function(e) {
