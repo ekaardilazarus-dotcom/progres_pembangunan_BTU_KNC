@@ -1,6 +1,6 @@
 // script.js - VERSI DIPERBAIKI DENGAN EVENT LISTENER YANG BENAR
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfsrL9o9PnRsXYZFOb3yxSyUZZ33ZX3o1sR7dztJPNdmTZT1XXx767ZIenfWbhKfLDBA/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwA_AXoMW2RlJp-gsrFrnIkFp0JEb_qk_neCXEd2nk8iYnaB8r8XlG9U_ZhxDznJAQrzA/exec';
 
 let currentRole = null;
 let selectedKavling = null;
