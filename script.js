@@ -1374,6 +1374,8 @@ function displayActivityLog(logs) {
 // ========== SETUP EVENT LISTENER DINAMIS ==========
 function setupDynamicEventListeners() {
   console.log('Setting up dynamic event listeners...');
+    // Setup admin event listeners
+  setupAdminEventListeners();
   
   // 1. Tombol "Tambah Kavling" di semua halaman
   document.querySelectorAll('.btn-add-kavling').forEach(btn => {
@@ -1635,7 +1637,10 @@ async function loadUsersForAdmin() {
 
 function displayUsersForAdmin(users) {
   const container = document.getElementById('usersListContainer');
-  if (!container) return;
+  if (!container) {
+    console.error('Container usersListContainer tidak ditemukan');
+    return;
+  }
   
   if (!users || users.length === 0) {
     container.innerHTML = '<p class="no-data">Tidak ada data pengguna</p>';
@@ -1656,13 +1661,22 @@ function displayUsersForAdmin(users) {
     html += `
       <div class="user-item">
         <div class="user-info">
-          <div class="user-role">${roleName}</div>
-          <div class="user-name">${user.displayName || '-'}</div>
-          <div class="user-id">ID: ${user.id}</div>
+          <div class="user-role">
+            <span class="role-name">${roleName}</span>
+            <span class="role-code">(${user.role})</span>
+          </div>
+          <div class="user-name">
+            <i class="fas fa-user"></i> ${user.displayName || '-'}
+          </div>
+          <div class="user-password">
+            <i class="fas fa-key"></i> ${user.password ? '••••••••' : 'Tidak ada'}
+          </div>
+          <div class="user-id">
+            <i class="fas fa-hashtag"></i> Baris: ${user.id}
+          </div>
         </div>
         <div class="user-actions">
-          <button class="btn-edit-user" data-role="${user.role}" 
-                  data-name="${user.displayName || ''}">
+          <button class="btn-edit-user" onclick="handleEditUser('${user.role.replace(/'/g, "\\'")}', '${(user.displayName || '').replace(/'/g, "\\'")}')">
             <i class="fas fa-edit"></i> Edit
           </button>
         </div>
@@ -1672,39 +1686,93 @@ function displayUsersForAdmin(users) {
   
   html += `</div>`;
   container.innerHTML = html;
+}
+
+// Fungsi untuk handle klik tombol Edit
+function handleEditUser(role, currentName) {
+  console.log('Edit user clicked:', role, currentName);
   
-  // Add event listeners to edit buttons
-  document.querySelectorAll('.btn-edit-user').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const role = this.getAttribute('data-role');
-      const name = this.getAttribute('data-name');
-      showEditUserModal(role, name);
-    });
-  });
+  // Decode jika ada escape characters
+  const decodedName = currentName.replace(/\\'/g, "'");
+  
+  // Panggil fungsi untuk menampilkan modal
+  showEditUserModal(role, decodedName);
 }
 
 function showEditUserModal(role, currentName) {
+  console.log('Showing edit modal for:', role, currentName);
+  
   const modal = document.getElementById('editUserModal');
-  if (!modal) return;
+  if (!modal) {
+    console.error('Modal editUserModal tidak ditemukan');
+    return;
+  }
   
   const roleName = defaultDisplayNames[role] || role;
-  document.getElementById('editUserRole').textContent = roleName;
-  document.getElementById('editUserName').value = currentName || '';
-  document.getElementById('editUserPassword').value = '';
   
-  // Store role for saving
+  // Update modal content
+  const roleDisplay = document.getElementById('editUserRole');
+  const nameInput = document.getElementById('editUserName');
+  const passwordInput = document.getElementById('editUserPassword');
+  
+  if (roleDisplay) roleDisplay.textContent = roleName;
+  if (nameInput) nameInput.value = currentName || '';
+  if (passwordInput) passwordInput.value = '';
+  
+  // Store data in modal for saving
   modal.setAttribute('data-role', role);
+  modal.setAttribute('data-original-name', currentName || '');
   
+  // Show modal
   modal.style.display = 'flex';
-  document.getElementById('editUserName').focus();
+  
+  // Focus on name input
+  setTimeout(() => {
+    if (nameInput) {
+      nameInput.focus();
+      nameInput.select();
+    }
+  }, 100);
+}
+
+// Fungsi untuk menutup modal edit user
+function closeEditUserModal() {
+  const modal = document.getElementById('editUserModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.removeAttribute('data-role');
+    modal.removeAttribute('data-original-name');
+  }
 }
 
 async function saveUserChanges() {
   const modal = document.getElementById('editUserModal');
-  const role = modal.getAttribute('data-role');
-  const newName = document.getElementById('editUserName').value.trim();
-  const newPassword = document.getElementById('editUserPassword').value.trim();
+  if (!modal) {
+    showProgressMessage('error', 'Modal tidak ditemukan');
+    return;
+  }
   
+  const role = modal.getAttribute('data-role');
+  const originalName = modal.getAttribute('data-original-name') || '';
+  const nameInput = document.getElementById('editUserName');
+  const passwordInput = document.getElementById('editUserPassword');
+  
+  if (!nameInput || !passwordInput) {
+    showProgressMessage('error', 'Form input tidak ditemukan');
+    return;
+  }
+  
+  const newName = nameInput.value.trim();
+  const newPassword = passwordInput.value.trim();
+  
+  console.log('Saving user changes:', {
+    role,
+    originalName,
+    newName,
+    passwordChanged: !!newPassword
+  });
+  
+  // Validasi
   if (!role) {
     showProgressMessage('error', 'Role tidak ditemukan');
     return;
@@ -1712,8 +1780,28 @@ async function saveUserChanges() {
   
   if (!newName) {
     showProgressMessage('error', 'Nama tidak boleh kosong');
-    document.getElementById('editUserName').focus();
+    nameInput.focus();
     return;
+  }
+  
+  // Jika tidak ada perubahan
+  if (newName === originalName && !newPassword) {
+    showProgressMessage('info', 'Tidak ada perubahan yang disimpan');
+    closeEditUserModal();
+    return;
+  }
+  
+  // Konfirmasi
+  const confirmMessage = `Apakah Anda yakin ingin mengubah data ${role}?\n\nNama: ${originalName || '(kosong)'} → ${newName}\n${newPassword ? 'Password akan diubah' : 'Password tidak diubah'}`;
+  
+  if (!confirm(confirmMessage)) {
+    return;
+  }
+  
+  const saveButton = document.getElementById('saveUserChangesBtn');
+  if (saveButton) {
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
   }
   
   try {
@@ -1726,16 +1814,32 @@ async function saveUserChanges() {
       password: newPassword
     });
     
+    console.log('Save user result:', result);
+    
     if (result.success) {
-      showProgressMessage('success', result.message);
+      showProgressMessage('success', result.message || 'Perubahan berhasil disimpan');
       
       // Close modal
-      modal.style.display = 'none';
+      closeEditUserModal();
       
-      // Refresh user list
+      // Refresh user list setelah 1 detik
       setTimeout(() => {
         loadUsersForAdmin();
-      }, 500);
+        
+        // Jika user yang sedang login diubah, update session
+        const loggedRole = sessionStorage.getItem('loggedRole');
+        if (loggedRole === role) {
+          sessionStorage.setItem('loggedDisplayName', newName);
+          
+          // Update UI jika sedang di halaman yang sesuai
+          if (currentRole === role) {
+            updateDashboardTitle(role, newName);
+            document.querySelectorAll(`[data-role="${role}"] h3`).forEach(el => {
+              el.textContent = newName;
+            });
+          }
+        }
+      }, 1000);
       
     } else {
       showProgressMessage('error', result.message || 'Gagal menyimpan perubahan');
@@ -1743,10 +1847,58 @@ async function saveUserChanges() {
     
   } catch (error) {
     console.error('Error saving user changes:', error);
-    showProgressMessage('error', 'Gagal menyimpan perubahan');
+    showProgressMessage('error', 'Gagal menyimpan perubahan: ' + error.message);
   } finally {
+    if (saveButton) {
+      saveButton.disabled = false;
+      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan';
+    }
     hideGlobalLoading();
   }
+}
+
+// Setup admin event listeners
+function setupAdminEventListeners() {
+  console.log('Setting up admin event listeners...');
+  
+  // Close edit user modal button
+  const closeEditUserBtn = document.getElementById('closeEditUserBtn');
+  if (closeEditUserBtn) {
+    closeEditUserBtn.addEventListener('click', closeEditUserModal);
+  }
+  
+  // Another close button if exists
+  const closeEditUserBtn2 = document.getElementById('closeEditUserBtn2');
+  if (closeEditUserBtn2) {
+    closeEditUserBtn2.addEventListener('click', closeEditUserModal);
+  }
+  
+  // Close modal by clicking outside
+  const editUserModal = document.getElementById('editUserModal');
+  if (editUserModal) {
+    editUserModal.addEventListener('click', function(e) {
+      if (e.target === editUserModal) {
+        closeEditUserModal();
+      }
+    });
+  }
+  
+  // Save user changes button
+  const saveUserChangesBtn = document.getElementById('saveUserChangesBtn');
+  if (saveUserChangesBtn) {
+    saveUserChangesBtn.addEventListener('click', saveUserChanges);
+  }
+  
+  // Enter key in edit user form
+  document.addEventListener('keypress', function(e) {
+    if (e.target.id === 'editUserName' && e.key === 'Enter') {
+      document.getElementById('editUserPassword').focus();
+    } else if (e.target.id === 'editUserPassword' && e.key === 'Enter') {
+      saveUserChanges();
+    }
+  });
+  
+  console.log('Admin event listeners setup complete');
 }
 
 // ========== MOBILE ENHANCEMENTS ==========
