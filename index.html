@@ -58,55 +58,6 @@
       </div>
     </div>
 
-    <!-- PAGE: manager -->
-    <div class="page-content manager-page" id="managerPage" aria-hidden="true">
-      <div class="page-header">
-        <div class="page-title">
-          <i class="fas fa-user-tie"></i>
-          <h2>Management Property</h2>
-        </div>
-        <div style="display:flex; gap:15px; align-items:center;">
-          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
-            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu Awal & Logout
-          </button>
-          <button class="btn-add-kavling" type="button" style="background: linear-gradient(135deg, #10b981, #059669); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
-            <i class="fas fa-plus-circle"></i> Tambah Kavling
-          </button>
-          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
-            <i class="fas fa-sync-alt"></i> Sinkronkan Data
-          </button>
-        </div>
-      </div>
-
-      <div class="page-layout">
-        <div class="sidebar-kavling">
-          <div class="search-section">
-            <div class="search-box">
-              <input list="kavlingDatalist" id="searchKavlingManager" class="search-input-large" placeholder="Pilih atau Ketik Blok/Kavling..." aria-label="Cari Blok atau Kavling">
-              <datalist id="kavlingDatalist"></datalist>
-            </div>
-            
-            <div class="kavling-info-display" id="kavlingInfoManager">
-              <div class="info-item">
-                <span class="info-label">Blok/Kavling:</span>
-                <span class="info-value val-name">-</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Tipe:</span>
-                <span class="info-value val-type">-</span>
-              </div>
-            </div>
-
-            <div class="notes-section" style="margin-top: 20px;">
-              <h3 style="margin-bottom: 10px; color: #38bdf8;">Catatan Kondisi Property</h3>
-              <textarea id="propertyNotesManager" style="width: 100%; height: 150px; padding: 15px; border-radius: 12px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: none;" placeholder="Masukkan catatan kondisi property di sini..."></textarea>
-              <button class="btn-save-section" type="button" style="margin-top: 10px;"><i class="fas fa-save"></i> Simpan Catatan</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Global Loading Modal -->
     <div id="loadingModal" class="modal" style="display: none;">
       <div class="modal-content" style="max-width: 300px; padding: 30px;">
@@ -153,116 +104,105 @@
       </div>
     </div>
 
-<!-- ====== USER PAGES ====== -->
-
-<!-- PAGE: user1 -->
-<div class="page-content user1-page" id="user1Page" aria-hidden="true">
-  <div class="page-layout">
-    <div class="sidebar-kavling">
-      <div class="search-section">
-        <div class="search-box">
-          <!-- GANTI: searchKavling1 → searchKavlingUser1 -->
-          <select id="searchKavlingUser1" class="search-select-large" aria-label="Pilih Blok/Kavling">
-            <option value="">-- Pilih Kavling --</option>
-          </select>
+    <!-- PAGE: manager -->
+    <div class="page-content manager-page" id="managerPage" aria-hidden="true">
+      <div class="page-header">
+        <div class="page-title">
+          <i class="fas fa-user-tie"></i>
+          <h2>Management Property</h2>
         </div>
-        <!-- GANTI: kavlingInfo1 → kavlingInfoUser1 -->
-        <div class="kavling-info-display" id="kavlingInfoUser1">
-          <!-- ... -->
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- PAGE: user2 -->
-<div class="page-content user2-page" id="user2Page" aria-hidden="true">
-  <div class="page-layout">
-    <div class="sidebar-kavling">
-      <div class="search-section">
-        <div class="search-box">
-          <!-- GANTI: searchKavling2 → searchKavlingUser2 -->
-          <select id="searchKavlingUser2" class="search-select-large" aria-label="Pilih Blok/Kavling">
-            <option value="">-- Pilih Kavling --</option>
-          </select>
-        </div>
-        <!-- GANTI: kavlingInfo2 → kavlingInfoUser2 -->
-        <div class="kavling-info-display" id="kavlingInfoUser2">
-          <!-- ... -->
+        <div style="display:flex; gap:15px; align-items:center;">
+          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
+            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu Awal & Logout
+          </button>
+          <button class="btn-add-kavling" type="button" style="background: linear-gradient(135deg, #10b981, #059669); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
+            <i class="fas fa-plus-circle"></i> Tambah Kavling
+          </button>
+          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
+            <i class="fas fa-sync-alt"></i> Sinkronkan Data
+          </button>
         </div>
       </div>
-    </div>
-  </div>
-</div>
 
-<!-- PAGE: user3 -->
-<div class="page-content user3-page" id="user3Page" aria-hidden="true">
-  <div class="page-layout">
-    <div class="sidebar-kavling">
-      <div class="search-section">
-        <div class="search-box">
-          <!-- GANTI: searchKavling1 (duplikat) → searchKavlingUser3 -->
-          <select id="searchKavlingUser3" class="search-select-large" aria-label="Pilih Blok/Kavling">
-            <option value="">-- Pilih Kavling --</option>
-          </select>
-        </div>
-        <!-- GANTI: kavlingInfo1 (duplikat) → kavlingInfoUser3 -->
-        <div class="kavling-info-display" id="kavlingInfoUser3">
-          <!-- ... -->
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- PAGE: user4 -->
-<div class="page-content user4-page" id="user4Page" aria-hidden="true">
-  <div class="page-layout">
-    <div class="sidebar-kavling">
-      <div class="search-section">
-        <div class="search-box">
-          <!-- GANTI: searchKavling4 → searchKavlingUser4 -->
-          <select id="searchKavlingUser4" class="search-select-large" aria-label="Pilih Blok/Kavling">
-            <option value="">-- Pilih Kavling --</option>
-          </select>
-        </div>
-        <!-- GANTI: kavlingInfo4 → kavlingInfoUser4 -->
-        <div class="kavling-info-display" id="kavlingInfoUser4">
-          <!-- ... -->
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- PAGE: manager -->
-<div class="page-content manager-page" id="managerPage" aria-hidden="true">
-  <div class="page-layout">
-    <div class="sidebar-kavling">
-      <div class="search-section">
-        <div class="search-box">
-          <!-- GANTI: searchKavlingManager → searchKavlingManagerPage -->
-          <select id="searchKavlingManagerPage" class="search-select-large" aria-label="Pilih Blok/Kavling">
-            <option value="">-- Pilih Kavling --</option>
-          </select>
-        </div>
-        <!-- GANTI: kavlingInfoManager → kavlingInfoManagerPage -->
-        <div class="kavling-info-display" id="kavlingInfoManagerPage">
-          <!-- ... -->
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-    <div class="page-layout">
+      <div class="page-layout">
         <div class="sidebar-kavling">
           <div class="search-section">
             <div class="search-box">
-              <input list="kavlingDatalist1" id="searchKavling1" class="search-input-large" placeholder="Pilih atau Ketik Blok/Kavling..." aria-label="Cari Blok atau Kavling">
-              <datalist id="kavlingDatalist1"></datalist>
+              <select id="searchKavlingManagerPage" class="search-select-large" aria-label="Pilih Blok/Kavling">
+                <option value="">-- Pilih Kavling --</option>
+              </select>
             </div>
-            <div class="kavling-info-display" id="kavlingInfo1">
+            
+            <div class="kavling-info-display" id="kavlingInfoManagerPage">
+              <div class="info-item">
+                <span class="info-label">Blok/Kavling:</span>
+                <span class="info-value val-name">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Tipe:</span>
+                <span class="info-value val-type">-</span>
+              </div>
+            </div>
+
+            <div class="notes-section" style="margin-top: 20px;">
+              <h3 style="margin-bottom: 10px; color: #38bdf8;">Catatan Kondisi Property</h3>
+              <textarea id="propertyNotesManager" style="width: 100%; height: 150px; padding: 15px; border-radius: 12px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: none;" placeholder="Masukkan catatan kondisi property di sini..."></textarea>
+              <button class="btn-save-section" type="button" style="margin-top: 10px;"><i class="fas fa-save"></i> Simpan Catatan</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="page-body">
+          <div class="overall-rekap">
+            <div class="rekap-header">
+              <h3>Ringkasan Proyek (Manager)</h3>
+              <span class="total-percent" aria-live="polite">0%</span>
+            </div>
+            <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
+          </div>
+
+          <div class="verification-card">
+            <h3>Verifikasi & Kontrol</h3>
+            <p class="status-note">Fitur manajer: lihat ringkasan, ubah status, dan ekspor data (opsional).</p>
+            <div class="verification-item">
+              <label><input type="checkbox" id="statusSiapJual"> Tandai Siap Jual</label>
+            </div>
+            <button class="btn-save-section btn-manager-save" type="button"><i class="fas fa-save"></i> Simpan Status</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: user1 -->
+    <div class="page-content user1-page" id="user1Page" aria-hidden="true">
+      <div class="page-header">
+        <div class="page-title">
+          <i class="fas fa-hard-hat"></i>
+          <h2 id="user1Title">Dashboard Pelaksana 1</h2>
+        </div>
+        <div style="display:flex; gap:15px; align-items:center;">
+          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
+            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu Awal & Logout
+          </button>
+          <button class="btn-add-kavling" type="button" style="background: linear-gradient(135deg, #10b981, #059669); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
+            <i class="fas fa-plus-circle"></i> Tambah Kavling
+          </button>
+          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
+            <i class="fas fa-sync-alt"></i> Sinkronkan Data
+          </button>
+        </div>
+      </div>
+
+      <div class="page-layout">
+        <div class="sidebar-kavling">
+          <div class="search-section">
+            <div class="search-box">
+              <select id="searchKavlingUser1" class="search-select-large" aria-label="Pilih Blok/Kavling">
+                <option value="">-- Pilih Kavling --</option>
+              </select>
+            </div>
+            
+            <div class="kavling-info-display" id="kavlingInfoUser1">
               <div class="info-item">
                 <span class="info-label">Blok/Kavling:</span>
                 <span class="info-value val-name">-</span>
@@ -326,7 +266,7 @@
             <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Tahap 2</button>
           </div>
 
-          <!-- Tahap 3 (TANPA COMPLETE) -->
+          <!-- Tahap 3 -->
           <div class="progress-section detailed" data-tahap="3">
             <div class="section-header-flex">
               <h3>Tahap 3: Finishing & Serah Terima</h3>
@@ -356,7 +296,7 @@
       </div>
     </div>
 
-    <!-- PAGE: user2 (copy of user1 with unique ids, tanpa COMPLETE) -->
+    <!-- PAGE: user2 -->
     <div class="page-content user2-page" id="user2Page" aria-hidden="true">
       <div class="page-header">
         <div class="page-title">
@@ -380,10 +320,12 @@
         <div class="sidebar-kavling">
           <div class="search-section">
             <div class="search-box">
-              <input list="kavlingDatalist2" id="searchKavling2" class="search-input-large" placeholder="Pilih atau Ketik Blok/Kavling..." aria-label="Cari Blok atau Kavling">
-              <datalist id="kavlingDatalist2"></datalist>
+              <select id="searchKavlingUser2" class="search-select-large" aria-label="Pilih Blok/Kavling">
+                <option value="">-- Pilih Kavling --</option>
+              </select>
             </div>
-            <div class="kavling-info-display" id="kavlingInfo2">
+            
+            <div class="kavling-info-display" id="kavlingInfoUser2">
               <div class="info-item">
                 <span class="info-label">Blok/Kavling:</span>
                 <span class="info-value val-name">-</span>
@@ -494,28 +436,27 @@
         </div>
       </div>
 
-   <div class="page-layout">
-  <div class="sidebar-kavling">
-    <div class="search-section">
-      <div class="search-box">
-        <select id="searchKavling1" class="search-select-large" aria-label="Pilih Blok/Kavling">
-          <option value="">-- Pilih Kavling --</option>
-          <!-- Options akan diisi oleh JavaScript -->
-        </select>
-      </div>
-      
-      <div class="kavling-info-display" id="kavlingInfo1">
-        <div class="info-item">
-          <span class="info-label">Blok/Kavling:</span>
-          <span class="info-value val-name">-</span>
+      <div class="page-layout">
+        <div class="sidebar-kavling">
+          <div class="search-section">
+            <div class="search-box">
+              <select id="searchKavlingUser3" class="search-select-large" aria-label="Pilih Blok/Kavling">
+                <option value="">-- Pilih Kavling --</option>
+              </select>
+            </div>
+            
+            <div class="kavling-info-display" id="kavlingInfoUser3">
+              <div class="info-item">
+                <span class="info-label">Blok/Kavling:</span>
+                <span class="info-value val-name">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Tipe:</span>
+                <span class="info-value val-type">-</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="info-item">
-          <span class="info-label">Tipe:</span>
-          <span class="info-value val-type">-</span>
-        </div>
-      </div>
-    </div>
-  </div>
 
         <div class="page-body">
           <div class="overall-rekap">
@@ -619,10 +560,12 @@
         <div class="sidebar-kavling">
           <div class="search-section">
             <div class="search-box">
-              <input type="text" placeholder="Cari Blok/Kavling..." id="searchKavling4" class="search-input-large" aria-label="Cari Blok atau Kavling">
-              <button class="btn-search" type="button"><i class="fas fa-search"></i></button>
+              <select id="searchKavlingUser4" class="search-select-large" aria-label="Pilih Blok/Kavling">
+                <option value="">-- Pilih Kavling --</option>
+              </select>
             </div>
-            <div class="kavling-info-display" id="kavlingInfo4">
+            
+            <div class="kavling-info-display" id="kavlingInfoUser4">
               <div class="info-item">
                 <span class="info-label">Blok/Kavling:</span>
                 <span class="info-value val-name">-</span>
@@ -708,48 +651,6 @@
               </div>
             </div>
             <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Tahap 3</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE: manager -->
-    <div class="page-content manager-page" id="managerPage" aria-hidden="true">
-      <div class="page-header">
-        <div class="page-title">
-          <i class="fas fa-user-tie"></i>
-          <h2>Dashboard Manager</h2>
-        </div>
-        <div style="display:flex; gap:15px; align-items:center;">
-          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
-            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu Awal & Logout
-          </button>
-          <button class="btn-add-kavling" type="button" style="background: linear-gradient(135deg, #10b981, #059669); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
-            <i class="fas fa-plus-circle"></i> Tambah Kavling
-          </button>
-          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
-            <i class="fas fa-sync-alt"></i> Sinkronkan Data
-          </button>
-        </div>
-      </div>
-
-      <div class="page-layout">
-        <div class="page-body">
-          <div class="overall-rekap">
-            <div class="rekap-header">
-              <h3>Ringkasan Proyek (Manager)</h3>
-              <span class="total-percent" aria-live="polite">0%</span>
-            </div>
-            <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
-          </div>
-
-          <div class="verification-card">
-            <h3>Verifikasi & Kontrol</h3>
-            <p class="status-note">Fitur manajer: lihat ringkasan, ubah status, dan ekspor data (opsional).</p>
-            <div class="verification-item">
-              <label><input type="checkbox" id="statusSiapJual"> Tandai Siap Jual</label>
-            </div>
-            <button class="btn-save-section btn-manager-save" type="button"><i class="fas fa-save"></i> Simpan Status</button>
           </div>
         </div>
       </div>
