@@ -74,25 +74,39 @@ h1 {
   width: 100%;
 }
 
-.lapangan-set {
-  grid-template-columns: repeat(1, 1fr);
+.btn-search, .sync-btn, .back-btn, .btn-save-section, .logout-btn, .admin-tab-btn, .submit-btn, .kavling-item, .role-btn {
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.role-btn {
-  width: 100%;
-  height: auto;
-  min-height: 120px;
-  padding: 20px;
-  border-radius: 16px;
+.btn-search:hover, .sync-btn:hover, .back-btn:hover, .btn-save-section:hover, .logout-btn:hover, .submit-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-search:active, .sync-btn:active, .back-btn:active, .btn-save-section:active, .logout-btn:active, .submit-btn:active {
+  transform: translateY(0);
+}
+
+.sync-btn.combined-btn {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  color: white; /* Text white as requested */
+  justify-content: center;
+  gap: 8px;
+  background: #334155;
+  border: 1px solid #475569;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-weight: 600;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.sync-btn.combined-btn:hover {
+  background: #475569;
+  border-color: #38bdf8;
 }
 
 .role-btn i {
