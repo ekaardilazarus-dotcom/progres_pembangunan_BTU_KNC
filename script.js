@@ -1,6 +1,6 @@
 // script.js - UPDATE DENGAN DUA APPS SCRIPT URL
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSV8VtMY-xfXHHbLXZKF8Ul-3dx6MSdav97v0SH4DqemUGxEj9I8LSy8cFhz7UXw/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxA2nS616u7dunIcpxAfBac3quh2PdxG0R-nWOLsYUfCKoTTtkjMxLvW3kban4rhGRRag/exec';
 
 let currentRole = null;
 
@@ -638,11 +638,6 @@ function loadProgressData(progressData) {
   // Tahap 3 (tanpa COMPLETE)
   if (progressData.tahap3) {
     Object.keys(progressData.tahap3).forEach(taskName => {
-      if (taskName === "KETERANGAN_TAHAP3") {
-        const commentEl = pageElement.querySelector('.progress-section[data-tahap="3"] .tahap-comments');
-        if (commentEl) commentEl.value = progressData.tahap3[taskName] || "";
-        return;
-      }
       const isChecked = progressData.tahap3[taskName];
       const checkbox = findCheckboxByTaskName(taskName, 3, rolePage);
       if (checkbox) {
@@ -650,7 +645,13 @@ function loadProgressData(progressData) {
       }
     });
   }
-  
+
+  // Load keterangan di textarea
+  if (progressData.keterangan) {
+    const commentEl = pageElement.querySelector('.progress-section[data-tahap="3"] .tahap-comments');
+    if (commentEl) commentEl.value = progressData.keterangan;
+  }
+    
   // Update total progress
   updateTotalProgressDisplay(progressData.totalProgress || '0%', rolePage);
   
@@ -878,7 +879,7 @@ async function saveTahap3() {
     "Bak Kontrol & Batas Carport": "BAK KONTROL & BATAS CARPORT",
     "Paving Halaman": "PAVING HALAMAN",
     "General Cleaning": "GENERAL CLEANING",
-    "Completion": "Completion"
+    "Completion": "COMPLETION / Penyelesaian akhir"
   };
 
   const tahapData = {};
@@ -916,6 +917,10 @@ async function saveTahap3() {
         Object.keys(tahapData).forEach(taskName => {
           currentKavlingData.data.tahap3[taskName] = tahapData[taskName];
         });
+        // Update keterangan
+        if (tahapData["Keterangan"]) {
+          currentKavlingData.data.keterangan = tahapData["Keterangan"];
+        }
       }
       
       console.log('Tahap 3 saved successfully:', result);
