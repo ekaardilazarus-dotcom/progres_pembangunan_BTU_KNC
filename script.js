@@ -30,9 +30,43 @@ function hideGlobalLoading() {
   if (modal) modal.style.display = 'none';
 }
 
+// ========== TOAST NOTIFICATION ==========
+function showToast(type, message) {
+  // Hapus toast sebelumnya
+  const existingToast = document.getElementById('globalToast');
+  if (existingToast) existingToast.remove();
+  
+  const toast = document.createElement('div');
+  toast.id = 'globalToast';
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <div class="toast-content">
+      <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  // Tampilkan toast
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 10);
+  
+  // Hapus setelah 2.5 detik
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }, 2500);
+}
+
+// Ganti fungsi lama
 function showProgressMessage(type, message) {
-  // Simple alert for now, can be improved with a toast
-  alert(`${type.toUpperCase()}: ${message}`);
+  showToast(type, message);
 }
 
 // ========== KAVLING FUNCTIONS ==========
@@ -58,13 +92,13 @@ async function loadKavlingList() {
       return result.kavlings;
     } else {
       console.log('❌ No kavlings found:', result.message);
-      showProgressMessage('warning', 'Tidak ada data kavling ditemukan');
+      showToast('warning', 'Tidak ada data kavling ditemukan');
       return [];
     }
     
   } catch (error) {
     console.error('❌ Error loading kavling list:', error);
-    showProgressMessage('error', 'Gagal memuat daftar kavling');
+    showToast('error', 'Gagal memuat daftar kavling');
     return [];
   } finally {
     hideGlobalLoading();
@@ -199,14 +233,14 @@ async function searchKavling() {
     const selectElement = document.getElementById(selectId);
     
     if (!selectElement) {
-      alert('ERROR: Dropdown kavling tidak ditemukan!');
+      showToast('error', 'Dropdown kavling tidak ditemukan!');
       return;
     }
     
     const kavlingName = selectElement.value.trim();
     
     if (!kavlingName) {
-      alert('Pilih kavling terlebih dahulu dari dropdown!');
+      showToast('warning', 'Pilih kavling terlebih dahulu dari dropdown!');
       selectElement.focus();
       return;
     }
@@ -234,7 +268,7 @@ async function searchKavling() {
         loadProgressData(data.data);
       }
       
-      showProgressMessage('success', `Data ${kavlingName} berhasil dimuat!`);
+      showToast('success', `Data ${kavlingName} berhasil dimuat!`);
       
       if (currentRole === 'manager') {
         setTimeout(() => {
@@ -244,13 +278,13 @@ async function searchKavling() {
       }
       
     } else {
-      showProgressMessage('error', data.message || 'Kavling tidak ditemukan');
+      showToast('error', data.message || 'Kavling tidak ditemukan');
       selectElement.value = '';
     }
     
   } catch (error) {
     console.error('Error dalam searchKavling:', error);
-    showProgressMessage('error', 'Gagal mengambil data: ' + error.message);
+    showToast('error', 'Gagal mengambil data: ' + error.message);
   } finally {
     hideGlobalLoading();
   }
@@ -297,7 +331,6 @@ function updateKavlingInfo(data, pageId) {
   if (!infoDisplay) return;
   
   const ltLb = extractLTandLB(data.tipe);
-  const progressPercent = data.data?.totalProgress || '0%';
   
   if (role === 'manager') {
     infoDisplay.innerHTML = `
@@ -313,10 +346,6 @@ function updateKavlingInfo(data, pageId) {
         <span class="info-label">Luas Bangunan (LB):</span>
         <span class="info-value val-lb">${ltLb.lb || '-'}</span>
       </div>
-      <div class="info-item">
-        <span class="info-label">Persentase Keseluruhan:</span>
-        <span class="info-value val-progress-percent">${progressPercent}</span>
-      </div>
     `;
   } else {
     infoDisplay.innerHTML = `
@@ -325,16 +354,8 @@ function updateKavlingInfo(data, pageId) {
         <span class="info-value val-name">${data.kavling || '-'}</span>
       </div>
       <div class="info-item">
-        <span class="info-label">Luas Tanah (LT):</span>
-        <span class="info-value val-lt">${ltLb.lt || '-'}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Luas Bangunan (LB):</span>
-        <span class="info-value val-lb">${ltLb.lb || '-'}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Total Progress:</span>
-        <span class="info-value val-progress">${progressPercent}</span>
+        <span class="info-label">Tipe:</span>
+        <span class="info-value val-type">${data.tipe || '-'}</span>
       </div>
     `;
   }
@@ -535,7 +556,7 @@ function updateProgress(pageId) {
 // ========== SAVE FUNCTIONS ==========
 async function saveTahap1() {
   if (!selectedKavling || !currentKavlingData) {
-    showProgressMessage('error', 'Pilih kavling terlebih dahulu');
+    showToast('error', 'Pilih kavling terlebih dahulu');
     return;
   }
   
@@ -586,7 +607,7 @@ async function saveTahap1() {
     });
     
     if (result.success) {
-      showProgressMessage('success', result.message);
+      showToast('success', result.message);
       if (currentKavlingData.data) {
         Object.keys(tahapData).forEach(taskName => {
           if (currentKavlingData.data.tahap1 && currentKavlingData.data.tahap1[taskName] !== undefined) {
@@ -596,11 +617,11 @@ async function saveTahap1() {
       }
       updateProgress(rolePage);
     } else {
-      showProgressMessage('error', result.message || 'Gagal menyimpan tahap 1');
+      showToast('error', result.message || 'Gagal menyimpan tahap 1');
     }
   } catch (error) {
     console.error('Error saving tahap 1:', error);
-    showProgressMessage('error', 'Gagal menyimpan: ' + error.message);
+    showToast('error', 'Gagal menyimpan: ' + error.message);
   } finally {
     if (saveButton) {
       saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 1';
@@ -611,7 +632,7 @@ async function saveTahap1() {
 
 async function saveTahap2() {
   if (!selectedKavling || !currentKavlingData) {
-    showProgressMessage('error', 'Pilih kavling terlebih dahulu');
+    showToast('error', 'Pilih kavling terlebih dahulu');
     return;
   }
   
@@ -656,7 +677,7 @@ async function saveTahap2() {
     });
     
     if (result.success) {
-      showProgressMessage('success', result.message);
+      showToast('success', result.message);
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap2) currentKavlingData.data.tahap2 = {};
         Object.keys(tahapData).forEach(taskName => {
@@ -667,11 +688,11 @@ async function saveTahap2() {
       }
       updateProgress(rolePage);
     } else {
-      showProgressMessage('error', result.message || 'Gagal menyimpan tahap 2');
+      showToast('error', result.message || 'Gagal menyimpan tahap 2');
     }
   } catch (error) {
     console.error('Error saving tahap 2:', error);
-    showProgressMessage('error', 'Gagal menyimpan: ' + error.message);
+    showToast('error', 'Gagal menyimpan: ' + error.message);
   } finally {
     if (saveButton) {
       saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 2';
@@ -682,7 +703,7 @@ async function saveTahap2() {
 
 async function saveTahap3() {
   if (!selectedKavling || !currentKavlingData) {
-    showProgressMessage('error', 'Pilih kavling terlebih dahulu');
+    showToast('error', 'Pilih kavling terlebih dahulu');
     return;
   }
   
@@ -734,7 +755,7 @@ async function saveTahap3() {
     });
     
     if (result.success) {
-      showProgressMessage('success', result.message);
+      showToast('success', result.message);
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap3) currentKavlingData.data.tahap3 = {};
         Object.keys(tahapData).forEach(taskName => {
@@ -746,11 +767,11 @@ async function saveTahap3() {
       }
       updateProgress(rolePage);
     } else {
-      showProgressMessage('error', result.message || 'Gagal menyimpan tahap 3');
+      showToast('error', result.message || 'Gagal menyimpan tahap 3');
     }
   } catch (error) {
     console.error('Error saving tahap 3:', error);
-    showProgressMessage('error', 'Gagal menyimpan: ' + error.message);
+    showToast('error', 'Gagal menyimpan: ' + error.message);
   } finally {
     if (saveButton) {
       saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 3';
@@ -782,7 +803,7 @@ async function loadPropertyNotes() {
 
 async function savePropertyNotes() {
   if (!selectedKavling) {
-    showProgressMessage('error', 'Pilih kavling terlebih dahulu');
+    showToast('error', 'Pilih kavling terlebih dahulu');
     return;
   }
   
@@ -812,13 +833,13 @@ async function savePropertyNotes() {
     });
     
     if (result.success) {
-      showProgressMessage('success', 'Catatan dan data kavling berhasil disimpan');
+      showToast('success', 'Catatan dan data kavling berhasil disimpan');
     } else {
-      showProgressMessage('error', result.message || 'Gagal menyimpan catatan');
+      showToast('error', result.message || 'Gagal menyimpan catatan');
     }
   } catch (error) {
     console.error('Error saving property notes:', error);
-    showProgressMessage('error', 'Gagal menyimpan: ' + error.message);
+    showToast('error', 'Gagal menyimpan: ' + error.message);
   } finally {
     if (saveBtn) {
       saveBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Catatan';
@@ -838,12 +859,12 @@ async function loadSummaryReport() {
     if (result.success) {
       displaySummaryReport(result);
     } else {
-      showProgressMessage('error', result.message || 'Gagal mengambil laporan');
+      showToast('error', result.message || 'Gagal mengambil laporan');
     }
     
   } catch (error) {
     console.error('Error loading summary report:', error);
-    showProgressMessage('error', 'Gagal mengambil laporan');
+    showToast('error', 'Gagal mengambil laporan');
   } finally {
     hideGlobalLoading();
   }
@@ -1023,12 +1044,12 @@ async function loadUsersForAdmin() {
     if (result.success && result.users) {
       displayUsersForAdmin(result.users);
     } else {
-      showProgressMessage('error', result.message || 'Gagal memuat data pengguna');
+      showToast('error', result.message || 'Gagal memuat data pengguna');
     }
     
   } catch (error) {
     console.error('Error loading users:', error);
-    showProgressMessage('error', 'Gagal memuat data pengguna');
+    showToast('error', 'Gagal memuat data pengguna');
   } finally {
     hideGlobalLoading();
   }
@@ -1084,6 +1105,74 @@ function displayUsersForAdmin(users) {
   container.innerHTML = html;
 }
 
+// ========== TAMBAH KAVLING BARU ==========
+async function submitNewKavling() {
+  const nameInput = document.getElementById('newKavlingName');
+  const ltInput = document.getElementById('newKavlingLT');
+  const lbInput = document.getElementById('newKavlingLB');
+  const submitBtn = document.getElementById('submitNewKavling');
+  
+  if (!nameInput || !ltInput || !lbInput) return;
+  
+  const kavlingName = nameInput.value.trim();
+  const lt = ltInput.value.trim();
+  const lb = lbInput.value.trim();
+  
+  if (!kavlingName) {
+    showToast('error', 'Nama kavling harus diisi');
+    nameInput.focus();
+    return;
+  }
+  
+  // Validasi format kavling
+  if (!kavlingName.match(/^[A-Za-z0-9]+_[A-Za-z0-9]+$/)) {
+    showToast('error', 'Format kavling tidak valid. Gunakan format: Blok_Nomor (contoh: M1_11)');
+    nameInput.focus();
+    return;
+  }
+  
+  if (submitBtn) {
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    submitBtn.disabled = true;
+  }
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'addNewKavling',
+      kavling: kavlingName,
+      lt: lt || '',
+      lb: lb || '',
+      createdBy: currentRole || 'admin'
+    });
+    
+    if (result.success) {
+      showToast('success', result.message);
+      
+      // Reset form
+      nameInput.value = '';
+      ltInput.value = '';
+      lbInput.value = '';
+      
+      // Tutup modal
+      document.getElementById('addKavlingModal').style.display = 'none';
+      
+      // Refresh daftar kavling
+      setTimeout(loadKavlingList, 1000);
+      
+    } else {
+      showToast('error', result.message || 'Gagal menambahkan kavling');
+    }
+  } catch (error) {
+    console.error('Error adding kavling:', error);
+    showToast('error', 'Gagal menambahkan kavling: ' + error.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Kavling Baru';
+      submitBtn.disabled = false;
+    }
+  }
+}
+
 // ========== LOGIN & SESSION ==========
 async function handleLogin() {
   const passwordInput = document.getElementById('passwordInput');
@@ -1095,12 +1184,13 @@ async function handleLogin() {
   const password = passwordInput.value.trim();
   if (!password) {
     if (errorMsg) errorMsg.textContent = 'Password harus diisi!';
+    showToast('warning', 'Password harus diisi');
     return;
   }
   
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Memverifikasi...';
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memverifikasi...';
   }
   
   try {
@@ -1124,10 +1214,12 @@ async function handleLogin() {
       const modal = document.getElementById('passwordModal');
       if (modal) modal.style.display = 'none';
       
+      showToast('success', `Login berhasil sebagai ${result.displayName}`);
       showPage(currentRole);
       
     } else {
       if (errorMsg) errorMsg.textContent = result.message || 'Password salah!';
+      showToast('error', 'Password salah');
       passwordInput.value = '';
       passwordInput.focus();
     }
@@ -1135,10 +1227,11 @@ async function handleLogin() {
   } catch (error) {
     console.error('Login error:', error);
     if (errorMsg) errorMsg.textContent = 'Gagal menghubungi server';
+    showToast('error', 'Gagal menghubungi server');
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Masuk';
+      submitBtn.innerHTML = 'Masuk';
     }
   }
 }
@@ -1146,6 +1239,9 @@ async function handleLogin() {
 function updateDashboardTitle(role, name) {
   const titleIds = {
     'user1': 'user1Title',
+    'user2': 'user2Title',
+    'user3': 'user3Title',
+    'user4': 'user4Title',
     'manager': 'managerTitle',
     'admin': 'adminTitle'
   };
@@ -1178,11 +1274,14 @@ function showPage(role) {
     updateProgress(role + 'Page');
     
     if (role === 'admin') {
-      setTimeout(loadUsersForAdmin, 500);
+      setTimeout(() => {
+        loadUsersForAdmin();
+        setupAdminTabs();
+      }, 500);
     } else if (role === 'manager') {
       setTimeout(() => {
         loadKavlingList();
-        loadActivityLog();
+        setupManagerTabs();
       }, 500);
     } else {
       setTimeout(loadKavlingList, 500);
@@ -1233,22 +1332,108 @@ async function syncData() {
       if (data.success) {
         currentKavlingData = data;
         loadProgressData(data.data);
-        showProgressMessage('success', 'Data berhasil disinkronisasi!');
+        showToast('success', 'Data berhasil disinkronisasi!');
       }
+    } else {
+      showToast('info', 'Pilih kavling terlebih dahulu untuk sinkronisasi data');
     }
   } catch (error) {
     console.error('Sync error:', error);
-    showProgressMessage('error', 'Gagal sinkronisasi data');
+    showToast('error', 'Gagal sinkronisasi data');
   } finally {
     if (syncBtn) {
       syncBtn.disabled = false;
-      syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sinkronisasi';
+      syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sinkronkan Data';
     }
     hideGlobalLoading();
   }
 }
 
+// ========== TAB FUNCTIONS ==========
+function setupManagerTabs() {
+  const tabBtns = document.querySelectorAll('#managerPage .admin-tab-btn');
+  const tabContents = document.querySelectorAll('#managerPage .tab-content-item');
+  
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabId = this.getAttribute('data-tab');
+      
+      // Hapus active dari semua
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      // Tambah active ke yang dipilih
+      this.classList.add('active');
+      const targetTab = document.getElementById(`tab-${tabId}`);
+      if (targetTab) {
+        targetTab.classList.add('active');
+        
+        // Jika tab laporan, load report
+        if (tabId === 'reports') {
+          setTimeout(loadSummaryReport, 100);
+        }
+      }
+    });
+  });
+}
+
+function setupAdminTabs() {
+  const tabBtns = document.querySelectorAll('#adminPage .admin-tab-btn');
+  const tabContents = document.querySelectorAll('#adminPage .tab-content-item');
+  
+  // Tambahkan tombol sync di tab laporan admin
+  const adminButtons = document.getElementById('adminButtons');
+  
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabId = this.getAttribute('data-tab');
+      
+      // Hapus active dari semua
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      // Tambah active ke yang dipilih
+      this.classList.add('active');
+      const targetTab = document.getElementById(`tab-${tabId}-admin`);
+      if (targetTab) {
+        targetTab.classList.add('active');
+        
+        // Jika tab laporan, load report dan tambahkan tombol sync
+        if (tabId === 'reports') {
+          setTimeout(loadSummaryReport, 100);
+          
+          // Tambahkan tombol sync jika belum ada
+          if (!document.querySelector('#adminButtons .sync-btn')) {
+            const syncBtn = document.createElement('button');
+            syncBtn.className = 'sync-btn combined-btn';
+            syncBtn.type = 'button';
+            syncBtn.style.cssText = 'background: linear-gradient(135deg, #f59e0b, #d97706); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;';
+            syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sinkronkan Data';
+            syncBtn.addEventListener('click', syncData);
+            adminButtons.appendChild(syncBtn);
+          }
+        } else {
+          // Hapus tombol sync jika ada
+          const existingSyncBtn = document.querySelector('#adminButtons .sync-btn');
+          if (existingSyncBtn) {
+            existingSyncBtn.remove();
+          }
+        }
+        
+        // Load data sesuai tab
+        if (tabId === 'users') {
+          setTimeout(loadUsersForAdmin, 100);
+        } else if (tabId === 'activity') {
+          setTimeout(loadActivityLog, 100);
+        }
+      }
+    });
+  });
+}
+
+// ========== SETUP EVENT LISTENERS ==========
 function setupDynamicEventListeners() {
+  // Tombol tambah kavling
   document.querySelectorAll('.btn-add-kavling').forEach(btn => {
     btn.addEventListener('click', () => {
       const modal = document.getElementById('addKavlingModal');
@@ -1256,11 +1441,18 @@ function setupDynamicEventListeners() {
     });
   });
   
+  // Tombol submit tambah kavling
   const submitNewKavlingBtn = document.getElementById('submitNewKavling');
-  if (submitNewKavlingBtn) submitNewKavlingBtn.addEventListener('click', submitNewKavling);
+  if (submitNewKavlingBtn) {
+    submitNewKavlingBtn.addEventListener('click', submitNewKavling);
+  }
   
-  document.querySelectorAll('.sync-btn').forEach(btn => btn.addEventListener('click', syncData));
+  // Tombol sync
+  document.querySelectorAll('.sync-btn').forEach(btn => {
+    btn.addEventListener('click', syncData);
+  });
   
+  // Tombol logout
   document.querySelectorAll('.logout-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       if (confirm('Apakah Anda yakin ingin logout?')) {
@@ -1270,11 +1462,13 @@ function setupDynamicEventListeners() {
     });
   });
   
+  // Tombol save catatan manager
   const managerSaveNotesBtn = document.querySelector('#tab-notes .btn-save-section');
   if (managerSaveNotesBtn) {
     managerSaveNotesBtn.addEventListener('click', savePropertyNotes);
   }
 
+  // Tombol save tahap progress
   document.querySelectorAll('.btn-save-section:not(#tab-notes .btn-save-section)').forEach(btn => {
     btn.addEventListener('click', function(e) {
       const section = btn.closest('.progress-section');
@@ -1287,13 +1481,43 @@ function setupDynamicEventListeners() {
     });
   });
   
+  // Dropdown kavling
   const selectIds = ['searchKavlingUser1', 'searchKavlingUser2', 'searchKavlingUser3', 'searchKavlingUser4', 'searchKavlingManager'];
   selectIds.forEach(selectId => {
     const el = document.getElementById(selectId);
     if (el) el.addEventListener('change', searchKavling);
   });
+  
+  // Tombol close modal
+  document.querySelectorAll('.close-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const modal = this.closest('.modal');
+      if (modal) modal.style.display = 'none';
+    });
+  });
+  
+  // Tutup modal ketika klik di luar konten modal
+  window.addEventListener('click', function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  });
+  
+  // Enter key untuk password input
+  const passwordInput = document.getElementById('passwordInput');
+  if (passwordInput) {
+    passwordInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        handleLogin();
+      }
+    });
+  }
 }
 
+// ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', function() {
   setupDynamicEventListeners();
   
@@ -1306,9 +1530,30 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.role-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       currentRole = btn.getAttribute('data-role');
-      document.getElementById('passwordModal').style.display = 'flex';
+      const modal = document.getElementById('passwordModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('passwordInput').focus();
+      }
     });
   });
   
-  document.getElementById('submitPassword').addEventListener('click', handleLogin);
+  const submitPasswordBtn = document.getElementById('submitPassword');
+  if (submitPasswordBtn) {
+    submitPasswordBtn.addEventListener('click', handleLogin);
+  }
+  
+  // Checkbox event untuk update progress langsung
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('sub-task')) {
+      const rolePage = currentRole + 'Page';
+      updateProgress(rolePage);
+    }
+  });
 });
+
+// Fungsi untuk edit user (placeholder)
+function handleEditUser(role, displayName, id) {
+  showToast('info', 'Fitur edit pengguna akan segera hadir');
+  console.log('Edit user:', { role, displayName, id });
+}
