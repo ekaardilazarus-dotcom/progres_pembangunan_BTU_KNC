@@ -361,18 +361,20 @@ function getKavlingListFromServer() {
   });
 }
 
-// Fungsi untuk update search dengan datalist
+// Fungsi untuk update search dengan datalist agar bisa diinput & dipilih
 function updateSearchDatalist(kavlings) {
-  const searchInput = document.getElementById('searchKavling1');
-  const datalistId = 'kavlingDatalist';
+  const roleNum = currentRole ? currentRole.match(/\d+$/) : null;
+  const suffix = roleNum ? roleNum[0] : 'Manager';
+  const searchInputId = 'searchKavling' + suffix;
+  const datalistId = 'kavlingDatalist' + (suffix === 'Manager' ? '' : suffix);
   
-  // Hapus datalist lama jika ada
-  const oldDatalist = document.getElementById(datalistId);
-  if (oldDatalist) oldDatalist.remove();
+  const input = document.getElementById(searchInputId);
+  const datalist = document.getElementById(datalistId);
   
-  // Buat datalist baru
-  const datalist = document.createElement('datalist');
-  datalist.id = datalistId;
+  if (!input || !datalist) return;
+  
+  // Clear current options
+  datalist.innerHTML = '';
   
   kavlings.forEach(kavling => {
     const option = document.createElement('option');
@@ -380,11 +382,19 @@ function updateSearchDatalist(kavlings) {
     datalist.appendChild(option);
   });
   
-  // Tambahkan datalist ke DOM
-  document.body.appendChild(datalist);
+  // Auto-search saat input berubah dan cocok dengan salah satu opsi
+  input.oninput = () => {
+    if (kavlings.includes(input.value)) {
+      searchKavling();
+    }
+  };
   
-  // Hubungkan dengan input
-  searchInput.setAttribute('list', datalistId);
+  // Tetap support enter
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      searchKavling();
+    }
+  };
 }
 
 async function searchKavling() {
@@ -434,9 +444,8 @@ async function searchKavling() {
       
       showProgressMessage('success', `Data ${kavlingName} berhasil dimuat!`);
       
-      // Enable sync button
-      const syncBtn = document.querySelector(`#${rolePage} .sync-btn`);
-      if (syncBtn) syncBtn.disabled = false;
+    // Pasang event listener global untuk tombol sync saat inisialisasi
+    // Dihapus dari sini karena sudah dipindah ke global listener
       
     } else {
       console.error('Server error:', data.message);
@@ -590,17 +599,39 @@ async function saveTahap1() {
     return;
   }
   
-  const tahap1Section = document.querySelector('.user1-page .progress-section[data-tahap="1"]');
+  const rolePage = currentRole + 'Page';
+  const tahap1Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="1"]`);
+  if (!tahap1Section) {
+    console.error('Section Tahap 1 tidak ditemukan untuk page:', rolePage);
+    return;
+  }
+  
   const checkboxes = tahap1Section.querySelectorAll('.sub-task');
   const saveButton = tahap1Section.querySelector('.btn-save-section');
   
-  // Collect data
-  const tahapData = {};
-  checkboxes.forEach(checkbox => {
-    const label = checkbox.closest('label');
-    const taskName = label.textContent.trim();
-    tahapData[taskName] = checkbox.checked;
-  });
+    // Tahap 1
+    const t1Mapping = {
+        "Land Clearing": "LAND CLEARING",
+        "Pondasi": "PONDASI",
+        "Sloof": "SLOOF",
+        "Pas.Ddg S/D2 Canopy": "PAS.DDG S/D2 CANOPY",
+        "Pas.Ddg S/D Ring Blk": "PAS.DDG S/D RING BLK",
+        "Conduit + Inbow Doos": "CONDUIT+INBOW DOOS",
+        "Pipa Air Kotor": "PIPA AIR KOTOR",
+        "Pipa Air Bersih": "PIPA AIR BERSIH",
+        "Biotank": "BIOTANK",
+        "Plester": "PLESTER",
+        "Acian & Benangan": "ACIAN & BENANGAN",
+        "Cor Meja Dapur": "COR MEJA DAPUR"
+    };
+
+    const tahapData = {};
+    checkboxes.forEach(checkbox => {
+        const label = checkbox.closest('label');
+        const uiTaskName = label.textContent.trim();
+        const spreadsheetTaskName = t1Mapping[uiTaskName] || uiTaskName;
+        tahapData[spreadsheetTaskName] = checkbox.checked;
+    });
   
   // Show loading
   if (saveButton) {
@@ -610,7 +641,8 @@ async function saveTahap1() {
   }
   
   try {
-    const result = await saveTahapDataToServer('saveTahap1', selectedKavling, tahapData);
+    const overallPercent = calculateOverallPercent(rolePage);
+    const result = await saveTahapDataToServer('saveTahap1', selectedKavling, tahapData, overallPercent);
     
     if (result.success) {
       showProgressMessage('success', result.message);
@@ -648,15 +680,31 @@ async function saveTahap2() {
     return;
   }
   
-  const tahap2Section = document.querySelector('.user1-page .progress-section[data-tahap="2"]');
+  const rolePage = currentRole + 'Page';
+  const tahap2Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="2"]`);
+  if (!tahap2Section) {
+    console.error('Section Tahap 2 tidak ditemukan untuk page:', rolePage);
+    return;
+  }
+  
   const checkboxes = tahap2Section.querySelectorAll('.sub-task');
   const saveButton = tahap2Section.querySelector('.btn-save-section');
   
+  const t2Mapping = {
+    "Atap Galv": "ATAP GALV",
+    "Genteng": "GENTENG",
+    "Plafond": "PLAFOND",
+    "Keramik Dinding Toilet & Dapur": "KERAMIK DINDING TOILET & DAPUR",
+    "Insts Listrik": "INSTS LISTRIK",
+    "Keramik Lantai": "KERAMIK LANTAI"
+  };
+
   const tahapData = {};
   checkboxes.forEach(checkbox => {
     const label = checkbox.closest('label');
-    const taskName = label.textContent.trim();
-    tahapData[taskName] = checkbox.checked;
+    const uiTaskName = label.textContent.trim();
+    const spreadsheetTaskName = t2Mapping[uiTaskName] || uiTaskName;
+    tahapData[spreadsheetTaskName] = checkbox.checked;
   });
   
   if (saveButton) {
@@ -666,16 +714,16 @@ async function saveTahap2() {
   }
   
   try {
-    const result = await saveTahapDataToServer('saveTahap2', selectedKavling, tahapData);
+    const overallPercent = calculateOverallPercent(rolePage);
+    const result = await saveTahapDataToServer('saveTahap2', selectedKavling, tahapData, overallPercent);
     
     if (result.success) {
       showProgressMessage('success', result.message);
       
       if (currentKavlingData.data) {
+        if (!currentKavlingData.data.tahap2) currentKavlingData.data.tahap2 = {};
         Object.keys(tahapData).forEach(taskName => {
-          if (currentKavlingData.data.tahap2[taskName] !== undefined) {
-            currentKavlingData.data.tahap2[taskName] = tahapData[taskName];
-          }
+          currentKavlingData.data.tahap2[taskName] = tahapData[taskName];
         });
       }
       
@@ -702,15 +750,35 @@ async function saveTahap3() {
     return;
   }
   
-  const tahap3Section = document.querySelector('.user1-page .progress-section[data-tahap="3"]');
+  const rolePage = currentRole + 'Page';
+  const tahap3Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="3"]`);
+  if (!tahap3Section) {
+    console.error('Section Tahap 3 tidak ditemukan untuk page:', rolePage);
+    return;
+  }
+  
   const checkboxes = tahap3Section.querySelectorAll('.sub-task');
   const saveButton = tahap3Section.querySelector('.btn-save-section');
   
+  const t3Mapping = {
+    "Kusen Pintu & Jendela": "KUSEN PINTU & JENDELA",
+    "Daun Pintu & Jendela": "DAUN PINTU & JENDELA",
+    "Cat Dasar + Lapis Awal": "CAT DASAR + LAPIS AWAL",
+    "Fitting Lampu": "FITTING LAMPU",
+    "Fixture & Saniter": "FIXTURE & SANITER",
+    "Cat Finish Interior": "CAT FINISH INTERIOR",
+    "Cat Finish Exterior": "CAT FINISH EXTERIOR",
+    "Bak Kontrol & Batas Carport": "BAK KONTROL & BATAS CARPORT",
+    "Paving Halaman": "PAVING HALAMAN",
+    "General Cleaning": "GENERAL CLEANING"
+  };
+
   const tahapData = {};
   checkboxes.forEach(checkbox => {
     const label = checkbox.closest('label');
-    const taskName = label.textContent.trim();
-    tahapData[taskName] = checkbox.checked;
+    const uiTaskName = label.textContent.trim();
+    const spreadsheetTaskName = t3Mapping[uiTaskName] || uiTaskName;
+    tahapData[spreadsheetTaskName] = checkbox.checked;
   });
   
   if (saveButton) {
@@ -720,16 +788,16 @@ async function saveTahap3() {
   }
   
   try {
-    const result = await saveTahapDataToServer('saveTahap3', selectedKavling, tahapData);
+    const overallPercent = calculateOverallPercent(rolePage);
+    const result = await saveTahapDataToServer('saveTahap3', selectedKavling, tahapData, overallPercent);
     
     if (result.success) {
       showProgressMessage('success', result.message);
       
       if (currentKavlingData.data) {
+        if (!currentKavlingData.data.tahap3) currentKavlingData.data.tahap3 = {};
         Object.keys(tahapData).forEach(taskName => {
-          if (currentKavlingData.data.tahap3[taskName] !== undefined) {
-            currentKavlingData.data.tahap3[taskName] = tahapData[taskName];
-          }
+          currentKavlingData.data.tahap3[taskName] = tahapData[taskName];
         });
       }
       
@@ -750,7 +818,7 @@ async function saveTahap3() {
 }
 
 // Fungsi helper untuk menyimpan data tahap ke server
-function saveTahapDataToServer(action, kavling, data) {
+function saveTahapDataToServer(action, kavling, data, totalProgress) {
   return new Promise((resolve) => {
     const callbackName = 'saveTahapCallback_' + Date.now();
     
@@ -763,11 +831,15 @@ function saveTahapDataToServer(action, kavling, data) {
       if (script) script.remove();
     };
     
-    const url = PROGRESS_APPS_SCRIPT_URL + 
+    let url = PROGRESS_APPS_SCRIPT_URL + 
       '?action=' + action + 
       '&kavling=' + encodeURIComponent(kavling) + 
       '&data=' + encodeURIComponent(JSON.stringify(data)) + 
       '&callback=' + callbackName;
+      
+    if (totalProgress !== undefined) {
+      url += '&totalProgress=' + encodeURIComponent(totalProgress + '%');
+    }
     
     console.log('Saving tahap data via:', url);
     
@@ -822,6 +894,25 @@ function showProgressMessage(type, message) {
 }
 
 // ========== PROGRESS CALCULATION ==========
+function calculateOverallPercent(pageId) {
+  const page = document.getElementById(pageId);
+  if (!page) return 0;
+
+  const sections = page.querySelectorAll('.progress-section.detailed');
+  let totalTasks = 0;
+  let completedTasks = 0;
+
+  sections.forEach(section => {
+    const checkboxes = section.querySelectorAll('.sub-task');
+    totalTasks += checkboxes.length;
+    checkboxes.forEach(cb => {
+      if (cb.checked) completedTasks++;
+    });
+  });
+
+  return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+}
+
 function updateProgress(pageId) {
   const page = document.getElementById(pageId);
   if (!page) return;
@@ -1049,13 +1140,17 @@ function clearSession() {
 
 // ========== EVENT LISTENERS ==========
 
-// 1. Tombol search dengan ID spesifik
-document.addEventListener('click', function(e) {
-  if (e.target.id === 'searchButton1' || e.target.closest('#searchButton1')) {
-    console.log('🔍 Tombol Search 1 diklik!');
-    searchKavling();
-  }
-});
+  // Tombol search dengan ID spesifik
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('sync-btn') || e.target.closest('.sync-btn')) {
+      console.log('🔄 Tombol Sync diklik via global listener');
+      syncData();
+    }
+    if (e.target.id === 'searchButton1' || e.target.closest('#searchButton1')) {
+      console.log('🔍 Tombol Search 1 diklik!');
+      searchKavling();
+    }
+  });
 
 // 2. Atau gunakan event listener langsung (lebih reliable)
 setTimeout(() => {
@@ -1282,6 +1377,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+// Remove duplicate sync button listener
+// Dihapus agar tidak konflik dengan inisialisasi di atas
   
   // Save User button listener
   document.addEventListener('click', function(e) {
@@ -1295,8 +1393,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.closest('.btn-search')) {
     const searchBtn = e.target.closest('.btn-search');
     const searchBox = searchBtn.closest('.search-box');
-    const searchInput = searchBox.querySelector('input[type="text"]');
-      if (searchInput && searchInput.id === 'searchKavling1') {
+    const searchInput = searchBox.querySelector('input[type="text"], input[list]');
+      if (searchInput && searchInput.id.startsWith('searchKavling')) {
         searchKavling();
       }
     }
@@ -1304,7 +1402,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Enter key in kavling search
  document.addEventListener('keypress', function(e) {
-  if (e.target.id === 'searchKavling1' && e.key === 'Enter') {
+  if (e.target.id && e.target.id.startsWith('searchKavling') && e.key === 'Enter') {
     console.log('Enter pressed on search input');
     searchKavling();
   }
