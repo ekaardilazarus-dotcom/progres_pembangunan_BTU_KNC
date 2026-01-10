@@ -73,7 +73,7 @@
         <span class="close-btn" role="button" aria-label="Tutup">&times;</span>
         <h2 id="modalTitle">Verifikasi Akses</h2>
         <p>Silakan masukkan password untuk mengakses halaman ini.</p>
-        <input type="password" id="passwordInput" placeholder="Masukkan Password" aria-label="Password">
+        <input type="password" id="passwordInput" placeholder="Masukkan Password" aria-label="Password" autocomplete="off">
         <div id="errorMessage" style="color: #f43f5e; margin-bottom: 15px; font-weight: 600;" aria-live="polite"></div>
         <button id="submitPassword">Masuk</button>
       </div>
@@ -95,7 +95,8 @@
         </label>
         <input type="text" id="newKavlingName" 
                placeholder="Contoh: M1_11, A_05, B_21" 
-               style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;">
+               style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
+               autocomplete="off">
         <div style="margin-top: 5px; font-size: 0.85rem; color: #f59e0b;">
           <i class="fas fa-info-circle"></i> Format: Blok_Nomor (Contoh: M1_11)
         </div>
@@ -109,7 +110,8 @@
           </label>
           <input type="text" id="newKavlingLT" 
                  placeholder="Contoh: 72" 
-                 style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;">
+                 style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
+                 autocomplete="off">
           <div style="margin-top: 5px; font-size: 0.85rem; color: #64748b;">
             (m²)
           </div>
@@ -121,7 +123,8 @@
           </label>
           <input type="text" id="newKavlingLB" 
                  placeholder="Contoh: 36" 
-                 style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;">
+                 style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
+                 autocomplete="off">
           <div style="margin-top: 5px; font-size: 0.85rem; color: #64748b;">
             (m²)
           </div>
@@ -251,10 +254,18 @@
                     </div>
                   </div>
 
+                  <div id="managerProgressDisplay" style="margin-bottom: 20px; padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 12px; display: none;">
+                    <div class="info-item" style="margin-bottom: 10px;">
+                      <span class="info-label">Progres Keseluruhan:</span>
+                      <span class="info-value val-overall" style="font-size: 1.2rem;">0%</span>
+                    </div>
+                    <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
+                  </div>
+
                   <div class="notes-section" style="margin-top: 20px;">
-                    <h3 style="margin-bottom: 10px; color: #38bdf8;">Catatan Kondisi Property</h3>
+                    <h3 style="margin-bottom: 10px; color: #38bdf8;">Catatan Kondisi Property (AH)</h3>
                     <textarea id="propertyNotesManager" style="width: 100%; height: 150px; padding: 15px; border-radius: 12px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: none;" placeholder="Masukkan catatan kondisi property di sini..."></textarea>
-                    <button class="btn-save-section" type="button" style="margin-top: 10px;"><i class="fas fa-save"></i> Simpan Catatan</button>
+                    <button class="btn-save-section" type="button" style="margin-top: 10px;"><i class="fas fa-save"></i> Simpan Catatan (AH)</button>
                   </div>
                 </div>
               </div>
@@ -327,73 +338,94 @@
             <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
           </div>
 
-          <!-- Tahap 1 -->
-          <div class="progress-section detailed" data-tahap="1">
-            <div class="section-header-flex">
-              <h3>Tahap 1: Struktur & Infrastruktur</h3>
-              <span class="sub-percent">0%</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill tahap1" style="width: 0%"></div></div>
-            <div class="sub-tasks-grid">
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Land Clearing</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pondasi</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Sloof</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pas.Ddg S/D2 Canopy</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pas.Ddg S/D Ring Blk</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Conduit + Inbow Doos</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Kotor</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Bersih</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Biotank</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plester</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Acian & Benangan</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cor Meja Dapur</label>
-            </div>
-            <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Tahap 1</button>
+          <!-- Pelaksana Tabs -->
+          <div class="admin-tabs pelaksana-tabs">
+            <button class="admin-tab-btn active" data-tab="tahap1">
+              <i class="fas fa-layer-group"></i> Tahap 1
+            </button>
+            <button class="admin-tab-btn" data-tab="tahap2">
+              <i class="fas fa-layer-group"></i> Tahap 2
+            </button>
+            <button class="admin-tab-btn" data-tab="tahap3">
+              <i class="fas fa-layer-group"></i> Tahap 3
+            </button>
           </div>
 
-          <!-- Tahap 2 -->
-          <div class="progress-section detailed" data-tahap="2">
-            <div class="section-header-flex">
-              <h3>Tahap 2: Atap, Dinding & Lantai</h3>
-              <span class="sub-percent">0%</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill tahap2" style="width: 0%"></div></div>
-            <div class="sub-tasks-grid">
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Atap Galv</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Genteng</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plafond</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Dinding Toilet & Dapur</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Insts Listrik</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Lantai</label>
-            </div>
-            <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Tahap 2</button>
-          </div>
-
-          <!-- Tahap 3 -->
-          <div class="progress-section detailed" data-tahap="3">
-            <div class="section-header-flex">
-              <h3>Tahap 3: Finishing & Serah Terima</h3>
-              <span class="sub-percent">0%</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill tahap3" style="width: 0%"></div></div>
-            <div class="sub-tasks-grid">
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Kusen Pintu & Jendela</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Daun Pintu & Jendela</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Dasar + Lapis Awal</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Fitting Lampu</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Fixture & Saniter</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Finish Interior</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Finish Exterior</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Bak Kontrol & Batas Carport</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Paving Halaman</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> General Cleaning</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Completion</label>
-              <div class="comment-item" style="width: 100%; margin-top: 10px;">
-                <label style="display: block; margin-bottom: 5px; color: #94a3b8; font-size: 0.9rem;">Keterangan Tambahan:</label>
-                <textarea class="tahap-comments" style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155; resize: none;" placeholder="Masukkan komentar..."></textarea>
+          <div class="tab-content pelaksana-tab-content">
+            <!-- Tahap 1 -->
+            <div id="tab-tahap1" class="tab-content-item active">
+              <div class="progress-section detailed" data-tahap="1">
+                <div class="section-header-flex">
+                  <h3>Tahap 1: Struktur & Infrastruktur</h3>
+                  <span class="sub-percent">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill tahap1" style="width: 0%"></div></div>
+                <div class="sub-tasks-grid">
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Land Clearing</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pondasi</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Sloof</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pas.Ddg S/D2 Canopy</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pas.Ddg S/D Ring Blk</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Conduit + Inbow Doos</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Kotor</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Bersih</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Biotank</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plester</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Acian & Benangan</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cor Meja Dapur</label>
+                </div>
+                <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Tahap 1</button>
               </div>
             </div>
-            <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Tahap 3</button>
+
+            <!-- Tahap 2 -->
+            <div id="tab-tahap2" class="tab-content-item">
+              <div class="progress-section detailed" data-tahap="2">
+                <div class="section-header-flex">
+                  <h3>Tahap 2: Atap, Dinding & Lantai</h3>
+                  <span class="sub-percent">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill tahap2" style="width: 0%"></div></div>
+                <div class="sub-tasks-grid">
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Atap Galv</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Genteng</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plafond</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Dinding Toilet & Dapur</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Insts Listrik</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Lantai</label>
+                </div>
+                <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Tahap 2</button>
+              </div>
+            </div>
+
+            <!-- Tahap 3 -->
+            <div id="tab-tahap3" class="tab-content-item">
+              <div class="progress-section detailed" data-tahap="3">
+                <div class="section-header-flex">
+                  <h3>Tahap 3: Finishing & Serah Terima</h3>
+                  <span class="sub-percent">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill tahap3" style="width: 0%"></div></div>
+                <div class="sub-tasks-grid">
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Kusen Pintu & Jendela</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Daun Pintu & Jendela</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Dasar + Lapis Awal</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Fitting Lampu</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Fixture & Saniter</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Finish Interior</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Cat Finish Exterior</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Bak Kontrol & Batas Carport</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Paving Halaman</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> General Cleaning</label>
+                  <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Completion</label>
+                  <div class="comment-item" style="width: 100%; margin-top: 10px;">
+                    <label style="display: block; margin-bottom: 5px; color: #94a3b8; font-size: 0.9rem;">Keterangan Tambahan:</label>
+                    <textarea class="tahap-comments" style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155; resize: none;" placeholder="Masukkan komentar..."></textarea>
+                  </div>
+                </div>
+                <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Tahap 3</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
