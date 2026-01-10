@@ -584,3 +584,78 @@ footer {
     gap: 20px;
   }
 }
+
+/* Tambah di style.css */
+.search-select-large {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  border: 2px solid #334155;
+  background: #0f172a;
+  color: white;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2338bdf8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 50px;
+  min-height: 54px; /* Touch target lebih besar untuk mobile */
+}
+
+.search-select-large:focus {
+  border-color: #38bdf8;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.search-select-large option {
+  background: #0f172a;
+  color: white;
+  padding: 12px;
+  font-size: 1rem;
+}
+
+/* Untuk optgroup */
+.optgroup-label {
+  color: #38bdf8;
+  font-weight: bold;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+/* Container untuk search box dengan dropdown */
+.search-box {
+  position: relative;
+  width: 100%;
+}
+
+.search-box::after {
+  content: '▼';
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #38bdf8;
+  pointer-events: none;
+  font-size: 0.8rem;
+}
+
+/* Mobile optimization */
+@media (max-width: 480px) {
+  .search-select-large {
+    padding: 14px;
+    font-size: 1rem;
+    padding-right: 45px;
+    min-height: 50px;
+  }
+  
+  /* Mencegah zoom di iOS */
+  .search-select-large:focus {
+    font-size: 16px !important;
+  }
+}
