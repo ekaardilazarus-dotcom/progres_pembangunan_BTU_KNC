@@ -1958,28 +1958,46 @@ function setupAdminTabs() {
 
 // ========== SETUP EVENT LISTENERS ==========
 function setupDynamicEventListeners() {
-  // Tombol tambah kavling
+  console.log('Setting up dynamic event listeners...');
+  
+  // 1. Tombol tambah kavling
   document.querySelectorAll('.btn-add-kavling').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
       const modal = document.getElementById('addKavlingModal');
       if (modal) modal.style.display = 'flex';
     });
   });
   
-  // Tombol submit tambah kavling
+  // 2. Tombol submit tambah kavling
   const submitNewKavlingBtn = document.getElementById('submitNewKavling');
   if (submitNewKavlingBtn) {
-    submitNewKavlingBtn.addEventListener('click', submitNewKavling);
+    submitNewKavlingBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      submitNewKavling();
+    });
   }
   
-  // Tombol sync
+  // 3. Tombol close modal tambah kavling
+  const closeAddKavlingBtn = document.getElementById('closeAddKavling');
+  if (closeAddKavlingBtn) {
+    closeAddKavlingBtn.addEventListener('click', () => {
+      document.getElementById('addKavlingModal').style.display = 'none';
+    });
+  }
+  
+  // 4. Tombol sync
   document.querySelectorAll('.sync-btn').forEach(btn => {
-    btn.addEventListener('click', syncData);
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      syncData();
+    });
   });
   
-  // Tombol logout
+  // 5. Tombol logout
   document.querySelectorAll('.logout-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
       if (confirm('Apakah Anda yakin ingin logout?')) {
         clearSession();
         goBack();
@@ -1987,15 +2005,19 @@ function setupDynamicEventListeners() {
     });
   });
   
-  // Tombol save catatan manager
+  // 6. Tombol save catatan manager
   const managerSaveNotesBtn = document.querySelector('#tab-notes .btn-save-section');
   if (managerSaveNotesBtn) {
-    managerSaveNotesBtn.addEventListener('click', savePropertyNotes);
+    managerSaveNotesBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      savePropertyNotes();
+    });
   }
 
-  // Tombol save tahap progress
+  // 7. Tombol save tahap progress
   document.querySelectorAll('.btn-save-section:not(#tab-notes .btn-save-section)').forEach(btn => {
     btn.addEventListener('click', function(e) {
+      e.preventDefault();
       const section = btn.closest('.progress-section');
       if (section) {
         const tahap = section.getAttribute('data-tahap');
@@ -2007,22 +2029,33 @@ function setupDynamicEventListeners() {
     });
   });
   
-  // Dropdown kavling
+  // 8. Dropdown kavling
   const selectIds = ['searchKavlingUser1', 'searchKavlingUser2', 'searchKavlingUser3', 'searchKavlingUser4', 'searchKavlingManager'];
   selectIds.forEach(selectId => {
     const el = document.getElementById(selectId);
-    if (el) el.addEventListener('change', searchKavling);
+    if (el) {
+      // Hapus event listener lama
+      const newEl = el.cloneNode(true);
+      el.parentNode.replaceChild(newEl, el);
+      
+      // Tambah event listener baru
+      newEl.addEventListener('change', () => {
+        searchKavling();
+      });
+    }
   });
   
-  // Tombol close modal
+  // 9. Tombol close modal
   document.querySelectorAll('.close-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const modal = this.closest('.modal');
-      if (modal) modal.style.display = 'none';
-    });
+    if (!btn.id || !btn.id.includes('AddKavling')) {
+      btn.addEventListener('click', function() {
+        const modal = this.closest('.modal');
+        if (modal) modal.style.display = 'none';
+      });
+    }
   });
   
-  // Tutup modal ketika klik di luar konten modal
+  // 10. Tutup modal ketika klik di luar konten modal
   window.addEventListener('click', function(event) {
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
@@ -2032,7 +2065,48 @@ function setupDynamicEventListeners() {
     });
   });
   
-  // Enter key untuk password input
+  // 11. Setup admin tabs jika di halaman admin
+  if (document.getElementById('adminPage')) {
+    setupAdminTabs();
+  }
+  
+  // 12. Setup manager tabs jika di halaman manager
+  if (document.getElementById('managerPage')) {
+    setupManagerTabs();
+  }
+  
+  // 13. Setup pelaksana tabs jika di halaman user1
+  if (document.getElementById('user1Page')) {
+    setupPelaksanaTabs();
+  }
+  
+  console.log('Dynamic event listeners setup complete');
+}
+
+// ========== INITIALIZE ON DOM READY ==========
+function initApp() {
+  console.log('=== INITIALIZING APP ===');
+  
+  // Setup semua event listener
+  setupDynamicEventListeners();
+  
+  // Cek session login
+  const savedRole = sessionStorage.getItem('loggedRole');
+  if (savedRole) {
+    currentRole = savedRole;
+    showPage(savedRole);
+  }
+  
+  // Setup tombol role di halaman utama
+  setupRoleButtons();
+  
+  // Setup tombol submit password
+  const submitPasswordBtn = document.getElementById('submitPassword');
+  if (submitPasswordBtn) {
+    submitPasswordBtn.addEventListener('click', handleLogin);
+  }
+  
+  // Setup enter key untuk password input
   const passwordInput = document.getElementById('passwordInput');
   if (passwordInput) {
     passwordInput.addEventListener('keypress', function(e) {
@@ -2042,55 +2116,71 @@ function setupDynamicEventListeners() {
     });
   }
   
-  // Auto-save draft untuk notes
-  const notesTextarea = document.getElementById('propertyNotesManager');
-  if (notesTextarea) {
-    let saveDraftTimeout;
-    notesTextarea.addEventListener('input', function() {
-      clearTimeout(saveDraftTimeout);
-      saveDraftTimeout = setTimeout(() => {
-        if (selectedKavling && this.value.trim() !== '') {
-          localStorage.setItem(`notes_draft_${selectedKavling}`, this.value);
-        }
-      }, 1000);
-    });
-  }
+  console.log('=== APP INITIALIZED ===');
 }
 
-// ========== INITIALIZE ==========
-document.addEventListener('DOMContentLoaded', function() {
-  setupDynamicEventListeners();
+// Fungsi khusus untuk setup tombol role
+function setupRoleButtons() {
+  const roleButtons = document.querySelectorAll('.role-btn');
+  console.log(`Found ${roleButtons.length} role buttons`);
   
-  const savedRole = sessionStorage.getItem('loggedRole');
-  if (savedRole) {
-    currentRole = savedRole;
-    showPage(savedRole);
-  }
-  
-  document.querySelectorAll('.role-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentRole = btn.getAttribute('data-role');
+  roleButtons.forEach(btn => {
+    // Hapus event listener lama
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    // Tambah event listener baru
+    newBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Role button clicked:', this.getAttribute('data-role'));
+      
+      currentRole = this.getAttribute('data-role');
       const modal = document.getElementById('passwordModal');
+      
       if (modal) {
+        // Reset modal state
+        document.getElementById('errorMessage').textContent = '';
+        document.getElementById('passwordInput').value = '';
+        
         modal.style.display = 'flex';
         document.getElementById('passwordInput').focus();
+        
+        // Update modal title berdasarkan role
+        const roleNames = {
+          'user1': 'Pelaksana 1',
+          'user2': 'Pelaksana 2', 
+          'user3': 'Pelaksana 3',
+          'user4': 'Pelaksana 4',
+          'manager': 'Management',
+          'admin': 'Admin'
+        };
+        
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) {
+          modalTitle.textContent = `Login sebagai ${roleNames[currentRole] || currentRole}`;
+        }
       }
     });
   });
-  
-  const submitPasswordBtn = document.getElementById('submitPassword');
-  if (submitPasswordBtn) {
-    submitPasswordBtn.addEventListener('click', handleLogin);
+}
+
+// Event listener untuk checkbox
+document.addEventListener('change', function(e) {
+  if (e.target.classList.contains('sub-task')) {
+    const rolePage = currentRole + 'Page';
+    updateProgress(rolePage);
   }
-  
-  // Checkbox event untuk update progress langsung
-  document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('sub-task')) {
-      const rolePage = currentRole + 'Page';
-      updateProgress(rolePage);
-    }
-  });
 });
+
+// ========== START APPLICATION ==========
+// Tunggu DOM siap sepenuhnya
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  // DOM sudah siap
+  initApp();
+}
 
 // Fungsi untuk edit user (placeholder)
 function handleEditUser(role, displayName, id) {
@@ -2177,4 +2267,160 @@ function toggleTableButton(button, option) {
   
   const rolePage = currentRole + 'Page';
   updateProgress(rolePage);
+}
+
+// ========== START APPLICATION ==========
+// Tambahkan event listener untuk DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('=== DOM CONTENT LOADED ===');
+  initApp();
+});
+
+// Juga jalankan jika DOM sudah siap
+if (document.readyState === 'loading') {
+  // Tunggu DOM selesai loading
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  // DOM sudah siap
+  console.log('DOM already ready, initializing immediately');
+  initApp();
+}
+
+// Fungsi untuk edit user (placeholder)
+function handleEditUser(role, displayName, id) {
+  showToast('info', 'Fitur edit pengguna akan segera hadir');
+  console.log('Edit user:', { role, displayName, id });
+}
+
+// Fungsi untuk toggle tombol sistem pembuangan
+function toggleSystemButton(button, systemType) {
+  const taskItem = button.closest('.task-item');
+  const buttons = taskItem.querySelectorAll('.system-btn');
+  const hiddenInput = taskItem.querySelector('#wasteSystemInput');
+  
+  const wasActive = button.classList.contains('active');
+
+  // Reset semua tombol
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('data-active', 'false');
+  });
+  
+  if (wasActive) {
+    hiddenInput.value = '';
+  } else {
+    // Aktifkan tombol yang diklik
+    button.classList.add('active');
+    button.setAttribute('data-active', 'true');
+    hiddenInput.value = systemType;
+  }
+  
+  const rolePage = currentRole + 'Page';
+  updateProgress(rolePage);
+}
+
+// Fungsi untuk toggle tombol keramik dinding
+function toggleTilesButton(button, option) {
+  const taskItem = button.closest('.task-item');
+  const buttons = taskItem.querySelectorAll('.tiles-btn');
+  const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
+  
+  const wasActive = button.classList.contains('active');
+
+  // Reset semua tombol
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('data-active', 'false');
+  });
+  
+  if (wasActive) {
+    hiddenInput.value = '';
+  } else {
+    // Aktifkan tombol yang diklik
+    button.classList.add('active');
+    button.setAttribute('data-active', 'true');
+    hiddenInput.value = option;
+  }
+  
+  const rolePage = currentRole + 'Page';
+  updateProgress(rolePage);
+}
+
+// Fungsi untuk toggle tombol cor meja dapur
+function toggleTableButton(button, option) {
+  const taskItem = button.closest('.task-item');
+  const buttons = taskItem.querySelectorAll('.table-btn');
+  const hiddenInput = taskItem.querySelector('#tableKitchenInput');
+  
+  const wasActive = button.classList.contains('active');
+
+  // Reset semua tombol
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('data-active', 'false');
+  });
+  
+  if (wasActive) {
+    hiddenInput.value = '';
+  } else {
+    // Aktifkan tombol yang diklik
+    button.classList.add('active');
+    button.setAttribute('data-active', 'true');
+    hiddenInput.value = option;
+  }
+  
+  const rolePage = currentRole + 'Page';
+  updateProgress(rolePage);
+}
+
+// ========== TAMBAHKAN FUNGSI YANG HILANG ==========
+// Fungsi-fungsi ini disebut di kode Anda tetapi tidak didefinisikan:
+
+function updateProgress(rolePage) {
+  // Fungsi untuk update progress bar - tambahkan implementasinya
+  console.log('updateProgress called for:', rolePage);
+  // Implementasi Anda di sini
+}
+
+function updateTotalProgressDisplay(progress, pageId) {
+  // Fungsi untuk update total progress display
+  console.log('updateTotalProgressDisplay:', progress, pageId);
+  // Implementasi Anda di sini
+}
+
+function savePropertyNotes() {
+  // Fungsi untuk save property notes
+  console.log('savePropertyNotes called');
+  if (!selectedKavling) {
+    showToast('error', 'Pilih kavling terlebih dahulu');
+    return;
+  }
+  
+  const notesEl = document.getElementById('propertyNotesManager');
+  if (!notesEl) return;
+  
+  const notes = notesEl.value.trim();
+  
+  showGlobalLoading('Menyimpan catatan...');
+  
+  // Panggil server untuk menyimpan notes
+  // Implementasi Anda di sini
+}
+
+function loadPropertyNotes(kavlingName) {
+  // Fungsi untuk load property notes
+  console.log('loadPropertyNotes called for:', kavlingName);
+  // Implementasi Anda di sini
+}
+
+function updateKavlingBadge(kavlingName) {
+  // Fungsi untuk update badge kavling
+  console.log('updateKavlingBadge called for:', kavlingName);
+  // Implementasi Anda di sini
+}
+
+function updateNotesCounter(length) {
+  // Fungsi untuk update notes character counter
+  console.log('updateNotesCounter:', length);
+  // Implementasi Anda di sini
 }
