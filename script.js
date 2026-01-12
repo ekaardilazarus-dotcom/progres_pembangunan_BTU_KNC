@@ -823,7 +823,12 @@ function updateProgress(pageId) {
     let sectionCompleted = 0;
 
     checkboxes.forEach(cb => {
-      if (cb.checked) sectionCompleted++;
+      if (cb.type === 'checkbox') {
+        if (cb.checked) sectionCompleted++;
+      } else if (cb.tagName === 'INPUT' && cb.type === 'hidden') {
+        // Jika hidden input (dari tombol pilihan) memiliki nilai, anggap selesai
+        if (cb.value && cb.value !== '') sectionCompleted++;
+      }
     });
 
     const sectionPercent = sectionTotal > 0 ? Math.round((sectionCompleted / sectionTotal) * 100) : 0;
@@ -2103,22 +2108,19 @@ function handleEditUser(role, displayName, id) {
   console.log('Edit user:', { role, displayName, id });
 }
 
-// script.js - Tambahkan fungsi ini
-
 // Fungsi untuk toggle tombol sistem pembuangan
 function toggleSystemButton(button, systemType) {
   const taskItem = button.closest('.task-item');
   const buttons = taskItem.querySelectorAll('.system-btn');
   const hiddenInput = taskItem.querySelector('#wasteSystemInput');
   
+  const wasActive = button.classList.contains('active');
+
   // Reset semua tombol
   buttons.forEach(btn => {
     btn.classList.remove('active');
     btn.setAttribute('data-active', 'false');
   });
-  
-  // Jika tombol yang sama diklik lagi, deselect
-  const wasActive = button.classList.contains('active');
   
   if (wasActive) {
     hiddenInput.value = '';
@@ -2127,27 +2129,10 @@ function toggleSystemButton(button, systemType) {
     button.classList.add('active');
     button.setAttribute('data-active', 'true');
     hiddenInput.value = systemType;
-    
-    // Update visual state
-    const allSystemTasks = document.querySelectorAll('.waste-system');
-    allSystemTasks.forEach(item => {
-      const itemButtons = item.querySelectorAll('.system-btn');
-      const itemInput = item.querySelector('#wasteSystemInput');
-      itemButtons.forEach(btn => btn.classList.remove('active'));
-      itemButtons.forEach(btn => btn.setAttribute('data-active', 'false'));
-      
-      const currentBtn = Array.from(itemButtons).find(btn => 
-        btn.getAttribute('data-state') === systemType
-      );
-      if (currentBtn) {
-        currentBtn.classList.add('active');
-        currentBtn.setAttribute('data-active', 'true');
-        itemInput.value = systemType;
-      }
-    });
   }
   
-  updateProgress();
+  const rolePage = currentRole + 'Page';
+  updateProgress(rolePage);
 }
 
 // Fungsi untuk toggle tombol keramik dinding
@@ -2156,14 +2141,13 @@ function toggleTilesButton(button, option) {
   const buttons = taskItem.querySelectorAll('.tiles-btn');
   const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
   
+  const wasActive = button.classList.contains('active');
+
   // Reset semua tombol
   buttons.forEach(btn => {
     btn.classList.remove('active');
     btn.setAttribute('data-active', 'false');
   });
-  
-  // Jika tombol yang sama diklik lagi, deselect
-  const wasActive = button.classList.contains('active');
   
   if (wasActive) {
     hiddenInput.value = '';
@@ -2172,264 +2156,8 @@ function toggleTilesButton(button, option) {
     button.classList.add('active');
     button.setAttribute('data-active', 'true');
     hiddenInput.value = option;
-    
-    // Update visual state di semua tab/halaman yang sama
-    const allTilesTasks = document.querySelectorAll('.bathroom-tiles');
-    allTilesTasks.forEach(item => {
-      const itemButtons = item.querySelectorAll('.tiles-btn');
-      const itemInput = item.querySelector('#bathroomTilesInput');
-      itemButtons.forEach(btn => btn.classList.remove('active'));
-      itemButtons.forEach(btn => btn.setAttribute('data-active', 'false'));
-      
-      const currentBtn = Array.from(itemButtons).find(btn => 
-        btn.getAttribute('data-state') === option
-      );
-      if (currentBtn) {
-        currentBtn.classList.add('active');
-        currentBtn.setAttribute('data-active', 'true');
-        itemInput.value = option;
-      }
-    });
   }
   
-  updateProgress();
-}
-
-// Fungsi untuk memuat state tombol dari data
-function loadSystemButtonState(systemValue) {
-  const allSystemTasks = document.querySelectorAll('.waste-system');
-  allSystemTasks.forEach(item => {
-    const buttons = item.querySelectorAll('.system-btn');
-    const hiddenInput = item.querySelector('#wasteSystemInput');
-    
-    // Reset semua tombol
-    buttons.forEach(btn => {
-      btn.classList.remove('active');
-      btn.setAttribute('data-active', 'false');
-    });
-    
-    // Aktifkan tombol sesuai nilai
-    if (systemValue) {
-      const activeBtn = Array.from(buttons).find(btn => 
-        btn.getAttribute('data-state') === systemValue
-      );
-      if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.setAttribute('data-active', 'true');
-        hiddenInput.value = systemValue;
-      }
-    }
-  });
-}
-
-// Fungsi untuk memuat state tombol keramik dari data
-function loadTilesButtonState(tilesValue) {
-  const allTilesTasks = document.querySelectorAll('.bathroom-tiles');
-  allTilesTasks.forEach(item => {
-    const buttons = item.querySelectorAll('.tiles-btn');
-    const hiddenInput = item.querySelector('#bathroomTilesInput');
-    
-    // Reset semua tombol
-    buttons.forEach(btn => {
-      btn.classList.remove('active');
-      btn.setAttribute('data-active', 'false');
-    });
-    
-    // Aktifkan tombol sesuai nilai
-    if (tilesValue) {
-      const activeBtn = Array.from(buttons).find(btn => 
-        btn.getAttribute('data-state') === tilesValue
-      );
-      if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.setAttribute('data-active', 'true');
-        hiddenInput.value = tilesValue;
-      }
-    }
-  });
-}
-
-// Fungsi untuk mendapatkan nilai dari tombol sistem
-function getSystemButtonValue() {
-  const taskItem = document.querySelector('.waste-system');
-  if (taskItem) {
-    const hiddenInput = taskItem.querySelector('#wasteSystemInput');
-    return hiddenInput.value || '';
-  }
-  return '';
-}
-
-// Fungsi untuk mendapatkan nilai dari tombol keramik
-function getTilesButtonValue() {
-  const taskItem = document.querySelector('.bathroom-tiles');
-  if (taskItem) {
-    const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
-    return hiddenInput.value || '';
-  }
-  return '';
-}
-// script.js - Tambahkan fungsi ini
-
-// Fungsi untuk toggle tombol sistem pembuangan
-function toggleSystemButton(button, systemType) {
-  const taskItem = button.closest('.task-item');
-  const buttons = taskItem.querySelectorAll('.system-btn');
-  const hiddenInput = taskItem.querySelector('#wasteSystemInput');
-  
-  // Reset semua tombol
-  buttons.forEach(btn => {
-    btn.classList.remove('active');
-    btn.setAttribute('data-active', 'false');
-  });
-  
-  // Jika tombol yang sama diklik lagi, deselect
-  const wasActive = button.classList.contains('active');
-  
-  if (wasActive) {
-    hiddenInput.value = '';
-  } else {
-    // Aktifkan tombol yang diklik
-    button.classList.add('active');
-    button.setAttribute('data-active', 'true');
-    hiddenInput.value = systemType;
-    
-    // Update visual state
-    const allSystemTasks = document.querySelectorAll('.waste-system');
-    allSystemTasks.forEach(item => {
-      const itemButtons = item.querySelectorAll('.system-btn');
-      const itemInput = item.querySelector('#wasteSystemInput');
-      itemButtons.forEach(btn => btn.classList.remove('active'));
-      itemButtons.forEach(btn => btn.setAttribute('data-active', 'false'));
-      
-      const currentBtn = Array.from(itemButtons).find(btn => 
-        btn.getAttribute('data-state') === systemType
-      );
-      if (currentBtn) {
-        currentBtn.classList.add('active');
-        currentBtn.setAttribute('data-active', 'true');
-        itemInput.value = systemType;
-      }
-    });
-  }
-  
-  updateProgress();
-}
-
-// Fungsi untuk toggle tombol keramik dinding
-function toggleTilesButton(button, option) {
-  const taskItem = button.closest('.task-item');
-  const buttons = taskItem.querySelectorAll('.tiles-btn');
-  const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
-  
-  // Reset semua tombol
-  buttons.forEach(btn => {
-    btn.classList.remove('active');
-    btn.setAttribute('data-active', 'false');
-  });
-  
-  // Jika tombol yang sama diklik lagi, deselect
-  const wasActive = button.classList.contains('active');
-  
-  if (wasActive) {
-    hiddenInput.value = '';
-  } else {
-    // Aktifkan tombol yang diklik
-    button.classList.add('active');
-    button.setAttribute('data-active', 'true');
-    hiddenInput.value = option;
-    
-    // Update visual state di semua tab/halaman yang sama
-    const allTilesTasks = document.querySelectorAll('.bathroom-tiles');
-    allTilesTasks.forEach(item => {
-      const itemButtons = item.querySelectorAll('.tiles-btn');
-      const itemInput = item.querySelector('#bathroomTilesInput');
-      itemButtons.forEach(btn => btn.classList.remove('active'));
-      itemButtons.forEach(btn => btn.setAttribute('data-active', 'false'));
-      
-      const currentBtn = Array.from(itemButtons).find(btn => 
-        btn.getAttribute('data-state') === option
-      );
-      if (currentBtn) {
-        currentBtn.classList.add('active');
-        currentBtn.setAttribute('data-active', 'true');
-        itemInput.value = option;
-      }
-    });
-  }
-  
-  updateProgress();
-}
-
-// Fungsi untuk memuat state tombol dari data
-function loadSystemButtonState(systemValue) {
-  const allSystemTasks = document.querySelectorAll('.waste-system');
-  allSystemTasks.forEach(item => {
-    const buttons = item.querySelectorAll('.system-btn');
-    const hiddenInput = item.querySelector('#wasteSystemInput');
-    
-    // Reset semua tombol
-    buttons.forEach(btn => {
-      btn.classList.remove('active');
-      btn.setAttribute('data-active', 'false');
-    });
-    
-    // Aktifkan tombol sesuai nilai
-    if (systemValue) {
-      const activeBtn = Array.from(buttons).find(btn => 
-        btn.getAttribute('data-state') === systemValue
-      );
-      if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.setAttribute('data-active', 'true');
-        hiddenInput.value = systemValue;
-      }
-    }
-  });
-}
-
-// Fungsi untuk memuat state tombol keramik dari data
-function loadTilesButtonState(tilesValue) {
-  const allTilesTasks = document.querySelectorAll('.bathroom-tiles');
-  allTilesTasks.forEach(item => {
-    const buttons = item.querySelectorAll('.tiles-btn');
-    const hiddenInput = item.querySelector('#bathroomTilesInput');
-    
-    // Reset semua tombol
-    buttons.forEach(btn => {
-      btn.classList.remove('active');
-      btn.setAttribute('data-active', 'false');
-    });
-    
-    // Aktifkan tombol sesuai nilai
-    if (tilesValue) {
-      const activeBtn = Array.from(buttons).find(btn => 
-        btn.getAttribute('data-state') === tilesValue
-      );
-      if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.setAttribute('data-active', 'true');
-        hiddenInput.value = tilesValue;
-      }
-    }
-  });
-}
-
-// Fungsi untuk mendapatkan nilai dari tombol sistem
-function getSystemButtonValue() {
-  const taskItem = document.querySelector('.waste-system');
-  if (taskItem) {
-    const hiddenInput = taskItem.querySelector('#wasteSystemInput');
-    return hiddenInput.value || '';
-  }
-  return '';
-}
-
-// Fungsi untuk mendapatkan nilai dari tombol keramik
-function getTilesButtonValue() {
-  const taskItem = document.querySelector('.bathroom-tiles');
-  if (taskItem) {
-    const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
-    return hiddenInput.value || '';
-  }
-  return '';
+  const rolePage = currentRole + 'Page';
+  updateProgress(rolePage);
 }
