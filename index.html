@@ -430,28 +430,31 @@
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Rangka Atap</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Genteng</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plafond</label>
-<label class="task-item">
-  <span class="item-title">Keramik Dinding Toilet & Dapur = </span>
+<label class="task-item bathroom-tiles">
+  <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
   <div class="dual-state-buttons">
     <button type="button" 
-            class="state-btn with-btn" 
+            class="state-btn tiles-btn with-btn" 
             data-state="include"
-            data-active="false">
-      Dengan Keramik Dinding
+            data-active="false"
+            onclick="toggleTilesButton(this, 'include')">
+      <i class="fas fa-check-square"></i> Dengan Keramik Dinding
     </button>
     <div class="vertical-divider">|</div>
     <button type="button" 
-            class="state-btn without-btn" 
+            class="state-btn tiles-btn without-btn" 
             data-state="exclude"
-            data-active="false">
-      Tanpa Keramik Dinding
+            data-active="false"
+            onclick="toggleTilesButton(this, 'exclude')">
+      <i class="fas fa-times-square"></i> Tanpa Keramik Dinding
     </button>
   </div>
   <input type="hidden" 
          name="bathroom-tiles" 
          value="" 
          class="sub-task" 
-         data-weight="1">
+         data-weight="1"
+         id="bathroomTilesInput">
 </label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Instalasi Listrik</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Lantai</label>
@@ -610,29 +613,31 @@
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Rangka Atap</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Genteng</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plafond</label>
-              <label class="task-item">
-<label class="task-item">
-  <span class="item-title">Keramik Dinding Toilet & Dapur = </span>
+             <label class="task-item bathroom-tiles">
+  <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
   <div class="dual-state-buttons">
     <button type="button" 
-            class="state-btn with-btn" 
+            class="state-btn tiles-btn with-btn" 
             data-state="include"
-            data-active="false">
-      Dengan Keramik Dinding
+            data-active="false"
+            onclick="toggleTilesButton(this, 'include')">
+      <i class="fas fa-check-square"></i> Dengan Keramik Dinding
     </button>
     <div class="vertical-divider">|</div>
     <button type="button" 
-            class="state-btn without-btn" 
+            class="state-btn tiles-btn without-btn" 
             data-state="exclude"
-            data-active="false">
-      Tanpa Keramik Dinding
+            data-active="false"
+            onclick="toggleTilesButton(this, 'exclude')">
+      <i class="fas fa-times-square"></i> Tanpa Keramik Dinding
     </button>
   </div>
   <input type="hidden" 
          name="bathroom-tiles" 
          value="" 
          class="sub-task" 
-         data-weight="1">
+         data-weight="1"
+         id="bathroomTilesInput">
 </label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Instalasi Listrik</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Lantai</label>
@@ -787,29 +792,31 @@
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Rangka Atap</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Genteng</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plafond</label>
-             <label class="task-item">
- <label class="task-item">
-  <span class="item-title">Keramik Dinding Toilet & Dapur = </span>
+           <label class="task-item bathroom-tiles">
+  <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
   <div class="dual-state-buttons">
     <button type="button" 
-            class="state-btn with-btn" 
+            class="state-btn tiles-btn with-btn" 
             data-state="include"
-            data-active="false">
-      Dengan Keramik Dinding
+            data-active="false"
+            onclick="toggleTilesButton(this, 'include')">
+      <i class="fas fa-check-square"></i> Dengan Keramik Dinding
     </button>
     <div class="vertical-divider">|</div>
     <button type="button" 
-            class="state-btn without-btn" 
+            class="state-btn tiles-btn without-btn" 
             data-state="exclude"
-            data-active="false">
-      Tanpa Keramik Dinding
+            data-active="false"
+            onclick="toggleTilesButton(this, 'exclude')">
+      <i class="fas fa-times-square"></i> Tanpa Keramik Dinding
     </button>
   </div>
   <input type="hidden" 
          name="bathroom-tiles" 
          value="" 
          class="sub-task" 
-         data-weight="1">
+         data-weight="1"
+         id="bathroomTilesInput">
 </label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Instalasi Listrik</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Lantai</label>
@@ -959,29 +966,31 @@
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Rangka Atap</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Genteng</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plafond</label>
-           <label class="task-item">
-<label class="task-item">
-  <span class="item-title">Keramik Dinding Toilet & Dapur = </span>
+          <label class="task-item bathroom-tiles">
+  <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
   <div class="dual-state-buttons">
     <button type="button" 
-            class="state-btn with-btn" 
+            class="state-btn tiles-btn with-btn" 
             data-state="include"
-            data-active="false">
-      Dengan Keramik Dinding
+            data-active="false"
+            onclick="toggleTilesButton(this, 'include')">
+      <i class="fas fa-check-square"></i> Dengan Keramik Dinding
     </button>
     <div class="vertical-divider">|</div>
     <button type="button" 
-            class="state-btn without-btn" 
+            class="state-btn tiles-btn without-btn" 
             data-state="exclude"
-            data-active="false">
-      Tanpa Keramik Dinding
+            data-active="false"
+            onclick="toggleTilesButton(this, 'exclude')">
+      <i class="fas fa-times-square"></i> Tanpa Keramik Dinding
     </button>
   </div>
   <input type="hidden" 
          name="bathroom-tiles" 
          value="" 
          class="sub-task" 
-         data-weight="1">
+         data-weight="1"
+         id="bathroomTilesInput">
 </label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Instalasi Listrik</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Lantai</label>
