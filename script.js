@@ -1,6 +1,6 @@
 // versi 0.234
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4fMZ37KUzkkpsXrbIWMkK1lqWtowR5nNW8yzdupWPJjFjyswHhc0uyQ3-rG2nNI-Uqg/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0tP-eYnDuczBnkpCXeLq7Se01OOMz8cwGnFKdcZLuJ1fnsFznGKzDPZF78rtxSCcZkg/exec';
 
 let currentRole = null;
 let selectedKavling = null;
@@ -1244,13 +1244,13 @@ async function submitNewKavling() {
     return;
   }
   
-  const kavlingName = nameInput.value.trim();
+  const name = nameInput.value.trim();
   const lt = ltInput.value.trim();
   const lb = lbInput.value.trim();
   
-  console.log('Kavling data:', { kavlingName, lt, lb });
+  console.log('Kavling data:', { name, lt, lb }); // PERBAIKAN: ganti 'kavlingName' menjadi 'name'
 
-  if (!kavlingName) {
+  if (!name) { // PERBAIKAN: ganti 'kavlingName' menjadi 'name'
     showToast('error', 'Nama kavling harus diisi');
     nameInput.focus();
     return;
@@ -1264,8 +1264,7 @@ async function submitNewKavling() {
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'addNewKavling',
-      namaKavling: kavlingName,
-      kavling: kavlingName, // Send both just in case
+      name: name, // Apps Script menerima parameter 'name'
       lt: lt || '',
       lb: lb || '',
       createdBy: currentRole || 'admin'
