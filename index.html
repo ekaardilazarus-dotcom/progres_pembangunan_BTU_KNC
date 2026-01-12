@@ -380,35 +380,31 @@
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Conduit + Inbow Doos</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Kotor</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Pipa Air Bersih</label>
-                 <label class="task-item">
-  <span class="item-title">Sistem Pembuangan = </span>
+<label class="task-item bathroom-tiles">
+  <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
   <div class="dual-state-buttons">
     <button type="button" 
-            class="state-btn system-btn" 
-            data-state="biotank"
-            data-active="false">
-      Biotank
+            class="state-btn tiles-btn" 
+            data-state="include"
+            data-active="false"
+            onclick="toggleTilesButton(this, 'include')">
+      Dengan Keramik Dinding
     </button>
     <div class="vertical-divider">|</div>
     <button type="button" 
-            class="state-btn system-btn" 
-            data-state="ipal"
-            data-active="false">
-      Ipal
-    </button>
-    <div class="vertical-divider">|</div>
-    <button type="button" 
-            class="state-btn system-btn" 
-            data-state="septictank"
-            data-active="false">
-      Septictank
+            class="state-btn tiles-btn" 
+            data-state="exclude"
+            data-active="false"
+            onclick="toggleTilesButton(this, 'exclude')">
+      Tanpa Keramik Dinding
     </button>
   </div>
   <input type="hidden" 
-         name="waste-system" 
+         name="bathroom-tiles" 
          value="" 
          class="sub-task" 
-         data-weight="1">
+         data-weight="1"
+         id="bathroomTilesInput">
 </label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plester</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Acian & Benangan</label>
@@ -430,31 +426,39 @@
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Rangka Atap</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Genteng</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Plafond</label>
-<label class="task-item bathroom-tiles">
-  <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
+<label class="task-item waste-system">
+  <span class="item-title">Sistem Pembuangan = </span>
   <div class="dual-state-buttons">
     <button type="button" 
-            class="state-btn tiles-btn with-btn" 
-            data-state="include"
+            class="state-btn system-btn" 
+            data-state="biotank"
             data-active="false"
-            onclick="toggleTilesButton(this, 'include')">
-      <i class="fas fa-check-square"></i> Dengan Keramik Dinding
+            onclick="toggleSystemButton(this, 'biotank')">
+      Biotank
     </button>
     <div class="vertical-divider">|</div>
     <button type="button" 
-            class="state-btn tiles-btn without-btn" 
-            data-state="exclude"
+            class="state-btn system-btn" 
+            data-state="ipal"
             data-active="false"
-            onclick="toggleTilesButton(this, 'exclude')">
-      <i class="fas fa-times-square"></i> Tanpa Keramik Dinding
+            onclick="toggleSystemButton(this, 'ipal')">
+      Ipal
+    </button>
+    <div class="vertical-divider">|</div>
+    <button type="button" 
+            class="state-btn system-btn" 
+            data-state="septictank"
+            data-active="false"
+            onclick="toggleSystemButton(this, 'septictank')">
+      Septictank
     </button>
   </div>
   <input type="hidden" 
-         name="bathroom-tiles" 
+         name="waste-system" 
          value="" 
          class="sub-task" 
          data-weight="1"
-         id="bathroomTilesInput">
+         id="wasteSystemInput">
 </label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Instalasi Listrik</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1"> Keramik Lantai</label>
@@ -617,19 +621,19 @@
   <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
   <div class="dual-state-buttons">
     <button type="button" 
-            class="state-btn tiles-btn with-btn" 
+            class="state-btn tiles-btn" 
             data-state="include"
             data-active="false"
             onclick="toggleTilesButton(this, 'include')">
-      <i class="fas fa-check-square"></i> Dengan Keramik Dinding
+      Dengan Keramik Dinding
     </button>
     <div class="vertical-divider">|</div>
     <button type="button" 
-            class="state-btn tiles-btn without-btn" 
+            class="state-btn tiles-btn" 
             data-state="exclude"
             data-active="false"
             onclick="toggleTilesButton(this, 'exclude')">
-      <i class="fas fa-times-square"></i> Tanpa Keramik Dinding
+      Tanpa Keramik Dinding
     </button>
   </div>
   <input type="hidden" 
@@ -796,19 +800,19 @@
   <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
   <div class="dual-state-buttons">
     <button type="button" 
-            class="state-btn tiles-btn with-btn" 
+            class="state-btn tiles-btn" 
             data-state="include"
             data-active="false"
             onclick="toggleTilesButton(this, 'include')">
-      <i class="fas fa-check-square"></i> Dengan Keramik Dinding
+      Dengan Keramik Dinding
     </button>
     <div class="vertical-divider">|</div>
     <button type="button" 
-            class="state-btn tiles-btn without-btn" 
+            class="state-btn tiles-btn" 
             data-state="exclude"
             data-active="false"
             onclick="toggleTilesButton(this, 'exclude')">
-      <i class="fas fa-times-square"></i> Tanpa Keramik Dinding
+      Tanpa Keramik Dinding
     </button>
   </div>
   <input type="hidden" 
@@ -970,19 +974,19 @@
   <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
   <div class="dual-state-buttons">
     <button type="button" 
-            class="state-btn tiles-btn with-btn" 
+            class="state-btn tiles-btn" 
             data-state="include"
             data-active="false"
             onclick="toggleTilesButton(this, 'include')">
-      <i class="fas fa-check-square"></i> Dengan Keramik Dinding
+      Dengan Keramik Dinding
     </button>
     <div class="vertical-divider">|</div>
     <button type="button" 
-            class="state-btn tiles-btn without-btn" 
+            class="state-btn tiles-btn" 
             data-state="exclude"
             data-active="false"
             onclick="toggleTilesButton(this, 'exclude')">
-      <i class="fas fa-times-square"></i> Tanpa Keramik Dinding
+      Tanpa Keramik Dinding
     </button>
   </div>
   <input type="hidden" 
