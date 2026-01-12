@@ -1510,3 +1510,142 @@ footer {
 .toast-success .toast-content i { color: #10b981; }
 .toast-error .toast-content i { color: #f43f5e; }
 .toast-warning .toast-content i { color: #f59e0b; }
+
+/* style.css - Tambahkan di akhir file */
+
+/* ===== DUAL STATE BUTTONS ===== */
+.dual-state-buttons {
+  display: flex;
+  background: #334155;
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+  margin-left: 10px;
+}
+
+.state-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
+  color: #94a3b8;
+  text-align: center;
+  min-width: 0;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.state-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+}
+
+.state-btn.active {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.state-btn.active::before {
+  content: '✓';
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.state-btn[data-state="biotank"].active {
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+}
+
+.state-btn[data-state="ipal"].active {
+  background: linear-gradient(135deg, #10b981, #34d399);
+}
+
+.state-btn[data-state="septictank"].active {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+}
+
+.state-btn[data-state="include"].active {
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+}
+
+.state-btn[data-state="exclude"].active {
+  background: linear-gradient(135deg, #94a3b8, #cbd5e1);
+}
+
+.vertical-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  font-weight: 300;
+  user-select: none;
+}
+
+/* Task item dengan dual buttons */
+.task-item .item-title {
+  min-width: 180px;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.task-item.waste-system {
+  background: rgba(56, 189, 248, 0.05);
+  border: 1px solid rgba(56, 189, 248, 0.1);
+}
+
+.task-item.bathroom-tiles {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+/* Animasi untuk tombol aktif */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.state-btn.active {
+  animation: pulse 0.3s ease;
+}
+
+/* Responsif untuk tombol dual-state */
+@media (max-width: 768px) {
+  .dual-state-buttons {
+    flex-direction: column;
+    margin-left: 0;
+    margin-top: 10px;
+  }
+  
+  .state-btn {
+    width: 100%;
+  }
+  
+  .vertical-divider {
+    display: none;
+  }
+  
+  .task-item .item-title {
+    min-width: auto;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .task-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
