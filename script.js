@@ -681,6 +681,28 @@ function loadProgressData(progressData) {
   updateProgress(rolePage);
 }
 
+function findCheckboxByTaskName(taskName, tahap, pageId) {
+  const pageElement = document.getElementById(pageId);
+  if (!pageElement) return null;
+  
+  // Clean the task name for matching
+  const cleanTaskName = taskName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  
+  const checkboxes = pageElement.querySelectorAll(`[data-tahap="${tahap}"] .sub-task[type="checkbox"]`);
+  
+  for (const checkbox of checkboxes) {
+    const label = checkbox.closest('label');
+    if (label) {
+      const labelText = label.textContent.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (labelText.includes(cleanTaskName) || cleanTaskName.includes(labelText)) {
+        return checkbox;
+      }
+    }
+  }
+  
+  return null;
+}
+
 // ========== FUNGSI saveTahap1 (PERBAIKAN) ==========
 async function saveTahap1() {
   if (!selectedKavling || !currentKavlingData) {
@@ -987,6 +1009,11 @@ async function saveTahap4() {
   if (commentEl) tahapData["KETERANGAN"] = commentEl.value;
   if (deliveryEl) tahapData["PENYERAHAN KUNCI"] = deliveryEl.value;
   
+  // Tambahkan KETERANGAN
+  if (commentEl) tahapData["KETERANGAN"] = commentEl.value.trim();
+  
+  // Tambahkan PENYERAHAN KUNCI
+  if (deliveryEl) tahapData["PENYERAHAN KUNCI"] = deliveryEl.value.trim();
   // Tambahkan LT, LB, dan TYPE
   if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
   if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
@@ -1975,6 +2002,7 @@ function setupDynamicEventListeners() {
         if (tahap === '1') saveTahap1();
         else if (tahap === '2') saveTahap2();
         else if (tahap === '3') saveTahap3();
+        else if (tahap === '4') saveTahap4();
       }
     });
   });
