@@ -1,6 +1,6 @@
 // versi 0.234
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0tP-eYnDuczBnkpCXeLq7Se01OOMz8cwGnFKdcZLuJ1fnsFznGKzDPZF78rtxSCcZkg/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCWEc0f_Eojl3SjJY_VPsXIwgssv7A-5o7SHdHQzJX5BwzKSLXnWy-3kCo_8YQRwOpjQ/exec';
 
 let currentRole = null;
 let selectedKavling = null;
@@ -258,9 +258,15 @@ async function searchKavling() {
       
       setSelectedKavlingInDropdowns(kavlingName);
       
-      const ltLb = extractLTandLB(data.tipe);
-      currentKavlingData.lt = ltLb.lt;
-      currentKavlingData.lb = ltLb.lb;
+      // PERBAIKAN: Gunakan LT dan LB langsung dari data jika ada
+      if (data.lt && data.lb) {
+        currentKavlingData.lt = data.lt;
+        currentKavlingData.lb = data.lb;
+      } else {
+        const ltLb = extractLTandLB(data.tipe);
+        currentKavlingData.lt = ltLb.lt;
+        currentKavlingData.lb = ltLb.lb;
+      }
       
       updateKavlingInfo(data, rolePage);
       
@@ -268,13 +274,14 @@ async function searchKavling() {
         loadProgressData(data.data);
       }
       
-      // ===== PERBAIKAN DI SINI =====
       if (currentRole === 'manager') {
-        // Load catatan untuk kavling yang dipilih
-        loadPropertyNotes(kavlingName);
+        // PERBAIKAN: Load catatan dari data yang sudah diterima
+        loadPropertyNotesFromData(data);
         
         // Update badge kavling
         updateKavlingBadge(kavlingName);
+        
+        // Update progress display untuk manager (sudah dipanggil di updateKavlingInfo)
         
         // Jika di tab reports, load laporan
         const activeTab = document.querySelector('#managerPage .admin-tab-btn.active');
@@ -284,7 +291,13 @@ async function searchKavling() {
           }, 500);
         }
       }
-      // ========================
+      
+      console.log('Data kavling loaded:', {
+        kavling: kavlingName,
+        lt: currentKavlingData.lt,
+        lb: currentKavlingData.lb,
+        propertyNotes: data.propertyNotes || 'kosong'
+      });
       
       showToast('success', `Data ${kavlingName} berhasil dimuat!`);
       
@@ -301,6 +314,110 @@ async function searchKavling() {
   }
 }
 
+// Fungsi baru untuk load property notes dari data
+function loadPropertyNotesFromData(data) {
+  const notesEl = document.getElementById('propertyNotesManager');
+  if (!notesEl) return;
+  
+  // PERBAIKAN: Ambil notes dari data.propertyNotes ATAU data.data.keterangan
+  const notes = data.propertyNotes || data.data?.keterangan || '';
+  
+  notesEl.value = notes;
+  notesEl.placeholder = 'Masukkan catatan kondisi property (AH) di sini...';
+  
+  // Update character counter
+  updateNotesCounter(notes.length);
+}
+//----------------------------------------------
+function updateManagerProgressDisplay(progressData) {
+  const progressDisplay = document.getElementById('managerProgressDisplay');
+  if (!progressDisplay) {
+    console.error('managerProgressDisplay element not found');
+    return;
+  }
+  
+  progressDisplay.style.display = 'block';
+  
+  const overallVal = progressDisplay.querySelector('.val-overall');
+  const progressFill = progressDisplay.querySelector('.total-bar');
+  const totalProgress = progressData?.totalProgress || '0%';
+  
+  console.log('Progress data:', progressData);
+  console.log('Total Progress:', totalProgress);
+  
+  if (overallVal) {
+    // PERBAIKAN: Format persentase dengan benar
+    let displayProgress = totalProgress;
+    
+    // Jika masih berupa angka desimal (0.97), konversi ke persen
+    if (typeof totalProgress === 'string' && !totalProgress.includes('%')) {
+      const num = parseFloat(totalProgress);
+      if (!isNaN(num)) {
+        if (num <= 1) {
+          // Angka desimal (0.97) -> 97%
+          displayProgress = Math.round(num * 100) + '%';
+        } else {
+          // Angka bulat (97) -> 97%
+          displayProgress = Math.round(num) + '%';
+        }
+      }
+    } else if (typeof totalProgress === 'number') {
+      // Jika tipe data number (0.97)
+      if (totalProgress <= 1) {
+        displayProgress = Math.round(totalProgress * 100) + '%';
+      } else {
+        displayProgress = Math.round(totalProgress) + '%';
+      }
+    }
+    
+    overallVal.textContent = displayProgress;
+    console.log('Display progress:', displayProgress);
+  }
+  
+  if (progressFill) {
+    // PERBAIKAN: Hitung persentase untuk width
+    let percentValue = 0;
+    
+    if (typeof totalProgress === 'string') {
+      const percentMatch = totalProgress.match(/(\d+)%/);
+      if (percentMatch) {
+        percentValue = parseInt(percentMatch[1]);
+      } else {
+        // Jika angka desimal string ("0.97")
+        const num = parseFloat(totalProgress);
+        if (!isNaN(num)) {
+          if (num <= 1) {
+            percentValue = Math.round(num * 100);
+          } else {
+            percentValue = Math.round(num);
+          }
+        }
+      }
+    } else if (typeof totalProgress === 'number') {
+      // Jika tipe data number
+      if (totalProgress <= 1) {
+        percentValue = Math.round(totalProgress * 100);
+      } else {
+        percentValue = Math.round(totalProgress);
+      }
+    }
+    
+    console.log('Percent value for bar:', percentValue + '%');
+    progressFill.style.width = percentValue + '%';
+    
+    // Update class untuk warna
+    progressFill.className = 'total-bar';
+    if (percentValue >= 89) {
+      progressFill.classList.add('bar-high');
+    } else if (percentValue >= 60) {
+      progressFill.classList.add('bar-medium');
+    } else if (percentValue >= 10) {
+      progressFill.classList.add('bar-low');
+    } else {
+      progressFill.classList.add('bar-very-low');
+    }
+  }
+}
 function extractLTandLB(tipeString) {
   if (!tipeString || tipeString === '-' || tipeString === '/') {
     return { lt: "", lb: "" };
@@ -359,16 +476,9 @@ function updateKavlingInfo(data, pageId) {
       </div>
     `;
 
-    // Update progress display for manager
-    const progressDisplay = document.getElementById('managerProgressDisplay');
-    if (progressDisplay) {
-      progressDisplay.style.display = 'block';
-      const overallVal = progressDisplay.querySelector('.val-overall');
-      const progressFill = progressDisplay.querySelector('.total-bar');
-      const totalProgress = data.data?.totalProgress || '0%';
-      
-      if (overallVal) overallVal.textContent = totalProgress;
-      if (progressFill) progressFill.style.width = totalProgress;
+    // PERBAIKAN: Panggil fungsi baru untuk update progress
+    if (data.data) {
+      updateManagerProgressDisplay(data.data);
     }
   } else {
     infoDisplay.innerHTML = `
@@ -500,9 +610,7 @@ async function savePropertyNotes() {
     localStorage.setItem(`notes_draft_${selectedKavling}`, notes);
   }
   
-  const ltLb = currentKavlingData ? extractLTandLB(currentKavlingData.tipe) : {lt: '', lb: ''};
-  const totalProgress = currentKavlingData?.data?.totalProgress || '0%';
-  
+
   if (saveBtn) {
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveBtn.disabled = true;
