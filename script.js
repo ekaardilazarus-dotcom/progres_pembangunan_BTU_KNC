@@ -710,9 +710,16 @@ function loadProgressData(progressData) {
   }
 
   if (progressData.keterangan) {
-    const commentEl = pageElement.querySelector('.progress-section[data-tahap="3"] .tahap-comments');
+    const commentEl = pageElement.querySelector('.progress-section[data-tahap="4"] .tahap-comments');
     if (commentEl) {
       commentEl.value = progressData.keterangan;
+    }
+  }
+
+  if (progressData.penerimaKunci) {
+    const deliveryEl = pageElement.querySelector('.progress-section[data-tahap="4"] .key-delivery-input');
+    if (deliveryEl) {
+      deliveryEl.value = progressData.penerimaKunci;
     }
   }
     
@@ -1002,6 +1009,65 @@ async function saveTahap2() {
   }
 }
 
+async function saveTahap4() {
+  if (!selectedKavling || !currentKavlingData) {
+    showToast('error', 'Pilih kavling terlebih dahulu');
+    return;
+  }
+  
+  const rolePage = currentRole + 'Page';
+  const tahap4Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="4"]`);
+  if (!tahap4Section) return;
+  
+  const commentEl = tahap4Section.querySelector('.tahap-comments');
+  const deliveryEl = tahap4Section.querySelector('.key-delivery-input');
+  const saveButton = tahap4Section.querySelector('.btn-save-section');
+  
+  const tahapData = {};
+  if (commentEl) tahapData["Keterangan"] = commentEl.value;
+  if (deliveryEl) tahapData["PenerimaKunci"] = deliveryEl.value;
+  
+  if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
+  if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
+
+  if (saveButton) {
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    saveButton.disabled = true;
+  }
+  
+  showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 4...');
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'saveTahap4',
+      kavling: selectedKavling,
+      data: tahapData,
+      user: currentRole
+    });
+    
+    hideGlobalLoading();
+    
+    if (result.success) {
+      showToast('success', `Berhasil! Tahap 4 untuk Blok ${selectedKavling} telah tersimpan.`);
+      if (currentKavlingData.data) {
+        if (tahapData["Keterangan"]) currentKavlingData.data.keterangan = tahapData["Keterangan"];
+        if (tahapData["PenerimaKunci"]) currentKavlingData.data.penerimaKunci = tahapData["PenerimaKunci"];
+      }
+      updateProgress(rolePage);
+    } else {
+      showToast('error', result.message || 'Gagal menyimpan tahap 4');
+    }
+  } catch (error) {
+    console.error('Error saving tahap 4:', error);
+    showToast('error', 'Gagal menyimpan: ' + error.message);
+  } finally {
+    if (saveButton) {
+      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 4';
+      saveButton.disabled = false;
+    }
+  }
+}
+
 async function saveTahap3() {
   if (!selectedKavling || !currentKavlingData) {
     showToast('error', 'Pilih kavling terlebih dahulu');
@@ -1013,7 +1079,6 @@ async function saveTahap3() {
   if (!tahap3Section) return;
   
   const checkboxes = tahap3Section.querySelectorAll('.sub-task');
-  const commentEl = tahap3Section.querySelector('.tahap-comments');
   const saveButton = tahap3Section.querySelector('.btn-save-section');
   
   const t3Mapping = {
@@ -1039,7 +1104,6 @@ async function saveTahap3() {
     tahapData[spreadsheetTaskName] = checkbox.checked;
   });
 
-  if (commentEl) tahapData["Keterangan"] = commentEl.value;
   if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
   if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
 
@@ -1065,11 +1129,10 @@ async function saveTahap3() {
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap3) currentKavlingData.data.tahap3 = {};
         Object.keys(tahapData).forEach(taskName => {
-          if (taskName !== 'LT' && taskName !== 'LB' && taskName !== 'Keterangan') {
+          if (taskName !== 'LT' && taskName !== 'LB') {
             currentKavlingData.data.tahap3[taskName] = tahapData[taskName];
           }
         });
-        if (tahapData["Keterangan"]) currentKavlingData.data.keterangan = tahapData["Keterangan"];
       }
       updateProgress(rolePage);
     } else {
@@ -2140,6 +2203,33 @@ function toggleTilesButton(button, option) {
   const taskItem = button.closest('.task-item');
   const buttons = taskItem.querySelectorAll('.tiles-btn');
   const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
+  
+  const wasActive = button.classList.contains('active');
+
+  // Reset semua tombol
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('data-active', 'false');
+  });
+  
+  if (wasActive) {
+    hiddenInput.value = '';
+  } else {
+    // Aktifkan tombol yang diklik
+    button.classList.add('active');
+    button.setAttribute('data-active', 'true');
+    hiddenInput.value = option;
+  }
+  
+  const rolePage = currentRole + 'Page';
+  updateProgress(rolePage);
+}
+
+// Fungsi untuk toggle tombol cor meja dapur
+function toggleTableButton(button, option) {
+  const taskItem = button.closest('.task-item');
+  const buttons = taskItem.querySelectorAll('.table-btn');
+  const hiddenInput = taskItem.querySelector('#tableKitchenInput');
   
   const wasActive = button.classList.contains('active');
 
