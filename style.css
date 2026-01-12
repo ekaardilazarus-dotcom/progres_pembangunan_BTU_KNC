@@ -1611,6 +1611,10 @@ footer {
   background: rgba(16, 185, 129, 0.05);
   border: 1px solid rgba(16, 185, 129, 0.1);
 }
+.task-item.table-kitchen {
+  background: rgba(86, 181, 229, 0.05);
+  border: 1px solid rgba(86, 181, 229, 0.1);
+}
 
 /* Animasi untuk tombol aktif */
 @keyframes pulse {
