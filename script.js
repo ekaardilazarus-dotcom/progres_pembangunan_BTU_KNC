@@ -257,19 +257,12 @@ async function searchKavling() {
       currentKavlingData = data;
       
       setSelectedKavlingInDropdowns(kavlingName);
-      
-      // PERBAIKAN: Gunakan LT dan LB langsung dari data jika ada
-      if (data.lt && data.lb) {
-        currentKavlingData.lt = data.lt;
-        currentKavlingData.lb = data.lb;
-      } else {
-        const ltLb = extractLTandLB(data.tipe);
-        currentKavlingData.lt = ltLb.lt;
-        currentKavlingData.lb = ltLb.lb;
-      }
-      
-      updateKavlingInfo(data, rolePage);
-      
+        // Simpan semua data dari server 
+      if (data.lt) currentKavlingData.lt = data.lt;
+      if (data.lb) currentKavlingData.lb = data.lb;
+      if (data.type) currentKavlingData.type = data.type;
+          updateKavlingInfo(data, rolePage);
+           
       if (currentRole !== 'manager') {
         loadProgressData(data.data);
       }
@@ -281,7 +274,10 @@ async function searchKavling() {
         // Update badge kavling
         updateKavlingBadge(kavlingName);
         
-        // Update progress display untuk manager (sudah dipanggil di updateKavlingInfo)
+        // Update progress display untuk manager
+        if (data.data?.tahap4?.TOTAL) {
+          updateManagerProgressDisplay(data.data.tahap4.TOTAL);
+        }
         
         // Jika di tab reports, load laporan
         const activeTab = document.querySelector('#managerPage .admin-tab-btn.active');
@@ -292,9 +288,11 @@ async function searchKavling() {
         }
       }
       
+      
       console.log('Data kavling loaded:', {
         kavling: kavlingName,
         lt: currentKavlingData.lt,
+        lb: currentKavlingData.lb,
         lb: currentKavlingData.lb,
         propertyNotes: data.propertyNotes || 'kosong'
       });
@@ -451,14 +449,13 @@ function getKavlingInfoIdByRole(role) {
   return infoIds[role] || 'kavlingInfoManager';
 }
 
+// ========== FUNGSI updateKavlingInfo (PERBAIKAN) ==========
 function updateKavlingInfo(data, pageId) {
   const role = currentRole;
   const infoId = getKavlingInfoIdByRole(role);
   const infoDisplay = document.getElementById(infoId);
   
   if (!infoDisplay) return;
-  
-  const ltLb = extractLTandLB(data.tipe);
   
   if (role === 'manager') {
     infoDisplay.innerHTML = `
@@ -467,18 +464,22 @@ function updateKavlingInfo(data, pageId) {
         <span class="info-value val-name">${data.kavling || '-'}</span>
       </div>
       <div class="info-item">
+        <span class="info-label">Type:</span>
+        <span class="info-value val-type">${data.type || '-'}</span>
+      </div>
+      <div class="info-item">
         <span class="info-label">Luas Tanah (LT):</span>
-        <span class="info-value val-lt">${ltLb.lt || '-'}</span>
+        <span class="info-value val-lt">${data.lt || '-'}</span>
       </div>
       <div class="info-item">
         <span class="info-label">Luas Bangunan (LB):</span>
-        <span class="info-value val-lb">${ltLb.lb || '-'}</span>
+        <span class="info-value val-lb">${data.lb || '-'}</span>
       </div>
     `;
 
-    // PERBAIKAN: Panggil fungsi baru untuk update progress
-    if (data.data) {
-      updateManagerProgressDisplay(data.data);
+    // Update progress display untuk manager
+    if (data.data?.tahap4?.TOTAL) {
+      updateManagerProgressDisplay(data.data.tahap4.TOTAL);
     }
   } else {
     infoDisplay.innerHTML = `
@@ -487,167 +488,22 @@ function updateKavlingInfo(data, pageId) {
         <span class="info-value val-name">${data.kavling || '-'}</span>
       </div>
       <div class="info-item">
-        <span class="info-label">Tipe:</span>
-        <span class="info-value val-type">${data.tipe || '-'}</span>
+        <span class="info-label">Type:</span>
+        <span class="info-value val-type">${data.type || '-'}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">LT:</span>
+        <span class="info-value val-lt">${data.lt || '-'}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">LB:</span>
+        <span class="info-value val-lb">${data.lb || '-'}</span>
       </div>
     `;
   }
 }
 
-// ========== MANAGER NOTES FUNCTIONS ==========
-async function loadPropertyNotes(kavlingName = null) {
-  const targetKavling = kavlingName || selectedKavling;
-  
-  if (!targetKavling) {
-    // Reset notes jika tidak ada kavling yang dipilih
-    const notesEl = document.getElementById('propertyNotesManager');
-    if (notesEl) {
-      notesEl.value = '';
-      notesEl.placeholder = 'Pilih kavling terlebih dahulu untuk melihat catatan';
-    }
-    return;
-  }
-  
-  const notesEl = document.getElementById('propertyNotesManager');
-  if (!notesEl) return;
-  
-  try {
-    // Tampilkan loading state
-    const originalPlaceholder = notesEl.placeholder;
-    notesEl.placeholder = 'Memuat catatan (AH)...';
-    notesEl.disabled = true;
-    
-    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
-      action: 'getPropertyNotes', // Di server ini memetakan ke kolom AH
-      kavling: targetKavling
-    });
-    
-    notesEl.disabled = false;
-    
-    if (result.success) {
-      notesEl.value = result.notes || '';
-      notesEl.placeholder = 'Masukkan catatan kondisi property (AH) di sini...';
-      
-      // Update character counter
-      updateNotesCounter(notesEl.value.length);
-      
-    } else {
-      notesEl.value = '';
-      notesEl.placeholder = 'Tidak ada catatan untuk kavling ini';
-    }
-  } catch (error) {
-    console.error('Error loading property notes:', error);
-    const notesEl = document.getElementById('propertyNotesManager');
-    if (notesEl) {
-      notesEl.value = '';
-      notesEl.placeholder = 'Gagal memuat catatan. Coba lagi.';
-      notesEl.disabled = false;
-    }
-  }
-}
-
-function updateKavlingBadge(kavlingName) {
-  const badge = document.getElementById('currentKavlingBadge');
-  if (badge) {
-    badge.textContent = kavlingName;
-  } else {
-    // Create badge jika belum ada
-    const notesHeader = document.querySelector('.notes-section h3');
-    if (notesHeader && kavlingName) {
-      const badge = document.createElement('span');
-      badge.id = 'currentKavlingBadge';
-      badge.style.cssText = 'background: #38bdf8; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-left: 10px;';
-      badge.textContent = kavlingName;
-      notesHeader.appendChild(badge);
-    }
-  }
-}
-
-function updateNotesCounter(charCount) {
-  let counter = document.getElementById('notesCharCounter');
-  if (!counter) {
-    counter = document.createElement('div');
-    counter.id = 'notesCharCounter';
-    counter.style.cssText = 'font-size: 0.8rem; color: #94a3b8; text-align: right; margin-top: 5px;';
-    
-    const notesSection = document.querySelector('.notes-section');
-    if (notesSection) {
-      const saveBtn = notesSection.querySelector('.btn-save-section');
-      if (saveBtn) {
-        notesSection.insertBefore(counter, saveBtn);
-      } else {
-        notesSection.appendChild(counter);
-      }
-    }
-  }
-  
-  counter.textContent = `${charCount} karakter`;
-  
-  // Warn jika terlalu panjang
-  if (charCount > 1000) {
-    counter.style.color = '#f59e0b';
-  } else if (charCount > 2000) {
-    counter.style.color = '#f43f5e';
-  } else {
-    counter.style.color = '#94a3b8';
-  }
-}
-
-async function savePropertyNotes() {
-  if (!selectedKavling) {
-    showToast('error', 'Pilih kavling terlebih dahulu');
-    return;
-  }
-  
-  const notesEl = document.getElementById('propertyNotesManager');
-  const saveBtn = document.querySelector('#tab-notes .btn-save-section');
-  if (!notesEl) return;
-  
-  const notes = notesEl.value.trim();
-  
-  // Simpan draft ke localStorage
-  if (selectedKavling) {
-    localStorage.setItem(`notes_draft_${selectedKavling}`, notes);
-  }
-  
-
-  if (saveBtn) {
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
-    saveBtn.disabled = true;
-  }
-  
-  try {
-    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
-      action: 'savePropertyNotes', // Di server ini menyimpan ke kolom AH
-      kavling: selectedKavling,
-      notes: notes,
-      user: currentRole || 'manager'
-    });
-    
-    if (result.success) {
-      showToast('success', `Catatan AH untuk ${selectedKavling} berhasil disimpan!`);
-      
-      // Update counter
-      updateNotesCounter(notes.length);
-      
-      // Hapus draft dari localStorage setelah sukses save
-      localStorage.removeItem(`notes_draft_${selectedKavling}`);
-      
-    } else {
-      showToast('error', result.message || 'Gagal menyimpan catatan');
-    }
-  } catch (error) {
-    console.error('Error saving property notes:', error);
-    showToast('error', 'Gagal menyimpan: ' + error.message);
-  } finally {
-    if (saveBtn) {
-      saveBtn.innerHTML = '<i class="fas fa-save"></i> Simpan Catatan (AH)';
-      saveBtn.disabled = false;
-    }
-  }
-}
-
-// ========== PROGRESS FUNCTIONS ==========
+// ========== FUNGSI loadProgressData (PERBAIKAN) ==========
 function loadProgressData(progressData) {
   if (!progressData) return;
   
@@ -655,8 +511,59 @@ function loadProgressData(progressData) {
   const pageElement = document.getElementById(rolePage);
   if (!pageElement) return;
 
+  // Load data untuk field pilihan khusus
   if (progressData.tahap1) {
-    Object.keys(progressData.tahap1).forEach(taskName => {
+    // Handle Sistem Pembuangan
+    const sistemPembuanganValue = progressData.tahap1['SISTEM PEMBUANGAN'];
+    if (sistemPembuanganValue) {
+      const taskItem = pageElement.querySelector('.waste-system');
+      if (taskItem) {
+        const buttons = taskItem.querySelectorAll('.system-btn');
+        const hiddenInput = taskItem.querySelector('#wasteSystemInput');
+        
+        buttons.forEach(btn => {
+          if (btn.getAttribute('data-state') === sistemPembuanganValue.toLowerCase()) {
+            btn.classList.add('active');
+            btn.setAttribute('data-active', 'true');
+          }
+        });
+        
+        if (hiddenInput) {
+          hiddenInput.value = sistemPembuanganValue;
+        }
+      }
+    }
+    
+    // Handle Cor Meja Dapur
+    const corMejaDapurValue = progressData.tahap1['COR MEJA DAPUR'];
+    if (corMejaDapurValue) {
+      const taskItem = pageElement.querySelector('.table-kitchen');
+      if (taskItem) {
+        const buttons = taskItem.querySelectorAll('.table-btn');
+        const hiddenInput = taskItem.querySelector('#tableKitchenInput');
+        
+        buttons.forEach(btn => {
+          if (btn.getAttribute('data-state') === 'include' && corMejaDapurValue === 'Dengan Cor Meja Dapur') {
+            btn.classList.add('active');
+            btn.setAttribute('data-active', 'true');
+          } else if (btn.getAttribute('data-state') === 'exclude' && corMejaDapurValue === 'Tanpa Cor Meja Dapur') {
+            btn.classList.add('active');
+            btn.setAttribute('data-active', 'true');
+          }
+        });
+        
+        if (hiddenInput) {
+          hiddenInput.value = corMejaDapurValue;
+        }
+      }
+    }
+    
+    // Load checkbox biasa untuk tahap 1
+    const checkboxTasks1 = ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 
+                           'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 
+                           'PIPA AIR BERSIH', 'PLESTER', 'ACIAN & BENANGAN'];
+    
+    checkboxTasks1.forEach(taskName => {
       const isChecked = progressData.tahap1[taskName];
       const checkbox = findCheckboxByTaskName(taskName, 1, rolePage);
       if (checkbox) {
@@ -674,7 +581,34 @@ function loadProgressData(progressData) {
   }
   
   if (progressData.tahap2) {
-    Object.keys(progressData.tahap2).forEach(taskName => {
+    // Handle Keramik Dinding Toilet & Dapur
+    const keramikDindingValue = progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'];
+    if (keramikDindingValue) {
+      const taskItem = pageElement.querySelector('.bathroom-tiles');
+      if (taskItem) {
+        const buttons = taskItem.querySelectorAll('.tiles-btn');
+        const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
+        
+        buttons.forEach(btn => {
+          if (btn.getAttribute('data-state') === 'include' && keramikDindingValue === 'Dengan Keramik Dinding') {
+            btn.classList.add('active');
+            btn.setAttribute('data-active', 'true');
+          } else if (btn.getAttribute('data-state') === 'exclude' && keramikDindingValue === 'Tanpa Keramik Dinding') {
+            btn.classList.add('active');
+            btn.setAttribute('data-active', 'true');
+          }
+        });
+        
+        if (hiddenInput) {
+          hiddenInput.value = keramikDindingValue;
+        }
+      }
+    }
+    
+    // Load checkbox biasa untuk tahap 2
+    const checkboxTasks2 = ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'INSTALASI LISTRIK', 'KERAMIK LANTAI'];
+    
+    checkboxTasks2.forEach(taskName => {
       const isChecked = progressData.tahap2[taskName];
       const checkbox = findCheckboxByTaskName(taskName, 2, rolePage);
       if (checkbox) {
@@ -709,149 +643,45 @@ function loadProgressData(progressData) {
     });
   }
 
-  if (progressData.keterangan) {
-    const commentEl = pageElement.querySelector('.progress-section[data-tahap="4"] .tahap-comments');
-    if (commentEl) {
-      commentEl.value = progressData.keterangan;
+  if (progressData.tahap4) {
+    // Load Keterangan
+    if (progressData.tahap4['KETERANGAN']) {
+      const commentEl = pageElement.querySelector('.tahap-comments');
+      if (commentEl) {
+        commentEl.value = progressData.tahap4['KETERANGAN'];
+      }
     }
-  }
-
-  if (progressData.penerimaKunci) {
-    const deliveryEl = pageElement.querySelector('.progress-section[data-tahap="4"] .key-delivery-input');
-    if (deliveryEl) {
-      deliveryEl.value = progressData.penerimaKunci;
-    }
-  }
     
-  updateTotalProgressDisplay(progressData.totalProgress || '0%', rolePage);
+    // Load Penyerahan Kunci
+    if (progressData.tahap4['PENYERAHAN KUNCI']) {
+      const deliveryEl = pageElement.querySelector('.key-delivery-input');
+      if (deliveryEl) {
+        deliveryEl.value = progressData.tahap4['PENYERAHAN KUNCI'];
+      }
+    }
+    
+    // Load Completion
+    if (progressData.tahap4['COMPLETION / Penyelesaian akhir']) {
+      const completionCheckbox = findCheckboxByTaskName('Completion', 3, rolePage);
+      if (completionCheckbox) {
+        completionCheckbox.checked = true;
+        const label = completionCheckbox.closest('label');
+        if (label) {
+          label.classList.add('task-completed');
+        }
+      }
+    }
+    
+    // Update total progress
+    if (progressData.tahap4['TOTAL']) {
+      updateTotalProgressDisplay(progressData.tahap4['TOTAL'] || '0%', rolePage);
+    }
+  }
+  
   updateProgress(rolePage);
 }
 
-function findCheckboxByTaskName(taskName, tahap, pageId) {
-  const checkboxes = document.querySelectorAll(`#${pageId} .progress-section[data-tahap="${tahap}"] .sub-task`);
-  
-  for (let checkbox of checkboxes) {
-    const label = checkbox.closest('label');
-    if (label) {
-      const labelText = label.textContent.trim();
-      const normalizedLabel = labelText.toLowerCase()
-        .replace(/[\.\-\/]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      const normalizedTask = taskName.toLowerCase()
-        .replace(/[\.\-\/]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      if (normalizedLabel.includes(normalizedTask) || normalizedTask.includes(normalizedLabel)) {
-        return checkbox;
-      }
-    }
-  }
-  
-  const checkboxesList = Array.from(checkboxes);
-  const taskMappings = {
-    1: ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 'PAS.DDG S/D RING BLK', 
-        'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 'PIPA AIR BERSIH', 'BIOTANK', 'PLESTER', 
-        'ACIAN & BENANGAN', 'COR MEJA DAPUR'],
-    2: ['ATAP GALV.', 'GENTENG', 'PLAFOND', 'KERAMIK DINDING TOILET & DAPUR', 
-        'INSTS LISTRIK', 'KERAMIK LANTAI'],
-    3: ['KUSEN PINTU & JENDELA', 'DAUN PINTU & JENDELA', 'CAT DASAR + LAPIS AWAL', 
-        'FITTING LAMPU', 'FIXTURE & SANITER', 'CAT FINISH INTERIOR', 'CAT FINISH EXTERIOR', 
-        'BAK KONTROL & BATAS CARPORT', 'PAVING HALAMAN', 'GENERAL CLEANING', 
-        'COMPLETION / Penyelesaian akhir']
-  };
-  
-  const tasksForTahap = taskMappings[tahap] || [];
-  const taskIndex = tasksForTahap.indexOf(taskName);
-  
-  if (taskIndex >= 0 && taskIndex < checkboxesList.length) {
-    return checkboxesList[taskIndex];
-  }
-  
-  return null;
-}
-
-function updateTotalProgressDisplay(totalProgress, pageId) {
-  const totalPercentElement = document.querySelector(`#${pageId} .total-percent`);
-  const totalBarElement = document.querySelector(`#${pageId} .total-bar`);
-  
-  if (totalPercentElement) {
-    totalPercentElement.textContent = totalProgress;
-    
-    const percentMatch = totalProgress.match(/(\d+)%/);
-    const percent = percentMatch ? parseInt(percentMatch[1]) : 0;
-    
-    totalPercentElement.className = 'total-percent';
-    if (percent >= 89) {
-      totalPercentElement.classList.add('progress-high');
-    } else if (percent >= 60) {
-      totalPercentElement.classList.add('progress-medium');
-    } else if (percent >= 10) {
-      totalPercentElement.classList.add('progress-low');
-    } else {
-      totalPercentElement.classList.add('progress-very-low');
-    }
-  }
-  
-  if (totalBarElement) {
-    const percentMatch = totalProgress.match(/(\d+)%/);
-    const percent = percentMatch ? parseInt(percentMatch[1]) : 0;
-    totalBarElement.style.width = percent + '%';
-    
-    totalBarElement.className = 'total-bar';
-    if (percent >= 89) {
-      totalBarElement.classList.add('bar-high');
-    } else if (percent >= 60) {
-      totalBarElement.classList.add('bar-medium');
-    } else if (percent >= 10) {
-      totalBarElement.classList.add('bar-low');
-    } else {
-      totalBarElement.classList.add('bar-very-low');
-    }
-  }
-}
-
-function updateProgress(pageId) {
-  const page = document.getElementById(pageId);
-  if (!page) return;
-
-  const sections = page.querySelectorAll('.progress-section.detailed');
-  let totalTasks = 0;
-  let completedTasks = 0;
-
-  sections.forEach(section => {
-    const checkboxes = section.querySelectorAll('.sub-task');
-    const subPercentEl = section.querySelector('.sub-percent');
-    const progressBar = section.querySelector('.progress-fill');
-    
-    let sectionTotal = checkboxes.length;
-    let sectionCompleted = 0;
-
-    checkboxes.forEach(cb => {
-      if (cb.type === 'checkbox') {
-        if (cb.checked) sectionCompleted++;
-      } else if (cb.tagName === 'INPUT' && cb.type === 'hidden') {
-        // Jika hidden input (dari tombol pilihan) memiliki nilai, anggap selesai
-        if (cb.value && cb.value !== '') sectionCompleted++;
-      }
-    });
-
-    const sectionPercent = sectionTotal > 0 ? Math.round((sectionCompleted / sectionTotal) * 100) : 0;
-    
-    if (subPercentEl) subPercentEl.textContent = sectionPercent + '%';
-    if (progressBar) progressBar.style.width = sectionPercent + '%';
-
-    totalTasks += sectionTotal;
-    completedTasks += sectionCompleted;
-  });
-
-  const overallPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  updateTotalProgressDisplay(overallPercent + '%', pageId);
-}
-
-// ========== SAVE FUNCTIONS ==========
+// ========== FUNGSI saveTahap1 (PERBAIKAN) ==========
 async function saveTahap1() {
   if (!selectedKavling || !currentKavlingData) {
     showToast('error', 'Pilih kavling terlebih dahulu');
@@ -863,18 +693,20 @@ async function saveTahap1() {
   if (!tahap1Section) return;
   
   const checkboxes = tahap1Section.querySelectorAll('.sub-task');
+  const wasteSystemInput = tahap1Section.querySelector('#wasteSystemInput');
+  const tableKitchenInput = tahap1Section.querySelector('#tableKitchenInput');
   const saveButton = tahap1Section.querySelector('.btn-save-section');
   
   const t1Mapping = {
     "Land Clearing": "LAND CLEARING",
     "Pondasi": "PONDASI",
     "Sloof": "SLOOF",
-    "Pas.Ddg S/D2 Canopy": "PAS.DDG S/D2 CANOPY",
-    "Pas.Ddg S/D Ring Blk": "PAS.DDG S/D RING BLK",
+    "Pas.Ddg Sampai Dengan Canopy": "PAS.DDG S/D2 CANOPY",
+    "Pas.Ddg Sampai Dengan Ring Blk": "PAS.DDG S/D RING BLK",
     "Conduit + Inbow Doos": "CONDUIT+INBOW DOOS",
     "Pipa Air Kotor": "PIPA AIR KOTOR",
     "Pipa Air Bersih": "PIPA AIR BERSIH",
-    "Biotank": "BIOTANK",
+    "Sistem Pembuangan": "SISTEM PEMBUANGAN",
     "Plester": "PLESTER",
     "Acian & Benangan": "ACIAN & BENANGAN",
     "Cor Meja Dapur": "COR MEJA DAPUR"
@@ -882,15 +714,32 @@ async function saveTahap1() {
 
   const tahapData = {};
 
+  // Handle checkbox biasa
   checkboxes.forEach(checkbox => {
-    const label = checkbox.closest('label');
-    const uiTaskName = label.textContent.trim();
-    const spreadsheetTaskName = t1Mapping[uiTaskName] || uiTaskName;
-    tahapData[spreadsheetTaskName] = checkbox.checked;
+    if (checkbox.type === 'checkbox') {
+      const label = checkbox.closest('label');
+      const uiTaskName = label.textContent.trim();
+      const spreadsheetTaskName = t1Mapping[uiTaskName] || uiTaskName;
+      tahapData[spreadsheetTaskName] = checkbox.checked;
+    }
   });
 
+  // Handle Sistem Pembuangan
+  if (wasteSystemInput && wasteSystemInput.value) {
+    tahapData['SISTEM PEMBUANGAN'] = wasteSystemInput.value === 'biotank' ? 'Biotank' : 
+                                     wasteSystemInput.value === 'ipal' ? 'Ipal' : 'Septictank';
+  }
+
+  // Handle Cor Meja Dapur
+  if (tableKitchenInput && tableKitchenInput.value) {
+    tahapData['COR MEJA DAPUR'] = tableKitchenInput.value === 'include' ? 
+                                  'Dengan Cor Meja Dapur' : 'Tanpa Cor Meja Dapur';
+  }
+
+  // Tambahkan LT, LB, dan TYPE
   if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
   if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
+  if (currentKavlingData.type) tahapData['TYPE'] = currentKavlingData.type;
 
   if (saveButton) {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
@@ -911,13 +760,17 @@ async function saveTahap1() {
     
     if (result.success) {
       showToast('success', `Berhasil! Tahap 1 untuk Blok ${selectedKavling} telah tersimpan.`);
+      
+      // Update data lokal
       if (currentKavlingData.data) {
+        if (!currentKavlingData.data.tahap1) currentKavlingData.data.tahap1 = {};
         Object.keys(tahapData).forEach(taskName => {
-          if (currentKavlingData.data.tahap1 && currentKavlingData.data.tahap1[taskName] !== undefined) {
+          if (taskName !== 'LT' && taskName !== 'LB' && taskName !== 'TYPE') {
             currentKavlingData.data.tahap1[taskName] = tahapData[taskName];
           }
         });
       }
+      
       updateProgress(rolePage);
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 1');
@@ -933,6 +786,7 @@ async function saveTahap1() {
   }
 }
 
+// ========== FUNGSI saveTahap2 (PERBAIKAN) ==========
 async function saveTahap2() {
   if (!selectedKavling || !currentKavlingData) {
     showToast('error', 'Pilih kavling terlebih dahulu');
@@ -944,28 +798,40 @@ async function saveTahap2() {
   if (!tahap2Section) return;
   
   const checkboxes = tahap2Section.querySelectorAll('.sub-task');
+  const bathroomTilesInput = tahap2Section.querySelector('#bathroomTilesInput');
   const saveButton = tahap2Section.querySelector('.btn-save-section');
   
   const t2Mapping = {
-    "Atap Galv": "ATAP GALV.",
+    "Rangka Atap": "RANGKA ATAP",
     "Genteng": "GENTENG",
     "Plafond": "PLAFOND",
     "Keramik Dinding Toilet & Dapur": "KERAMIK DINDING TOILET & DAPUR",
-    "Insts Listrik": "INSTS LISTRIK",
+    "Instalasi Listrik": "INSTALASI LISTRIK",
     "Keramik Lantai": "KERAMIK LANTAI"
   };
 
   const tahapData = {};
 
+  // Handle checkbox biasa
   checkboxes.forEach(checkbox => {
-    const label = checkbox.closest('label');
-    const uiTaskName = label.textContent.trim();
-    const spreadsheetTaskName = t2Mapping[uiTaskName] || uiTaskName;
-    tahapData[spreadsheetTaskName] = checkbox.checked;
+    if (checkbox.type === 'checkbox') {
+      const label = checkbox.closest('label');
+      const uiTaskName = label.textContent.trim();
+      const spreadsheetTaskName = t2Mapping[uiTaskName] || uiTaskName;
+      tahapData[spreadsheetTaskName] = checkbox.checked;
+    }
   });
 
+  // Handle Keramik Dinding Toilet & Dapur
+  if (bathroomTilesInput && bathroomTilesInput.value) {
+    tahapData['KERAMIK DINDING TOILET & DAPUR'] = bathroomTilesInput.value === 'include' ? 
+                                                  'Dengan Keramik Dinding' : 'Tanpa Keramik Dinding';
+  }
+
+  // Tambahkan LT, LB, dan TYPE
   if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
   if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
+  if (currentKavlingData.type) tahapData['TYPE'] = currentKavlingData.type;
 
   if (saveButton) {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
@@ -986,14 +852,17 @@ async function saveTahap2() {
     
     if (result.success) {
       showToast('success', `Berhasil! Tahap 2 untuk Blok ${selectedKavling} telah tersimpan.`);
+      
+      // Update data lokal
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap2) currentKavlingData.data.tahap2 = {};
         Object.keys(tahapData).forEach(taskName => {
-          if (taskName !== 'LT' && taskName !== 'LB') {
+          if (taskName !== 'LT' && taskName !== 'LB' && taskName !== 'TYPE') {
             currentKavlingData.data.tahap2[taskName] = tahapData[taskName];
           }
         });
       }
+      
       updateProgress(rolePage);
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 2');
@@ -1009,65 +878,7 @@ async function saveTahap2() {
   }
 }
 
-async function saveTahap4() {
-  if (!selectedKavling || !currentKavlingData) {
-    showToast('error', 'Pilih kavling terlebih dahulu');
-    return;
-  }
-  
-  const rolePage = currentRole + 'Page';
-  const tahap4Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="4"]`);
-  if (!tahap4Section) return;
-  
-  const commentEl = tahap4Section.querySelector('.tahap-comments');
-  const deliveryEl = tahap4Section.querySelector('.key-delivery-input');
-  const saveButton = tahap4Section.querySelector('.btn-save-section');
-  
-  const tahapData = {};
-  if (commentEl) tahapData["Keterangan"] = commentEl.value;
-  if (deliveryEl) tahapData["PenerimaKunci"] = deliveryEl.value;
-  
-  if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
-  if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
-
-  if (saveButton) {
-    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
-    saveButton.disabled = true;
-  }
-  
-  showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 4...');
-  
-  try {
-    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
-      action: 'saveTahap4',
-      kavling: selectedKavling,
-      data: tahapData,
-      user: currentRole
-    });
-    
-    hideGlobalLoading();
-    
-    if (result.success) {
-      showToast('success', `Berhasil! Tahap 4 untuk Blok ${selectedKavling} telah tersimpan.`);
-      if (currentKavlingData.data) {
-        if (tahapData["Keterangan"]) currentKavlingData.data.keterangan = tahapData["Keterangan"];
-        if (tahapData["PenerimaKunci"]) currentKavlingData.data.penerimaKunci = tahapData["PenerimaKunci"];
-      }
-      updateProgress(rolePage);
-    } else {
-      showToast('error', result.message || 'Gagal menyimpan tahap 4');
-    }
-  } catch (error) {
-    console.error('Error saving tahap 4:', error);
-    showToast('error', 'Gagal menyimpan: ' + error.message);
-  } finally {
-    if (saveButton) {
-      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 4';
-      saveButton.disabled = false;
-    }
-  }
-}
-
+// ========== FUNGSI saveTahap3 ==========
 async function saveTahap3() {
   if (!selectedKavling || !currentKavlingData) {
     showToast('error', 'Pilih kavling terlebih dahulu');
@@ -1097,15 +908,20 @@ async function saveTahap3() {
 
   const tahapData = {};
 
+  // Handle checkbox biasa
   checkboxes.forEach(checkbox => {
-    const label = checkbox.closest('label');
-    const uiTaskName = label.textContent.trim();
-    const spreadsheetTaskName = t3Mapping[uiTaskName] || uiTaskName;
-    tahapData[spreadsheetTaskName] = checkbox.checked;
+    if (checkbox.type === 'checkbox') {
+      const label = checkbox.closest('label');
+      const uiTaskName = label.textContent.trim();
+      const spreadsheetTaskName = t3Mapping[uiTaskName] || uiTaskName;
+      tahapData[spreadsheetTaskName] = checkbox.checked;
+    }
   });
 
+  // Tambahkan LT, LB, dan TYPE
   if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
   if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
+  if (currentKavlingData.type) tahapData['TYPE'] = currentKavlingData.type;
 
   if (saveButton) {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
@@ -1126,14 +942,17 @@ async function saveTahap3() {
     
     if (result.success) {
       showToast('success', `Berhasil! Tahap 3 untuk Blok ${selectedKavling} telah tersimpan.`);
+      
+      // Update data lokal
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap3) currentKavlingData.data.tahap3 = {};
         Object.keys(tahapData).forEach(taskName => {
-          if (taskName !== 'LT' && taskName !== 'LB') {
+          if (taskName !== 'LT' && taskName !== 'LB' && taskName !== 'TYPE') {
             currentKavlingData.data.tahap3[taskName] = tahapData[taskName];
           }
         });
       }
+      
       updateProgress(rolePage);
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 3');
@@ -1149,6 +968,77 @@ async function saveTahap3() {
   }
 }
 
+// ========== FUNGSI saveTahap4 (BARU) ==========
+async function saveTahap4() {
+  if (!selectedKavling || !currentKavlingData) {
+    showToast('error', 'Pilih kavling terlebih dahulu');
+    return;
+  }
+  
+  const rolePage = currentRole + 'Page';
+  const tahap4Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="4"]`);
+  if (!tahap4Section) return;
+  
+  const commentEl = tahap4Section.querySelector('.tahap-comments');
+  const deliveryEl = tahap4Section.querySelector('.key-delivery-input');
+  const saveButton = tahap4Section.querySelector('.btn-save-section');
+  
+  const tahapData = {};
+  if (commentEl) tahapData["KETERANGAN"] = commentEl.value;
+  if (deliveryEl) tahapData["PENYERAHAN KUNCI"] = deliveryEl.value;
+  
+  // Tambahkan LT, LB, dan TYPE
+  if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
+  if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
+  if (currentKavlingData.type) tahapData['TYPE'] = currentKavlingData.type;
+
+  if (saveButton) {
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    saveButton.disabled = true;
+  }
+  
+  showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 4...');
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'saveTahap4',
+      kavling: selectedKavling,
+      data: tahapData,
+      user: currentRole
+    });
+    
+    hideGlobalLoading();
+    
+    if (result.success) {
+      showToast('success', `Berhasil! Tahap 4 untuk Blok ${selectedKavling} telah tersimpan.`);
+      
+      // Update data lokal
+      if (currentKavlingData.data) {
+        if (!currentKavlingData.data.tahap4) currentKavlingData.data.tahap4 = {};
+        Object.keys(tahapData).forEach(taskName => {
+          if (taskName !== 'LT' && taskName !== 'LB' && taskName !== 'TYPE') {
+            currentKavlingData.data.tahap4[taskName] = tahapData[taskName];
+          }
+        });
+      }
+      
+      updateProgress(rolePage);
+    } else {
+      showToast('error', result.message || 'Gagal menyimpan tahap 4');
+    }
+  } catch (error) {
+    console.error('Error saving tahap 4:', error);
+    showToast('error', 'Gagal menyimpan: ' + error.message);
+  } finally {
+    if (saveButton) {
+      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 4';
+      saveButton.disabled = false;
+    }
+  }
+}
+
+// ========== FUNGSI untuk toggle tombol ==========
+// (Tetap sama seperti sebelumnya, tidak berubah)
 // ========== SUMMARY REPORT FUNCTIONS ==========
 async function loadSummaryReport() {
   try {
@@ -1532,6 +1422,7 @@ async function submitNewKavling() {
   const nameInput = document.getElementById('newKavlingName');
   const ltInput = document.getElementById('newKavlingLT');
   const lbInput = document.getElementById('newKavlingLB');
+  const typeInput = document.getElementById('newKavlingType');
   const submitBtn = document.getElementById('submitNewKavling');
   
   if (!nameInput || !ltInput || !lbInput) {
@@ -1541,11 +1432,11 @@ async function submitNewKavling() {
   
   const name = nameInput.value.trim();
   const lt = ltInput.value.trim();
-  const lb = lbInput.value.trim();
+  const type = typeInput.value.trim(); 
   
-  console.log('Kavling data:', { name, lt, lb }); // PERBAIKAN: ganti 'kavlingName' menjadi 'name'
+  console.log('Kavling data:', { name, lt, lb, type });
 
-  if (!name) { // PERBAIKAN: ganti 'kavlingName' menjadi 'name'
+  if (!name) { 
     showToast('error', 'Nama kavling harus diisi');
     nameInput.focus();
     return;
@@ -1559,9 +1450,10 @@ async function submitNewKavling() {
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'addNewKavling',
-      name: name, // Apps Script menerima parameter 'name'
+      name: name, 
       lt: lt || '',
       lb: lb || '',
+      type: type || '',
       createdBy: currentRole || 'admin'
     });
     
@@ -1574,6 +1466,7 @@ async function submitNewKavling() {
       nameInput.value = '';
       ltInput.value = '';
       lbInput.value = '';
+      typeInput.value = '';
       
       // Tutup modal
       const modal = document.getElementById('addKavlingModal');
@@ -1694,13 +1587,16 @@ function updateDashboardTitle(role, name) {
       if (id === 'kavlingInfoManager') {
         info.innerHTML = `
           <div class="info-item"><span class="info-label">Blok/Kavling:</span><span class="info-value val-name">-</span></div>
+          <div class="info-item"><span class="info-label">Type:</span><span class="info-value val-type">-</span></div>
           <div class="info-item"><span class="info-label">Luas Tanah (LT):</span><span class="info-value val-lt">-</span></div>
           <div class="info-item"><span class="info-label">Luas Bangunan (LB):</span><span class="info-value val-lb">-</span></div>
         `;
       } else {
         info.innerHTML = `
-          <div class="info-item"><span class="info-label">Blok/Kavling:</span><span class="info-value val-name">-</span></div>
-          <div class="info-item"><span class="info-label">Tipe:</span><span class="info-value val-type">-</span></div>
+         <div class="info-item"><span class="info-label">Blok/Kavling:</span><span class="info-value val-name">-</span></div>
+          <div class="info-item"><span class="info-label">Type:</span><span class="info-value val-type">-</span></div>
+          <div class="info-item"><span class="info-label">LT:</span><span class="info-value val-lt">-</span></div>
+          <div class="info-item"><span class="info-label">LB:</span><span class="info-value val-lb">-</span></div>
         `;
       }
     }
@@ -1881,13 +1777,16 @@ async function syncData() {
         if (id === 'kavlingInfoManager') {
           info.innerHTML = `
             <div class="info-item"><span class="info-label">Blok/Kavling:</span><span class="info-value val-name">-</span></div>
+            <div class="info-item"><span class="info-label">Type:</span><span class="info-value val-type">-</span></div>
             <div class="info-item"><span class="info-label">Luas Tanah (LT):</span><span class="info-value val-lt">-</span></div>
             <div class="info-item"><span class="info-label">Luas Bangunan (LB):</span><span class="info-value val-lb">-</span></div>
           `;
         } else {
           info.innerHTML = `
             <div class="info-item"><span class="info-label">Blok/Kavling:</span><span class="info-value val-name">-</span></div>
-            <div class="info-item"><span class="info-label">Tipe:</span><span class="info-value val-type">-</span></div>
+            <div class="info-item"><span class="info-label">Type:</span><span class="info-value val-type">-</span></div>
+            <div class="info-item"><span class="info-label">LT:</span><span class="info-value val-lt">-</span></div>
+            <div class="info-item"><span class="info-label">LB:</span><span class="info-value val-lb">-</span></div>
           `;
         }
       }
