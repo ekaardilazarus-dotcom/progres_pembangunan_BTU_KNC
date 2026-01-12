@@ -1560,9 +1560,10 @@ footer {
   content: '✓';
   position: absolute;
   top: 2px;
-  right: 4px;
-  font-size: 0.7rem;
-  opacity: 0.8;
+  right: 6px;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: white;
 }
 
 .state-btn[data-state="biotank"].active {
@@ -1582,7 +1583,7 @@ footer {
 }
 
 .state-btn[data-state="exclude"].active {
-  background: linear-gradient(135deg, #94a3b8, #cbd5e1);
+  background: linear-gradient(135deg, #f43f5e, #fb7185);
 }
 
 .vertical-divider {
