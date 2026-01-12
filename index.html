@@ -89,7 +89,7 @@
     
     <div style="text-align: left;">
       <!-- Nama Kavling -->
-      <div style="margin-bottom: 20px;">
+      <div style="margin-bottom: 15px;">
         <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
           <i class="fas fa-map-marker-alt"></i> Nama Kavling *
         </label>
@@ -101,6 +101,17 @@
           <i class="fas fa-info-circle"></i> Format: Blok_Nomor (Contoh: M1_11)
         </div>
       </div>
+
+      <!-- Type Kavling -->
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
+          <i class="fas fa-tag"></i> Type
+        </label>
+        <input type="text" id="newKavlingType" 
+               placeholder="Contoh: T40 RUBY" 
+               style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
+               autocomplete="off">
+      </div>
       
       <!-- LT dan LB -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
@@ -108,12 +119,12 @@
           <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
             <i class="fas fa-vector-square"></i> Luas Tanah (LT)
           </label>
-          <input type="text" id="newKavlingLT" 
-                 placeholder="Contoh: 72" 
-                 style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
-                 autocomplete="off">
-          <div style="margin-top: 5px; font-size: 0.85rem; color: #64748b;">
-            (m²)
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="text" id="newKavlingLT" 
+                   placeholder="72" 
+                   style="flex: 1; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
+                   autocomplete="off">
+            <span style="color: #64748b; font-weight: 600;">m²</span>
           </div>
         </div>
         
@@ -121,12 +132,12 @@
           <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
             <i class="fas fa-building"></i> Luas Bangunan (LB)
           </label>
-          <input type="text" id="newKavlingLB" 
-                 placeholder="Contoh: 36" 
-                 style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
-                 autocomplete="off">
-          <div style="margin-top: 5px; font-size: 0.85rem; color: #64748b;">
-            (m²)
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="text" id="newKavlingLB" 
+                   placeholder="36" 
+                   style="flex: 1; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
+                   autocomplete="off">
+            <span style="color: #64748b; font-weight: 600;">m²</span>
           </div>
         </div>
       </div>
