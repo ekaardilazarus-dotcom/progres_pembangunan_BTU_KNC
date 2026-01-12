@@ -207,15 +207,89 @@ h1 {
   outline: none;
 }
 
+/* ===== KAVLING INFO DISPLAY (WITH TYPE) ===== */
 .kavling-info-display {
-  background: #1e293b;
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+  padding: 20px;
+  border-radius: 16px;
+  border: 2px solid rgba(56, 189, 248, 0.2);
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  margin-bottom: 25px;
+  position: relative;
+  overflow: hidden;
+}
+
+.kavling-info-display::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, #38bdf8, #818cf8);
+}
+
+.kavling-info-display .info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.kavling-info-display .info-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.kavling-info-display .info-label {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 20px;
+}
+
+.kavling-info-display .info-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #38bdf8;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.kavling-info-display .info-value {
+  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.kavling-info-display .val-name {
+  color: #38bdf8;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.kavling-info-display .val-type {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.kavling-info-display .val-lt,
+.kavling-info-display .val-lb {
+  color: #10b981;
+  font-weight: 700;
 }
 
 .info-item {
@@ -524,7 +598,7 @@ footer {
   padding: 20px;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .container {
     padding: 10px;
     width: 100%;
@@ -1653,4 +1727,325 @@ footer {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+/* ===== MANAGER PROGRESS DISPLAY ===== */
+#managerProgressDisplay {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+  border: 2px solid #334155;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+#managerProgressDisplay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, #38bdf8, #818cf8);
+  border-radius: 2px;
+}
+
+#managerProgressDisplay .info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#managerProgressDisplay .info-label {
+  color: #94a3b8;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+#managerProgressDisplay .info-value {
+  color: #f8fafc;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+#managerProgressDisplay .val-overall {
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(56, 189, 248, 0.3);
+}
+
+#managerProgressDisplay .progress-bar.main {
+  height: 16px;
+  background: #334155;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  margin-top: 15px;
+}
+
+#managerProgressDisplay .total-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+#managerProgressDisplay .total-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+#managerProgressDisplay .bar-high { background: linear-gradient(to right, #10b981, #34d399); }
+#managerProgressDisplay .bar-medium { background: linear-gradient(to right, #f59e0b, #fbbf24); }
+#managerProgressDisplay .bar-low { background: linear-gradient(to right, #38bdf8, #60a5fa); }
+#managerProgressDisplay .bar-very-low { background: linear-gradient(to right, #94a3b8, #cbd5e1); }
+
+/* Progress indicator dots */
+#managerProgressDisplay .progress-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  position: relative;
+}
+
+#managerProgressDisplay .progress-indicator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #334155;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+#managerProgressDisplay .progress-indicator .indicator {
+  position: relative;
+  z-index: 2;
+  width: 12px;
+  height: 12px;
+  background: #334155;
+  border-radius: 50%;
+}
+
+#managerProgressDisplay .progress-indicator .indicator.active {
+  background: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+}
+
+/* ===== ADD KAVLING MODAL TYPE FIELD ===== */
+#addKavlingModal .modal-content {
+  max-width: 500px;
+  width: 95%;
+}
+
+#addKavlingModal input[type="text"] {
+  width: 100%;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 2px solid #334155;
+  border-radius: 12px;
+  background: #0f172a;
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+#addKavlingModal input[type="text"]:focus {
+  border-color: #38bdf8;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+#addKavlingModal input#newKavlingName {
+  background: rgba(56, 189, 248, 0.05);
+  border-color: #38bdf8;
+  font-weight: 600;
+}
+
+#addKavlingModal input#newKavlingType {
+  background: rgba(139, 92, 246, 0.05);
+  border-color: #8b5cf6;
+}
+
+#addKavlingModal input#newKavlingLT {
+  background: rgba(16, 185, 129, 0.05);
+  border-color: #10b981;
+}
+
+#addKavlingModal input#newKavlingLB {
+  background: rgba(245, 158, 11, 0.05);
+  border-color: #f59e0b;
+}
+
+/* Grid for LT/LB */
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.input-group {
+  position: relative;
+}
+
+.input-group input {
+  padding-right: 40px;
+}
+
+.input-group .unit {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* ===== PROPERTY NOTES STYLES ===== */
+.notes-section {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+  border-radius: 16px;
+  padding: 20px;
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  margin-top: 25px;
+  position: relative;
+}
+
+.notes-section h3 {
+  color: #a78bfa;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#propertyNotesManager {
+  width: 100%;
+  min-height: 150px;
+  padding: 16px;
+  border: 2px solid #475569;
+  border-radius: 12px;
+  background: #0f172a;
+  color: white;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+#propertyNotesManager:focus {
+  border-color: #a78bfa;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+}
+
+#propertyNotesManager::placeholder {
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Notes character counter */
+#notesCharCounter {
+  text-align: right;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.5);
+  display: inline-block;
+  float: right;
+}
+
+/* Notes draft indicator */
+.notes-draft-indicator {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #f59e0b;
+  color: #0f172a;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Notes save button specific */
+.notes-section .btn-save-section {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  border: none;
+  margin-top: 15px;
+}
+
+.notes-section .btn-save-section:hover {
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+}
+
+/* ===== TYPE SPECIFIC COLORS ===== */
+/* Type badge colors */
+.type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+.type-badge.t40-ruby {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: white;
+}
+
+.type-badge.t36-emerald {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+}
+
+.type-badge.t32-sapphire {
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  color: white;
+}
+
+/* Summary report type indicator */
+.kavling-info .kavling-type {
+  font-size: 0.8rem;
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 2px;
 }
