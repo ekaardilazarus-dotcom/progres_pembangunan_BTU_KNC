@@ -1244,7 +1244,7 @@ async function submitNewKavling() {
     return;
   }
   
-  const kavlingName = nameInput.value.trim();
+  const name = nameInput.value.trim();
   const lt = ltInput.value.trim();
   const lb = lbInput.value.trim();
   
@@ -1264,8 +1264,7 @@ async function submitNewKavling() {
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'addNewKavling',
-      namaKavling: kavlingName,
-      kavling: kavlingName, // Send both just in case
+      name: name, 
       lt: lt || '',
       lb: lb || '',
       createdBy: currentRole || 'admin'
