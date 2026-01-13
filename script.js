@@ -366,27 +366,30 @@ async function searchKavling() {
       kavling: kavlingName
     });
     
-    if (data.success) {
+     console.log('📦 Full response from server:', data);
+    
+   if (data.success) {
       selectedKavling = kavlingName;
-      currentKavlingData = data;
       
+      // ✅ Simpan SEMUA data dari server dengan struktur yang benar
+      currentKavlingData = {
+        kavling: data.kavling || kavlingName,
+        type: data.type || '-', 
+        lt: data.lt || '-',
+        lb: data.lb || '-',
+        propertyNotes: data.propertyNotes || '',
+        data: data.data || {}
+      };
+     
       setSelectedKavlingInDropdowns(kavlingName);
-        // Simpan semua data dari server 
-      if (data.lt) currentKavlingData.lt = data.lt;
-      if (data.lb) currentKavlingData.lb = data.lb;
-      if (data.type) currentKavlingData.type = data.type;
-          updateKavlingInfo(data, rolePage);
+      updateKavlingInfo(currentKavlingData, rolePage);
            
       if (currentRole !== 'manager') {
         loadProgressData(data.data);
       }
       
       if (currentRole === 'manager') {
-        // PERBAIKAN: Load catatan dari data yang sudah diterima
-        loadPropertyNotesFromData(data);
-        
-        // Update badge kavling
-        updateKavlingBadge(kavlingName);
+        loadPropertyNotesFromData(currentKavlingData);
         
         // Update progress display untuk manager
         if (data.data?.tahap4?.TOTAL) {
@@ -404,22 +407,13 @@ async function searchKavling() {
       
       if (currentRole === 'user4') {
         // Load data untuk Admin Utilitas
-        loadUtilitasDataFromData(data);
+        loadUtilitasDataFromData(currentKavlingData);
         
         // Update progress display untuk utilitas
         if (data.data?.tahap4?.TOTAL) {
           updateUtilitasProgressDisplay(data.data.tahap4.TOTAL);
         }
       }
-      
-      
-      console.log('Data kavling loaded:', {
-        kavling: kavlingName,
-        lt: currentKavlingData.lt,
-        lb: currentKavlingData.lb,
-        lb: currentKavlingData.lb,
-        propertyNotes: data.propertyNotes || 'kosong'
-      });
       
       showToast('success', `Data ${kavlingName} berhasil dimuat!`);
       
@@ -434,7 +428,7 @@ async function searchKavling() {
   } finally {
     hideGlobalLoading();
   }
-}
+}      
 
 // Fungsi baru untuk load property notes dari data
 function loadPropertyNotesFromData(data) {
@@ -442,13 +436,15 @@ function loadPropertyNotesFromData(data) {
   if (!notesEl) return;
   
   // PERBAIKAN: Ambil notes dari data.propertyNotes ATAU data.data.keterangan
-  const notes = data.propertyNotes || data.data?.keterangan || '';
+ const notes = data.propertyNotes || '';
   
   notesEl.value = notes;
   notesEl.placeholder = 'Masukkan catatan kondisi property (AH) di sini...';
   
-  // Update character counter
-  updateNotesCounter(notes.length);
+  // Update character counter jika ada
+  if (typeof updateNotesCounter === 'function') {
+    updateNotesCounter(notes.length);
+  }
 }
 //----------------------------------------------
 function updateManagerProgressDisplay(progressData) {
@@ -1188,8 +1184,6 @@ async function saveTahap4() {
   }
 }
 
-// ========== FUNGSI untuk toggle tombol ==========
-// (Tetap sama seperti sebelumnya, tidak berubah)
 // ========== SUMMARY REPORT FUNCTIONS ==========
 async function loadSummaryReport() {
   try {
