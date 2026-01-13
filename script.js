@@ -1201,6 +1201,8 @@ async function loadSummaryReport() {
     
     if (result.success) {
       displaySummaryReport(result);
+      // Auto-filter to 'all' to show the list immediately
+      setTimeout(() => filterKavlingByProgress('all'), 100);
     } else {
       showToast('error', result.message || 'Gagal mengambil laporan');
     }
@@ -1217,11 +1219,50 @@ function displaySummaryReport(summaryData) {
   const container = document.getElementById('summaryReportContainer');
   if (!container) return;
   
+  console.log("Summary data received:", summaryData);
+  
   // Store summary data for filtering
   window.lastSummaryData = summaryData;
   
+  // PERBAIKAN: Jika server tidak mengirimkan allKavlings atau items, kita kumpulkan dari kategori
+  if (!summaryData.allKavlings && !summaryData.items) {
+    summaryData.allKavlings = [
+      ...(summaryData.categories?.completed?.items || summaryData.categories?.completed?.kavlings || summaryData.topCompleted || []),
+      ...(summaryData.categories?.almostCompleted?.items || summaryData.categories?.almostCompleted?.kavlings || summaryData.topAlmost || []),
+      ...(summaryData.categories?.inProgress?.items || summaryData.categories?.inProgress?.kavlings || []),
+      ...(summaryData.categories?.lowProgress?.items || summaryData.categories?.lowProgress?.kavlings || summaryData.needAttention || [])
+    ];
+  }
+  
   const timestamp = new Date(summaryData.timestamp || new Date()).toLocaleString('id-ID');
   
+  // Ensure we have numbers for the badges
+  const totalCount = summaryData.totalKavlings || 
+                     (summaryData.items ? summaryData.items.length : 0) || 
+                     (summaryData.allKavlings ? summaryData.allKavlings.length : 0) || 0;
+  
+  const completedCount = summaryData.categories?.completed?.count || 
+                         summaryData.completedKavlings?.length || 
+                         summaryData.items?.filter(k => (parseInt(k.totalProgress) || 0) >= 89).length || 0;
+                         
+  const almostCount = summaryData.categories?.almostCompleted?.count || 
+                      summaryData.almostCompletedKavlings?.length || 
+                      summaryData.items?.filter(k => {
+                        const p = parseInt(k.totalProgress) || 0;
+                        return p >= 60 && p < 89;
+                      }).length || 0;
+                      
+  const progressCount = summaryData.categories?.inProgress?.count || 
+                        summaryData.inProgressKavlings?.length || 
+                        summaryData.items?.filter(k => {
+                          const p = parseInt(k.totalProgress) || 0;
+                          return p >= 10 && p < 60;
+                        }).length || 0;
+                        
+  const lowCount = summaryData.categories?.lowProgress?.count || 
+                   summaryData.lowProgressKavlings?.length || 
+                   summaryData.items?.filter(k => (parseInt(k.totalProgress) || 0) < 10).length || 0;
+
   let html = `
     <div class="summary-header">
       <h3><i class="fas fa-chart-bar"></i> Laporan Summary Progress Kavling</h3>
@@ -1234,7 +1275,7 @@ function displaySummaryReport(summaryData) {
           <i class="fas fa-home"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-value">${summaryData.totalKavlings || 0}</div>
+          <div class="stat-value">${totalCount}</div>
           <div class="stat-label">Total Kavling</div>
         </div>
       </div>
@@ -1244,9 +1285,9 @@ function displaySummaryReport(summaryData) {
           <i class="fas fa-check-circle"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-value">${summaryData.categories?.completed?.count || 0}</div>
+          <div class="stat-value">${completedCount}</div>
           <div class="stat-label">Selesai (89-100%)</div>
-          <div class="stat-percent">${summaryData.categories?.completed?.percentage || 0}%</div>
+          <div class="stat-percent">${totalCount > 0 ? Math.round((completedCount/totalCount)*100) : 0}%</div>
         </div>
       </div>
       
@@ -1255,9 +1296,9 @@ function displaySummaryReport(summaryData) {
           <i class="fas fa-hourglass-half"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-value">${summaryData.categories?.almostCompleted?.count || 0}</div>
+          <div class="stat-value">${almostCount}</div>
           <div class="stat-label">Hampir Selesai (60-88%)</div>
-          <div class="stat-percent">${summaryData.categories?.almostCompleted?.percentage || 0}%</div>
+          <div class="stat-percent">${totalCount > 0 ? Math.round((almostCount/totalCount)*100) : 0}%</div>
         </div>
       </div>
       
@@ -1266,9 +1307,9 @@ function displaySummaryReport(summaryData) {
           <i class="fas fa-tools"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-value">${summaryData.categories?.inProgress?.count || 0}</div>
+          <div class="stat-value">${progressCount}</div>
           <div class="stat-label">Sedang Berjalan (10-59%)</div>
-          <div class="stat-percent">${summaryData.categories?.inProgress?.percentage || 0}%</div>
+          <div class="stat-percent">${totalCount > 0 ? Math.round((progressCount/totalCount)*100) : 0}%</div>
         </div>
       </div>
       
@@ -1277,9 +1318,9 @@ function displaySummaryReport(summaryData) {
           <i class="fas fa-exclamation-triangle"></i>
         </div>
         <div class="stat-content">
-          <div class="stat-value">${summaryData.categories?.lowProgress?.count || 0}</div>
+          <div class="stat-value">${lowCount}</div>
           <div class="stat-label">Progress Rendah (0-9%)</div>
-          <div class="stat-percent">${summaryData.categories?.lowProgress?.percentage || 0}%</div>
+          <div class="stat-percent">${totalCount > 0 ? Math.round((lowCount/totalCount)*100) : 0}%</div>
         </div>
       </div>
     </div>
@@ -1353,27 +1394,49 @@ function filterKavlingByProgress(category) {
   let title = '';
   let kavlings = [];
 
+  // PERBAIKAN: Ambil items dari data yang benar (beberapa format didukung)
   switch(category) {
     case 'completed':
       title = 'Data Kavling Selesai (89-100%)';
-      kavlings = summaryData.categories?.completed?.items || [];
+      kavlings = summaryData.categories?.completed?.items || 
+                 summaryData.categories?.completed?.kavlings || 
+                 summaryData.completedKavlings || 
+                 summaryData.topCompleted ||
+                 (summaryData.items || summaryData.allKavlings)?.filter(k => (parseInt(k.totalProgress) || 0) >= 89) || [];
       break;
     case 'almostCompleted':
       title = 'Data Kavling Hampir Selesai (60-88%)';
-      kavlings = summaryData.categories?.almostCompleted?.items || [];
+      kavlings = summaryData.categories?.almostCompleted?.items || 
+                 summaryData.categories?.almostCompleted?.kavlings || 
+                 summaryData.almostCompletedKavlings || 
+                 summaryData.topAlmost ||
+                 (summaryData.items || summaryData.allKavlings)?.filter(k => {
+                   const p = parseInt(k.totalProgress) || 0;
+                   return p >= 60 && p < 89;
+                 }) || [];
       break;
     case 'inProgress':
       title = 'Data Kavling Sedang Berjalan (10-59%)';
-      kavlings = summaryData.categories?.inProgress?.items || [];
+      kavlings = summaryData.categories?.inProgress?.items || 
+                 summaryData.categories?.inProgress?.kavlings || 
+                 summaryData.inProgressKavlings || 
+                 (summaryData.items || summaryData.allKavlings)?.filter(k => {
+                   const p = parseInt(k.totalProgress) || 0;
+                   return p >= 10 && p < 60;
+                 }) || [];
       break;
     case 'lowProgress':
       title = 'Data Kavling Progress Rendah (0-9%)';
-      kavlings = summaryData.categories?.lowProgress?.items || [];
+      kavlings = summaryData.categories?.lowProgress?.items || 
+                 summaryData.categories?.lowProgress?.kavlings || 
+                 summaryData.lowProgressKavlings || 
+                 summaryData.needAttention ||
+                 (summaryData.items || summaryData.allKavlings)?.filter(k => (parseInt(k.totalProgress) || 0) < 10) || [];
       break;
     case 'all':
       title = 'Seluruh Data Kavling';
-      // If server returns allKavlings, use it, otherwise use summaryData.items or collect from categories
-      kavlings = summaryData.allKavlings || summaryData.items || [];
+      // Prioritaskan daftar lengkap
+      kavlings = summaryData.allKavlings || summaryData.items || summaryData.kavlings || [];
       break;
     default:
       title = 'Detail Data Kavling';
@@ -2428,11 +2491,75 @@ function toggleTableButton(button, option) {
   updateProgress(rolePage);
 }
 
+// Setup Delete Kavling button
+function setupDeleteKavling() {
+  const btnDelete = document.getElementById('btnDeleteKavling');
+  if (btnDelete) {
+    btnDelete.addEventListener('click', async function() {
+      if (!selectedKavling) {
+        showToast('warning', 'Pilih kavling yang akan dihapus terlebih dahulu!');
+        return;
+      }
+      
+      const confirmDelete = confirm(`Apakah Anda yakin ingin menghapus kavling ${selectedKavling}? Tindakan ini tidak dapat dibatalkan.`);
+      
+      if (confirmDelete) {
+        showGlobalLoading(`Menghapus kavling ${selectedKavling}...`);
+        
+        try {
+          const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+            action: 'deleteKavling',
+            kavling: selectedKavling
+          });
+          
+          if (result.success) {
+            showToast('success', `Kavling ${selectedKavling} berhasil dihapus.`);
+            selectedKavling = null;
+            currentKavlingData = null;
+            // Reload list
+            await loadKavlingList();
+            // Reset display
+            const infoId = getKavlingInfoIdByRole(currentRole);
+            const infoDisplay = document.getElementById(infoId);
+            if (infoDisplay) {
+              infoDisplay.innerHTML = `
+                <div class="info-item">
+                  <span class="info-label">Blok/Kavling:</span>
+                  <span class="info-value val-name">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Type:</span>
+                  <span class="info-value val-type">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Luas Tanah (LT):</span>
+                  <span class="info-value val-lt">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Luas Bangunan (LB):</span>
+                  <span class="info-value val-lb">-</span>
+                </div>
+              `;
+            }
+          } else {
+            showToast('error', 'Gagal menghapus: ' + result.message);
+          }
+        } catch (error) {
+          showToast('error', 'Error: ' + error.message);
+        } finally {
+          hideGlobalLoading();
+        }
+      }
+    });
+  }
+}
+
 // ========== START APPLICATION ==========
 // Tambahkan event listener untuk DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function() {
   console.log('=== DOM CONTENT LOADED ===');
   initApp();
+  setupDeleteKavling();
 });
 
 // Juga jalankan jika DOM sudah siap
