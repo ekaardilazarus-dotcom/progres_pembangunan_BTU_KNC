@@ -286,17 +286,20 @@
       <div class="page-header">
         <div class="page-title">
           <i class="fas fa-user-tie"></i>
-          <h2>Management Property</h2>
+          <h2 id="managerTitle">Dashboard Supervisor</h2>
         </div>
-        <div style="display:flex; gap:15px; align-items:center;">
-          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
-            <i class="fas fa-sign-out-alt"></i> Kembali ke Menu Awal & Logout
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
+          <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.85rem; cursor: pointer;">
+            <i class="fas fa-sign-out-alt"></i> Logout
           </button>
-          <button class="btn-add-kavling" type="button" style="background: linear-gradient(135deg, #10b981, #059669); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
+          <button class="btn-add-kavling" type="button" style="background: linear-gradient(135deg, #10b981, #059669); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.85rem; cursor: pointer;">
             <i class="fas fa-plus-circle"></i> Tambah Kavling
           </button>
-          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
-            <i class="fas fa-sync-alt"></i> Sinkronkan Data
+          <button id="btnDeleteKavling" type="button" style="background: linear-gradient(135deg, #f43f5e, #e11d48); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.85rem; cursor: pointer;">
+            <i class="fas fa-trash-alt"></i> Hapus Kavling
+          </button>
+          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.85rem; cursor: pointer;">
+            <i class="fas fa-sync-alt"></i> Sinkronkan
           </button>
         </div>
       </div>
@@ -305,10 +308,10 @@
         <div class="page-body">
           <!-- Manager Tabs -->
           <div class="admin-tabs">
-            <button class="admin-tab-btn active" data-tab="notes">
+            <button class="admin-tab-btn active tab-manager-notes" data-tab="notes">
               <i class="fas fa-sticky-note"></i> Catatan Kondisi Property Untuk ( Revisi dan Melihat Progres Revisi )
             </button>
-            <button class="admin-tab-btn" data-tab="reports">
+            <button class="admin-tab-btn tab-manager-reports" data-tab="reports">
               <i class="fas fa-chart-bar"></i> Laporan
             </button>
           </div>
@@ -340,6 +343,16 @@
                     <div class="info-item">
                       <span class="info-label">Luas Bangunan (LB):</span>
                       <span class="info-value val-lb">-</span>
+                    </div>
+                    
+                    <!-- Tombol Export -->
+                    <div class="export-buttons" style="display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                      <button class="btn-export excel" onclick="showToast('info', 'Mengekspor ke Excel...')">
+                        <i class="fas fa-file-excel"></i> Excel
+                      </button>
+                      <button class="btn-export pdf" onclick="showToast('info', 'Mengekspor ke PDF...')">
+                        <i class="fas fa-file-pdf"></i> PDF
+                      </button>
                     </div>
                   </div>
 
@@ -978,6 +991,7 @@
         </div>
 
         <div class="page-body">
+          <!-- Admin Utilitas Tabs -->
           <div class="admin-tabs">
             <button class="admin-tab-btn active" data-tab="kunci-masuk">
               <i class="fas fa-sign-in-alt"></i> Mutasi Kunci Masuk
@@ -996,7 +1010,8 @@
           <div class="tab-content">
             <!-- Mutasi Kunci Masuk -->
             <div id="tab-kunci-masuk" class="tab-content-item active">
-              <div class="progress-section detailed">
+              <div class="progress-section detailed" style="border-left: 6px solid #10b981;">
+                <h3 style="color: #10b981; margin-bottom: 15px;"><i class="fas fa-sign-in-alt"></i> Mutasi Kunci Masuk</h3>
                 <div class="form-group" style="margin-bottom: 15px;">
                   <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Diberikan Oleh:</label>
                   <input type="text" class="input-mutasi-masuk-dari" placeholder="Nama Pemberi" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
@@ -1009,13 +1024,14 @@
                   <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Tanggal:</label>
                   <input type="date" class="input-mutasi-masuk-tgl" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
                 </div>
-                <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Mutasi Masuk</button>
+                <button class="btn-save-section" type="button" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="fas fa-save"></i> Simpan Mutasi Masuk</button>
               </div>
             </div>
 
             <!-- Mutasi Kunci Keluar -->
             <div id="tab-kunci-keluar" class="tab-content-item">
-              <div class="progress-section detailed">
+              <div class="progress-section detailed" style="border-left: 6px solid #f43f5e;">
+                <h3 style="color: #f43f5e; margin-bottom: 15px;"><i class="fas fa-sign-out-alt"></i> Mutasi Kunci Keluar</h3>
                 <div class="form-group" style="margin-bottom: 15px;">
                   <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Diberikan Oleh:</label>
                   <input type="text" class="input-mutasi-keluar-dari" placeholder="Nama Pemberi" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
@@ -1028,13 +1044,14 @@
                   <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Tanggal:</label>
                   <input type="date" class="input-mutasi-keluar-tgl" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
                 </div>
-                <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Mutasi Keluar</button>
+                <button class="btn-save-section" type="button" style="background: linear-gradient(135deg, #f43f5e, #e11d48);"><i class="fas fa-save"></i> Simpan Mutasi Keluar</button>
               </div>
             </div>
 
             <!-- Mutasi HO Ke User -->
             <div id="tab-ho-user" class="tab-content-item">
-              <div class="progress-section detailed">
+              <div class="progress-section detailed" style="border-left: 6px solid #8b5cf6;">
+                <h3 style="color: #8b5cf6; margin-bottom: 15px;"><i class="fas fa-user-check"></i> Mutasi HO Ke User</h3>
                 <div class="form-group" style="margin-bottom: 15px;">
                   <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Diberikan Oleh:</label>
                   <input type="text" class="input-mutasi-ho-dari" placeholder="Nama Pemberi" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
@@ -1047,22 +1064,14 @@
                   <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Tanggal:</label>
                   <input type="date" class="input-mutasi-ho-tgl" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
                 </div>
-                <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Mutasi HO</button>
+                <button class="btn-save-section" type="button" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);"><i class="fas fa-save"></i> Simpan Mutasi HO</button>
               </div>
             </div>
 
             <!-- Tab Pemasangan Listrik & Air -->
             <div id="tab-utility-install" class="tab-content-item">
-              <div class="overall-rekap">
-                <div class="rekap-header">
-                  <h3>Keseluruhan Progres Proyek</h3>
-                  <span class="total-percent" id="utilityOverallPercent">0%</span>
-                </div>
-                <div class="progress-bar main"><div class="progress-fill total-bar" id="utilityOverallBar" style="width: 0%"></div></div>
-              </div>
-
-              <div class="progress-section detailed">
-                <h3>Pemasangan Utilitas</h3>
+              <div class="progress-section detailed" style="border-left: 6px solid #f59e0b;">
+                <h3 style="color: #f59e0b; margin-bottom: 15px;"><i class="fas fa-bolt"></i> Pemasangan Utilitas</h3>
                 
                 <div class="task-item" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 15px;">
                   <label for="listrikInstallDate" style="font-weight: 600; color: #94a3b8;">Tanggal Pemasangan Listrik:</label>
@@ -1079,7 +1088,7 @@
                   <textarea id="utilityNotes" style="width: 100%; height: 100px; padding: 12px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155; resize: none;" placeholder="Keterangan tambahan..."></textarea>
                 </div>
 
-                <button class="btn-save-section" id="btnSaveUtility" type="button"><i class="fas fa-save"></i> Simpan Data Utilitas</button>
+                <button class="btn-save-section" id="btnSaveUtility" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fas fa-save"></i> Simpan Data Utilitas</button>
               </div>
             </div>
           </div>
