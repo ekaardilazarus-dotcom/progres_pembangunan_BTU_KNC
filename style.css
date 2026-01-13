@@ -79,6 +79,24 @@ h1 {
   transition: all 0.2s ease;
 }
 
+/* Status Colors for Progress Bars */
+.bar-high { background: linear-gradient(135deg, #10b981, #059669); }
+.bar-medium { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.bar-low { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.bar-very-low { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+
+/* Task States */
+.task-completed {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+}
+
+.task-item[data-active="true"] {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+}
+
 .btn-search:hover, .sync-btn:hover, .back-btn:hover, .btn-save-section:hover, .logout-btn:hover, .submit-btn:hover {
   transform: translateY(-2px);
   filter: brightness(1.1);
@@ -586,8 +604,23 @@ h1 {
   color: #10b981;
 }
 
-.status-monitoring {
-  color: #38bdf8;
+.dual-state-buttons .system-btn,
+.dual-state-buttons .tiles-btn,
+.dual-state-buttons .table-btn {
+    background: linear-gradient(135deg, #475569, #334155);
+    color: #94a3b8;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dual-state-buttons .system-btn[data-active="true"],
+.dual-state-buttons .tiles-btn[data-active="true"],
+.dual-state-buttons .table-btn[data-active="true"] {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
 }
 
 footer {
@@ -765,11 +798,28 @@ footer {
   color: #cbd5e1;
 }
 
-.admin-tab-btn.active {
-  background: #3b82f6;
-  border-color: #3b82f6;
+.admin-tab-btn.tab-yellow.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
   color: white;
-  font-weight: 600;
+}
+
+.admin-tab-btn.tab-yellow:hover:not(.active) {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.admin-tab-btn.tab-yellow.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: white;
+}
+
+.admin-tab-btn.tab-yellow:hover:not(.active) {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  color: #f59e0b;
 }
 
 .tab-content-item {
