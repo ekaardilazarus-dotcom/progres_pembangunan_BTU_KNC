@@ -571,38 +571,47 @@
               </div>
             </div>
 
-            <!-- TAHAP 4 -->
-            <div id="tab-tahap4" class="tab-content-item">
-              <div class="progress-section detailed" data-tahap="4">
-                <div class="section-header-flex">
-                  <h3>Tahap 4: Serah Terima & Kondisi Akhir</h3>
-                </div>
-                
-                <div class="notes-section" style="margin-top: 10px;">
-                  <label style="display: block; margin-bottom: 8px; color: #38bdf8; font-weight: 600;">
-                    <i class="fas fa-comment-dots"></i> Kondisi Property / Keterangan Tambahan
-                  </label>
-                  <textarea class="tahap-comments" data-task="KETERANGAN" style="width: 100%; height: 100px; padding: 15px; border-radius: 12px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: none;" placeholder="Masukkan kondisi property atau keterangan tambahan..."></textarea>
-                </div>
+           <!-- TAHAP 4 - STRUKTUR YANG DIPERBAIKI -->
+<div id="tab-tahap4" class="tab-content-item">
+  <div class="progress-section detailed" data-tahap="4">
+    <div class="section-header-flex">
+      <h3>Tahap 4: Serah Terima & Kondisi Akhir</h3>
+    </div>
+    
+    <div class="notes-section" style="margin-top: 10px;">
+      <label style="display: block; margin-bottom: 8px; color: #38bdf8; font-weight: 600;">
+        <i class="fas fa-comment-dots"></i> Kondisi Property / Keterangan Tambahan
+      </label>
+      <textarea class="tahap-comments" data-task="KETERANGAN" style="width: 100%; height: 100px; padding: 15px; border-radius: 12px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: none;" placeholder="Masukkan kondisi property atau keterangan tambahan..."></textarea>
+    </div>
 
-                <div class="delivery-section" style="margin-top: 20px;">
-                  <label style="display: block; margin-bottom: 8px; color: #38bdf8; font-weight: 600;">
-                    <i class="fas fa-key"></i> Penyerahan Kunci Dari Kepada Siapa :
-                  </label>
-                  <input type="text" class="key-delivery-input sub-task-text" data-task="PENYERAHAN KUNCI" style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;" placeholder="Dari dan Penerima" autocomplete="off">
-                </div>
+    <div class="delivery-section" style="margin-top: 20px;">
+      <label style="display: block; margin-bottom: 8px; color: #38bdf8; font-weight: 600;">
+        <i class="fas fa-key"></i> Penyerahan Kunci Dari Kepada Siapa :
+      </label>
+      <input type="text" class="key-delivery-input sub-task-text" data-task="PENYERAHAN KUNCI" style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;" placeholder="Dari dan Penerima" autocomplete="off">
+    </div>
 
-                <label style="display: block; margin-bottom: 8px; color: #38bdf8; font-weight: 600;">
-    <i class="fas fa-calendar-alt"></i> Tanggal Penyerahan Kunci :
-  </label>
-  <input type="date" class="key-delivery-date sub-task-text" data-task="TANGGAL_PENYERAHAN_KUNCI" style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;" autocomplete="off">
+    <div style="margin-top: 20px;">
+      <label style="display: block; margin-bottom: 8px; color: #38bdf8; font-weight: 600;">
+        <i class="fas fa-calendar-alt"></i> Tanggal Penyerahan Kunci :
+      </label>
+      <input type="date" class="key-delivery-date sub-task-text" data-task="TANGGAL_PENYERAHAN_KUNCI" style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;" autocomplete="off">
+    </div>
+
+    <div style="margin-top: 20px;">
+      <label class="task-item" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+        <input type="checkbox" class="sub-task" data-weight="1" data-task="COMPLETION / Penyelesaian akhir" data-tahap="4">
+        <span class="item-title">Completion / Penyelesaian akhir</span>
+      </label>
+    </div>
+    
+    <!-- TOMBOL SIMPAN HARUS DI DALAM .progress-section -->
+    <button class="btn-save-section" type="button" data-tahap="4" style="margin-top: 25px; width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer;">
+      <i class="fas fa-save"></i> Simpan Tahap 4
+    </button>
+  </div> <!-- TUTUP .progress-section DI SINI -->
 </div>
-              
-                <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="COMPLETION / Penyelesaian akhir"> Completion</label>
-                
-              <button class="btn-save-section" type="button" data-tahap="4"><i class="fas fa-save"></i> Simpan Tahap 4</button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
