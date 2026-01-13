@@ -2571,7 +2571,7 @@ function setupDynamicEventListeners() {
     });
   }
 
-  // 7. **PERBAIKAN: Tombol save tahap progress (HAPUS bagian spesifik tahap 4)**
+  // 7. Tombol save tahap progress
   document.querySelectorAll('.btn-save-section:not(#tab-notes .btn-save-section)').forEach(btn => {
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
@@ -2579,11 +2579,15 @@ function setupDynamicEventListeners() {
     // Tambah listener baru
     newBtn.addEventListener('click', function(e) {
       e.preventDefault();
+      e.stopPropagation();
       console.log('Save button clicked:', this);
       
-      const section = this.closest('.progress-section');
-      if (section) {
-        const tahap = section.getAttribute('data-tahap');
+      // PERBAIKAN: Cari .progress-section dengan benar
+      const progressSection = this.closest('.progress-section');
+      console.log('Closest progress section:', progressSection);
+      
+      if (progressSection) {
+        const tahap = progressSection.getAttribute('data-tahap');
         console.log(`Processing tahap ${tahap}`);
         
         if (tahap === '1') {
@@ -2602,7 +2606,15 @@ function setupDynamicEventListeners() {
           console.log('Unknown tahap:', tahap);
         }
       } else {
-        console.log('No progress section found for this button');
+        console.error('No progress section found for this button!');
+        console.log('Parent structure:', this.parentElement);
+        
+        // Fallback: Coba ambil data-tahap dari tombol itu sendiri
+        const tahapFromBtn = this.getAttribute('data-tahap');
+        if (tahapFromBtn === '4') {
+          console.log('Fallback: Calling saveTahap4 from button attribute');
+          saveTahap4();
+        }
       }
     });
   });
@@ -3148,3 +3160,47 @@ function updateNotesCounter(length) {
   console.log('updateNotesCounter:', length);
   // Implementasi Anda di sini
 }
+
+// ========== FUNGSI DEBUG UNTUK MEMERIKSA STRUKTUR ==========
+function debugTahap4Structure() {
+  console.log('=== DEBUG TAHAP 4 STRUCTURE ===');
+  
+  // Cek di semua halaman
+  const pages = ['user1Page', 'user2Page', 'user3Page'];
+  
+  pages.forEach(pageId => {
+    const page = document.getElementById(pageId);
+    if (!page) return;
+    
+    console.log(`\nChecking ${pageId}:`);
+    
+    // Cari section tahap 4
+    const tahap4Section = page.querySelector('[data-tahap="4"]');
+    if (!tahap4Section) {
+      console.log('❌ No tahap 4 section found');
+      return;
+    }
+    
+    console.log('✅ Found tahap 4 section');
+    console.log('Section class:', tahap4Section.className);
+    
+    // Cari tombol save di dalam section
+    const saveButton = tahap4Section.querySelector('.btn-save-section');
+    if (saveButton) {
+      console.log('✅ Save button found INSIDE progress-section');
+      console.log('Button data-tahap:', saveButton.getAttribute('data-tahap'));
+      console.log('Button is child of progress-section:', saveButton.closest('.progress-section') === tahap4Section);
+    } else {
+      console.log('❌ Save button NOT FOUND inside progress-section');
+      
+      // Cari tombol di luar
+      const allButtons = page.querySelectorAll('.btn-save-section[data-tahap="4"]');
+      console.log(`Found ${allButtons.length} tahap 4 buttons total in page`);
+    }
+  });
+}
+
+// Panggil setelah DOM siap
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(debugTahap4Structure, 1000);
+});
