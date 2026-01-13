@@ -1102,6 +1102,10 @@ footer {
   background: #fbbf24;
   color: white;
 }
+.pelaksana-tabs .admin-tab-btn[data-tab="tahap4"].active {
+  background: #ef4444;
+  color: white;
+}
 
 .pelaksana-tab-content {
   border: 2px solid #334155;
