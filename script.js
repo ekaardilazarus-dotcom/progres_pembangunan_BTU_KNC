@@ -1221,8 +1221,8 @@ async function saveTahap4() {
   
   const commentEl = tahap4Section.querySelector('.tahap-comments');
   const deliveryEl = tahap4Section.querySelector('.key-delivery-input');
+ const dateEl = tahap4Section.querySelector('.key-delivery-date');
   const saveButton = tahap4Section.querySelector('.btn-save-section');
-
   // Cari checkbox completion di tahap 4
   let completionCheckbox = tahap4Section.querySelector('.sub-task[data-task="COMPLETION / Penyelesaian akhir"]');
   if (!completionCheckbox) {
@@ -1237,8 +1237,7 @@ async function saveTahap4() {
     }
   }
   
-  const saveButton = tahap4Section.querySelector('.btn-save-section');
-  
+
   const tahapData = {};
 
    if (completionCheckbox) {
@@ -2640,13 +2639,6 @@ function initApp() {
   // Setup semua event listener
   setupDynamicEventListeners();
   
-  // Cek session login
-  const savedRole = sessionStorage.getItem('loggedRole');
-  if (savedRole) {
-    currentRole = savedRole;
-    showPage(savedRole);
-  }
-  
   // Setup tombol role di halaman utama
   setupRoleButtons();
   
@@ -2666,6 +2658,13 @@ function initApp() {
     });
   }
   
+  // Cek session login
+  const savedRole = sessionStorage.getItem('loggedRole');
+  if (savedRole) {
+    currentRole = savedRole;
+    showPage(savedRole);
+  }
+  
   console.log('=== APP INITIALIZED ===');
 }
 
@@ -2675,12 +2674,7 @@ function setupRoleButtons() {
   console.log(`Found ${roleButtons.length} role buttons`);
   
   roleButtons.forEach(btn => {
-    // Hapus event listener lama
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    
-    // Tambah event listener baru
-    newBtn.addEventListener('click', function(e) {
+    btn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       console.log('Role button clicked:', this.getAttribute('data-role'));
