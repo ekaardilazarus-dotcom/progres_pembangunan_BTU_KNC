@@ -1996,7 +1996,12 @@ function setupDynamicEventListeners() {
   
   // 5. Tombol logout
   document.querySelectorAll('.logout-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
+    // Hapus event listener lama
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    // Tambah event listener baru
+    newBtn.addEventListener('click', function(e) {
       e.preventDefault();
       if (confirm('Apakah Anda yakin ingin logout?')) {
         clearSession();
@@ -2059,7 +2064,8 @@ function setupDynamicEventListeners() {
   window.addEventListener('click', function(event) {
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
-      if (event.target === modal) {
+      // PERBAIKAN: Jangan tutup modal jika yang diklik adalah addKavlingModal
+      if (event.target === modal && modal.id !== 'addKavlingModal') {
         modal.style.display = 'none';
       }
     });
@@ -2377,15 +2383,68 @@ function toggleTableButton(button, option) {
 // Fungsi-fungsi ini disebut di kode Anda tetapi tidak didefinisikan:
 
 function updateProgress(rolePage) {
-  // Fungsi untuk update progress bar - tambahkan implementasinya
-  console.log('updateProgress called for:', rolePage);
-  // Implementasi Anda di sini
+  const pageElement = document.getElementById(rolePage);
+  if (!pageElement) return;
+
+  const progressSections = pageElement.querySelectorAll('.progress-section[data-tahap]');
+  let totalWeightedProgress = 0;
+  let totalPossibleWeight = 0;
+
+  progressSections.forEach(section => {
+    const tahap = section.getAttribute('data-tahap');
+    const tasks = section.querySelectorAll('.sub-task');
+    let completedTasksWeight = 0;
+    let totalSectionWeight = 0;
+
+    tasks.forEach(task => {
+      const weight = parseFloat(task.getAttribute('data-weight')) || 1;
+      totalSectionWeight += weight;
+
+      if (task.type === 'checkbox') {
+        if (task.checked) {
+          completedTasksWeight += weight;
+        }
+      } else if (task.type === 'hidden') {
+        if (task.value && task.value.trim() !== '') {
+          completedTasksWeight += weight;
+        }
+      }
+    });
+
+    const sectionPercent = totalSectionWeight > 0 ? (completedTasksWeight / totalSectionWeight) * 100 : 0;
+    const subPercentEl = section.querySelector('.sub-percent');
+    if (subPercentEl) {
+      subPercentEl.textContent = Math.round(sectionPercent) + '%';
+    }
+
+    const progressFill = section.querySelector('.progress-fill');
+    if (progressFill) {
+      progressFill.style.width = sectionPercent + '%';
+    }
+
+    // Weights for overall progress: Tahap 1 (40%), Tahap 2 (30%), Tahap 3 (20%), Tahap 4 (10%)
+    const tahapWeights = { '1': 0.4, '2': 0.3, '3': 0.2, '4': 0.1 };
+    const weightFactor = tahapWeights[tahap] || 0.25;
+    
+    totalWeightedProgress += sectionPercent * weightFactor;
+  });
+
+  updateTotalProgressDisplay(Math.round(totalWeightedProgress) + '%', rolePage);
 }
 
 function updateTotalProgressDisplay(progress, pageId) {
-  // Fungsi untuk update total progress display
-  console.log('updateTotalProgressDisplay:', progress, pageId);
-  // Implementasi Anda di sini
+  const pageElement = document.getElementById(pageId);
+  if (!pageElement) return;
+
+  const totalPercentEl = pageElement.querySelector('.total-percent');
+  if (totalPercentEl) {
+    totalPercentEl.textContent = progress;
+  }
+
+  const totalBarEl = pageElement.querySelector('.total-bar');
+  if (totalBarEl) {
+    totalBarEl.style.width = progress;
+  }
 }
 
 function savePropertyNotes() {
