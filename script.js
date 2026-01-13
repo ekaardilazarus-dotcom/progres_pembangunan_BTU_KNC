@@ -36,15 +36,18 @@ function showToast(type, message) {
   const existingToast = document.getElementById('globalToast');
   if (existingToast) existingToast.remove();
   
-  const toast = document.createElement('div');
+  const template = document.getElementById('toastTemplate');
+  if (!template) return;
+  
+  const toast = template.content.cloneNode(true).querySelector('.toast');
   toast.id = 'globalToast';
-  toast.className = `toast toast-${type}`;
-  toast.innerHTML = `
-    <div class="toast-content">
-      <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-      <span>${message}</span>
-    </div>
-  `;
+  toast.classList.add(`toast-${type}`);
+  
+  const icon = toast.querySelector('i');
+  icon.classList.add(type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle');
+  
+  const messageSpan = toast.querySelector('.toast-message');
+  messageSpan.textContent = message;
   
   document.body.appendChild(toast);
   
@@ -67,6 +70,117 @@ function showToast(type, message) {
 // Ganti fungsi lama
 function showProgressMessage(type, message) {
   showToast(type, message);
+}
+
+// Fungsi baru untuk load data utilitas
+function loadUtilitasDataFromData(data) {
+  // Key delivery
+  const keyInput = document.getElementById('keyDeliveryInputUser4');
+  if (keyInput) {
+    keyInput.value = data.data?.tahap4?.['PENYERAHAN KUNCI'] || '';
+  }
+  
+  // Utility Dates (assuming these exist in data structure or will be handled by GAS)
+  const listrikInput = document.getElementById('listrikInstallDate');
+  const airInput = document.getElementById('airInstallDate');
+  const notesInput = document.getElementById('utilityNotes');
+  
+  if (listrikInput) listrikInput.value = data.utilitas?.listrikDate || '';
+  if (airInput) airInput.value = data.utilitas?.airDate || '';
+  if (notesInput) notesInput.value = data.utilitas?.notes || data.propertyNotes || '';
+}
+
+function updateUtilitasProgressDisplay(totalProgress) {
+  const percentEl = document.getElementById('utilityOverallPercent');
+  const barEl = document.getElementById('utilityOverallBar');
+  
+  if (!percentEl || !barEl) return;
+  
+  let displayProgress = totalProgress;
+  let percentValue = 0;
+  
+  if (typeof totalProgress === 'string') {
+    if (totalProgress.includes('%')) {
+      percentValue = parseInt(totalProgress);
+    } else {
+      const num = parseFloat(totalProgress);
+      if (!isNaN(num)) {
+        percentValue = num <= 1 ? Math.round(num * 100) : Math.round(num);
+        displayProgress = percentValue + '%';
+      }
+    }
+  } else if (typeof totalProgress === 'number') {
+    percentValue = totalProgress <= 1 ? Math.round(totalProgress * 100) : Math.round(totalProgress);
+    displayProgress = percentValue + '%';
+  }
+  
+  percentEl.textContent = displayProgress;
+  barEl.style.width = percentValue + '%';
+  
+  // Color classes
+  barEl.className = 'total-bar';
+  if (percentValue >= 89) barEl.classList.add('bar-high');
+  else if (percentValue >= 60) barEl.classList.add('bar-medium');
+  else if (percentValue >= 10) barEl.classList.add('bar-low');
+  else barEl.classList.add('bar-very-low');
+}
+
+// Global Event Listeners setup for user4
+function setupUser4EventListeners() {
+  const btnSave = document.getElementById('btnSaveUtility');
+  if (btnSave) {
+    btnSave.addEventListener('click', async function() {
+      if (!selectedKavling) {
+        showToast('warning', 'Pilih kavling terlebih dahulu!');
+        return;
+      }
+      
+      const listrikDate = document.getElementById('listrikInstallDate').value;
+      const airDate = document.getElementById('airInstallDate').value;
+      const notes = document.getElementById('utilityNotes').value;
+      
+      showGlobalLoading('Menyimpan data utilitas...');
+      
+      try {
+        const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+          action: 'saveUtilitasData',
+          kavling: selectedKavling,
+          listrikDate: listrikDate,
+          airDate: airDate,
+          notes: notes,
+          user: 'user4'
+        });
+        
+        if (result.success) {
+          showToast('success', 'Data utilitas berhasil disimpan!');
+        } else {
+          showToast('error', 'Gagal menyimpan: ' + result.message);
+        }
+      } catch (error) {
+        showToast('error', 'Error: ' + error.message);
+      } finally {
+        hideGlobalLoading();
+      }
+    });
+  }
+}
+
+function setupUser4Tabs() {
+  const tabBtns = document.querySelectorAll('#user4Page .admin-tab-btn');
+  const tabContents = document.querySelectorAll('#user4Page .tab-content-item');
+  
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabId = this.getAttribute('data-tab');
+      
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      this.classList.add('active');
+      const targetTab = document.getElementById(`tab-${tabId}`);
+      if (targetTab) targetTab.classList.add('active');
+    });
+  });
 }
 
 // ========== KAVLING FUNCTIONS ==========
@@ -288,6 +402,16 @@ async function searchKavling() {
         }
       }
       
+      if (currentRole === 'user4') {
+        // Load data untuk Admin Utilitas
+        loadUtilitasDataFromData(data);
+        
+        // Update progress display untuk utilitas
+        if (data.data?.tahap4?.TOTAL) {
+          updateUtilitasProgressDisplay(data.data.tahap4.TOTAL);
+        }
+      }
+      
       
       console.log('Data kavling loaded:', {
         kavling: kavlingName,
@@ -403,7 +527,7 @@ function updateManagerProgressDisplay(progressData) {
     console.log('Percent value for bar:', percentValue + '%');
     progressFill.style.width = percentValue + '%';
     
-    // Update class untuk warna
+    // Update class untuk warna - MENGGUNAKAN CLASS CSS
     progressFill.className = 'total-bar';
     if (percentValue >= 89) {
       progressFill.classList.add('bar-high');
@@ -1890,24 +2014,19 @@ async function syncData() {
 
 // ========== TAB FUNCTIONS ==========
 function setupManagerTabs() {
-  const tabBtns = document.querySelectorAll('#managerPage .admin-tab-btn');
-  const tabContents = document.querySelectorAll('#managerPage .tab-content-item');
-  
-  // Set active tab pertama kali
-  if (tabBtns.length > 0 && !document.querySelector('#managerPage .admin-tab-btn.active')) {
-    tabBtns[0].classList.add('active');
-    const firstTabId = tabBtns[0].getAttribute('data-tab');
-    const firstTab = document.getElementById(`tab-${firstTabId}`);
-    if (firstTab) firstTab.classList.add('active');
-  }
+  const tabBtns = document.querySelectorAll('#managerPage .admin-tab-btn, #user4Page .admin-tab-btn');
   
   tabBtns.forEach(btn => {
     btn.addEventListener('click', function() {
       const tabId = this.getAttribute('data-tab');
+      const parentPage = this.closest('.page-content');
       
-      // Hapus active dari semua
-      tabBtns.forEach(b => b.classList.remove('active'));
-      tabContents.forEach(c => c.classList.remove('active'));
+      const siblingBtns = parentPage.querySelectorAll('.admin-tab-btn');
+      const siblingContents = parentPage.querySelectorAll('.tab-content-item');
+      
+      // Hapus active dari saudara
+      siblingBtns.forEach(b => b.classList.remove('active'));
+      siblingContents.forEach(c => c.classList.remove('active'));
       
       // Tambah active ke yang dipilih
       this.classList.add('active');
@@ -1915,12 +2034,13 @@ function setupManagerTabs() {
       if (targetTab) {
         targetTab.classList.add('active');
         
-        // Load data sesuai tab
-        if (tabId === 'reports') {
-          setTimeout(loadSummaryReport, 100);
-        } else if (tabId === 'notes' && selectedKavling) {
-          // Load notes jika ada kavling yang dipilih
-          loadPropertyNotes(selectedKavling);
+        // Load data sesuai tab (Manager)
+        if (parentPage.id === 'managerPage') {
+          if (tabId === 'reports') {
+            setTimeout(loadSummaryReport, 100);
+          } else if (tabId === 'notes' && selectedKavling) {
+            loadPropertyNotes(selectedKavling);
+          }
         }
       }
     });
