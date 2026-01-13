@@ -1,6 +1,6 @@
 // versi 0.234
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwtdVUaml1osvprnFFn4xBIQxn_hQI3n2HEyU_ktfC4e6j4L-qLmmxgN9Rnu_BBS7qwPA/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwd3qewlvVCxTrmhjij2lxFPFEdf8N5aHv4O8eGNMaFHzXyciczCi2jadSBGgzhN7Hegw/exec';
 
 let currentRole = null;
 let selectedKavling = null;
@@ -164,22 +164,36 @@ function setupUser4EventListeners() {
     });
   }
 }
-
+//--------
 function setupUser4Tabs() {
-  const tabBtns = document.querySelectorAll('#user4Page .admin-tab-btn');
-  const tabContents = document.querySelectorAll('#user4Page .tab-content-item');
+  const user4Page = document.getElementById('user4Page');
+  if (!user4Page) return;
   
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-      const tabId = this.getAttribute('data-tab');
+  // Gunakan event delegation untuk tab yang mungkin dinamis
+  user4Page.addEventListener('click', function(e) {
+    const tabBtn = e.target.closest('.admin-tab-btn');
+    if (!tabBtn) return;
+    
+    e.preventDefault();
+    const tabId = tabBtn.getAttribute('data-tab');
+    
+    // Update UI tabs
+    const tabBtns = user4Page.querySelectorAll('.admin-tab-btn');
+    const tabContents = user4Page.querySelectorAll('.tab-content-item');
+    
+    tabBtns.forEach(b => b.classList.remove('active'));
+    tabContents.forEach(c => c.classList.remove('active'));
+    
+    tabBtn.classList.add('active');
+    const targetTab = user4Page.querySelector(`#tab-${tabId}`);
+    if (targetTab) {
+      targetTab.classList.add('active');
       
-      tabBtns.forEach(b => b.classList.remove('active'));
-      tabContents.forEach(c => c.classList.remove('active'));
-      
-      this.classList.add('active');
-      const targetTab = document.getElementById(`tab-${tabId}`);
-      if (targetTab) targetTab.classList.add('active');
-    });
+      // Load data spesifik tab jika diperlukan
+      if (tabId === 'utility-install') {
+        loadUtilitasData();
+      }
+    }
   });
 }
 
@@ -779,10 +793,44 @@ function loadProgressData(progressData) {
         deliveryEl.value = progressData.tahap4['PENYERAHAN KUNCI'];
       }
     }
-    
-    // Load Completion
+
+    // ===== PERBAIKAN: LOAD TANGGAL PENYERAHAN KUNCI =====
+    if (progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']) {
+      const dateEl = pageElement.querySelector('.key-delivery-date');
+      if (dateEl) {
+        // Format tanggal untuk input type="date" (yyyy-MM-dd)
+        const rawDate = progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'];
+        let formattedDate = '';
+        
+        if (rawDate instanceof Date || (typeof rawDate === 'string' && rawDate.includes('-'))) {
+          // Jika sudah format Date atau yyyy-MM-dd
+          formattedDate = formatDateForInput(rawDate);
+        } else if (rawDate) {
+          // Coba parse tanggal lain
+          formattedDate = formatDateForInput(new Date(rawDate));
+        }
+        
+        dateEl.value = formattedDate;
+        console.log(`Loaded date for ${selectedKavling}: ${rawDate} → ${formattedDate}`);
+      }
+    }
+
+  
+    // Load Completion - PERBAIKAN: CARI CHECKBOX DI TAHAP 4
     if (progressData.tahap4['COMPLETION / Penyelesaian akhir']) {
-      const completionCheckbox = findCheckboxByTaskName('Completion', 3, rolePage);
+      const completionCheckbox = findCheckboxByTaskName('COMPLETION / Penyelesaian akhir', 4, rolePage);
+      if (!completionCheckbox) {
+        // Coba cari dengan nama yang lebih sederhana
+        const allCheckboxes = pageElement.querySelectorAll(`[data-tahap="4"] .sub-task[type="checkbox"]`);
+        for (const checkbox of allCheckboxes) {
+          const label = checkbox.closest('label');
+          if (label && label.textContent.toLowerCase().includes('completion')) {
+            completionCheckbox = checkbox;
+            break;
+          }
+        }
+      }
+      
       if (completionCheckbox) {
         completionCheckbox.checked = true;
         const label = completionCheckbox.closest('label');
@@ -800,7 +848,50 @@ function loadProgressData(progressData) {
   
   updateProgress(rolePage);
 }
+//
 
+// ===== FUNGSI TAMBAHAN UNTUK FORMAT TANGGAL =====
+function formatDateForInput(dateValue) {
+  try {
+    if (!dateValue) return '';
+    
+    let date;
+    if (dateValue instanceof Date) {
+      date = dateValue;
+    } else if (typeof dateValue === 'string') {
+      // Coba parse berbagai format tanggal
+      const parsed = new Date(dateValue);
+      if (!isNaN(parsed.getTime())) {
+        date = parsed;
+      } else {
+        // Coba format dd/mm/yyyy atau dd-mm-yyyy
+        const parts = dateValue.split(/[\/\-]/);
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const year = parseInt(parts[2], 10);
+          date = new Date(year, month, day);
+        } else {
+          return '';
+        }
+      }
+    } else {
+      return '';
+    }
+    
+    // Format ke yyyy-MM-dd untuk input[type="date"]
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return '';
+  }
+}
+
+//
 function findCheckboxByTaskName(taskName, tahap, pageId) {
   const pageElement = document.getElementById(pageId);
   if (!pageElement) return null;
@@ -817,6 +908,13 @@ function findCheckboxByTaskName(taskName, tahap, pageId) {
       if (labelText.includes(cleanTaskName) || cleanTaskName.includes(labelText)) {
         return checkbox;
       }
+    }
+  }
+  
+  if (tahap === 4 && taskName.includes('COMPLETION')) {
+    const completionInput = pageElement.querySelector('.sub-task-text[data-task*="completion"]');
+    if (completionInput) {
+      return completionInput;
     }
   }
   
@@ -1124,21 +1222,53 @@ async function saveTahap4() {
   const commentEl = tahap4Section.querySelector('.tahap-comments');
   const deliveryEl = tahap4Section.querySelector('.key-delivery-input');
   const saveButton = tahap4Section.querySelector('.btn-save-section');
+
+  // Cari checkbox completion di tahap 4
+  let completionCheckbox = tahap4Section.querySelector('.sub-task[data-task="COMPLETION / Penyelesaian akhir"]');
+  if (!completionCheckbox) {
+    // Cari dengan cara lain jika data-task tidak ada
+    const allCheckboxes = tahap4Section.querySelectorAll('.sub-task[type="checkbox"]');
+    for (const checkbox of allCheckboxes) {
+      const label = checkbox.closest('label');
+      if (label && label.textContent.toLowerCase().includes('completion')) {
+        completionCheckbox = checkbox;
+        break;
+      }
+    }
+  }
+  
+  const saveButton = tahap4Section.querySelector('.btn-save-section');
   
   const tahapData = {};
-  if (commentEl) tahapData["KETERANGAN"] = commentEl.value;
-  if (deliveryEl) tahapData["PENYERAHAN KUNCI"] = deliveryEl.value;
+
+   if (completionCheckbox) {
+    tahapData['COMPLETION / Penyelesaian akhir'] = completionCheckbox.checked;
+    console.log('Completion checked:', completionCheckbox.checked);
+  }
   
-  // Tambahkan KETERANGAN
-  if (commentEl) tahapData["KETERANGAN"] = commentEl.value.trim();
+   if (commentEl) {
+    tahapData['KETERANGAN'] = commentEl.value.trim();
+    console.log('Keterangan:', tahapData['KETERANGAN']);
+  }
   
   // Tambahkan PENYERAHAN KUNCI
-  if (deliveryEl) tahapData["PENYERAHAN KUNCI"] = deliveryEl.value.trim();
+  if (deliveryEl) {
+    tahapData['PENYERAHAN KUNCI'] = deliveryEl.value.trim();
+    console.log('Penyerahan Kunci:', tahapData['PENYERAHAN KUNCI']);
+  }
+
+   // Tambahkan TANGGAL_PENYERAHAN_KUNCI
+  if (dateEl && dateEl.value) {
+    tahapData['TANGGAL_PENYERAHAN_KUNCI'] = dateEl.value;
+    console.log('Tanggal:', tahapData['TANGGAL_PENYERAHAN_KUNCI']);
+  }
+  
   // Tambahkan LT, LB, dan TYPE
   if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
   if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
   if (currentKavlingData.type) tahapData['TYPE'] = currentKavlingData.type;
-
+ console.log('Tahap 4 data to save:', tahapData);
+  
   if (saveButton) {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveButton.disabled = true;
@@ -1170,9 +1300,18 @@ async function saveTahap4() {
       }
       
       updateProgress(rolePage);
+   // Jika completion dicentang, update total progress
+      if (completionCheckbox && completionCheckbox.checked) {
+        setTimeout(() => {
+          // Refresh data untuk mendapatkan progress terbaru
+          searchKavling();
+        }, 500);
+      }
+      
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 4');
     }
+    
   } catch (error) {
     console.error('Error saving tahap 4:', error);
     showToast('error', 'Gagal menyimpan: ' + error.message);
@@ -1445,6 +1584,181 @@ function filterKavlingByProgress(category) {
   const activeCardClass = `.stat-${category === 'almostCompleted' ? 'almost' : (category === 'inProgress' ? 'progress' : (category === 'all' ? 'total' : category))}`;
   const activeCard = document.querySelector(activeCardClass);
   if (activeCard) activeCard.classList.add('active-filter');
+}
+
+async function saveUtilitasData() {
+  if (!selectedKavling) {
+    showToast('warning', 'Pilih kavling terlebih dahulu!');
+    return;
+  }
+  
+  const listrikDate = document.getElementById('listrikInstallDate')?.value || '';
+  const airDate = document.getElementById('airInstallDate')?.value || '';
+  const notes = document.getElementById('utilityNotes')?.value || '';
+  
+  console.log('Saving utilitas data:', { listrikDate, airDate, notes });
+  
+  showGlobalLoading('Menyimpan data utilitas...');
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'saveUtilitasData',
+      kavling: selectedKavling,
+      listrikDate: listrikDate,
+      airDate: airDate,
+      notes: notes,
+      user: 'user4'
+    });
+    
+    if (result.success) {
+      showToast('success', 'Data utilitas berhasil disimpan!');
+      
+      // Update data lokal jika perlu
+      if (currentKavlingData) {
+        if (!currentKavlingData.utilitas) currentKavlingData.utilitas = {};
+        currentKavlingData.utilitas.listrikDate = listrikDate;
+        currentKavlingData.utilitas.airDate = airDate;
+        currentKavlingData.utilitas.notes = notes;
+      }
+    } else {
+      showToast('error', 'Gagal menyimpan: ' + result.message);
+    }
+  } catch (error) {
+    console.error('Error saving utilitas:', error);
+    showToast('error', 'Error: ' + error.message);
+  } finally {
+    hideGlobalLoading();
+  }
+}
+
+function setupUser4Page() {
+  console.log('Setting up User4 page...');
+  
+  // Setup tabs
+  setupUser4Tabs();
+  
+  // Setup save button untuk utilitas
+  const btnSaveUtility = document.getElementById('btnSaveUtility');
+  if (btnSaveUtility) {
+    // Hapus listener lama jika ada
+    const newBtn = btnSaveUtility.cloneNode(true);
+    btnSaveUtility.parentNode.replaceChild(newBtn, btnSaveUtility);
+    
+    newBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      saveUtilitasData();
+    });
+  }
+  
+  // Setup save buttons untuk mutasi kunci
+  setupMutasiButtons();
+  
+  // Setup dropdown search
+  const searchSelect = document.getElementById('searchKavlingUser4');
+  if (searchSelect) {
+    searchSelect.addEventListener('change', function() {
+      if (this.value) {
+        searchKavling();
+      }
+    });
+  }
+  
+  console.log('User4 page setup complete');
+}
+
+function setupMutasiButtons() {
+  // Button mutasi masuk
+  const btnMutasiMasuk = document.querySelector('#tab-kunci-masuk .btn-save-section');
+  if (btnMutasiMasuk) {
+    btnMutasiMasuk.addEventListener('click', function(e) {
+      e.preventDefault();
+      saveMutasi('masuk');
+    });
+  }
+  
+  // Button mutasi keluar
+  const btnMutasiKeluar = document.querySelector('#tab-kunci-keluar .btn-save-section');
+  if (btnMutasiKeluar) {
+    btnMutasiKeluar.addEventListener('click', function(e) {
+      e.preventDefault();
+      saveMutasi('keluar');
+    });
+  }
+  
+  // Button mutasi HO
+  const btnMutasiHO = document.querySelector('#tab-ho-user .btn-save-section');
+  if (btnMutasiHO) {
+    btnMutasiHO.addEventListener('click', function(e) {
+      e.preventDefault();
+      saveMutasi('ho');
+    });
+  }
+}
+
+async function saveMutasi(type) {
+  if (!selectedKavling) {
+    showToast('warning', 'Pilih kavling terlebih dahulu!');
+    return;
+  }
+  
+  let dariInput, keInput, tglInput;
+  
+  switch(type) {
+    case 'masuk':
+      dariInput = document.querySelector('.input-mutasi-masuk-dari');
+      keInput = document.querySelector('.input-mutasi-masuk-ke');
+      tglInput = document.querySelector('.input-mutasi-masuk-tgl');
+      break;
+    case 'keluar':
+      dariInput = document.querySelector('.input-mutasi-keluar-dari');
+      keInput = document.querySelector('.input-mutasi-keluar-ke');
+      tglInput = document.querySelector('.input-mutasi-keluar-tgl');
+      break;
+    case 'ho':
+      dariInput = document.querySelector('.input-mutasi-ho-dari');
+      keInput = document.querySelector('.input-mutasi-ho-ke');
+      tglInput = document.querySelector('.input-mutasi-ho-tgl');
+      break;
+  }
+  
+  const dari = dariInput?.value || '';
+  const ke = keInput?.value || '';
+  const tgl = tglInput?.value || '';
+  
+  if (!dari || !ke) {
+    showToast('warning', 'Nama pemberi dan penerima harus diisi!');
+    return;
+  }
+  
+  showGlobalLoading('Menyimpan mutasi kunci...');
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'saveMutasi',
+      kavling: selectedKavling,
+      type: type,
+      dari: dari,
+      ke: ke,
+      tanggal: tgl,
+      user: 'user4'
+    });
+    
+    if (result.success) {
+      showToast('success', `Mutasi kunci ${type} berhasil disimpan!`);
+      
+      // Reset form jika berhasil
+      if (dariInput) dariInput.value = '';
+      if (keInput) keInput.value = '';
+      if (tglInput) tglInput.value = '';
+    } else {
+      showToast('error', 'Gagal menyimpan: ' + result.message);
+    }
+  } catch (error) {
+    console.error('Error saving mutasi:', error);
+    showToast('error', 'Error: ' + error.message);
+  } finally {
+    hideGlobalLoading();
+  }
 }
 
 function downloadKavlingToExcel(title) {
@@ -2226,6 +2540,19 @@ function setupDynamicEventListeners() {
       }
     });
   });
+
+  // btn.save tahap 4
+document.querySelectorAll('.btn-save-section[data-tahap="4"]').forEach(btn => {
+  // Hapus event listener lama jika ada
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  
+  // Tambah event listener baru
+  newBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    saveTahap4();
+  });
+});
   
   // 6. Tombol save catatan manager
   const managerSaveNotesBtn = document.querySelector('#tab-notes .btn-save-section');
@@ -2690,6 +3017,12 @@ function updateProgress(rolePage) {
           completedTasksWeight += weight;
         }
       }
+   else if (task.type === 'text' || task.type === 'textarea' || task.type === 'date') {
+        // Untuk field text/textarea/date di tahap 4, hitung jika ada isi
+        if (tahap === '4' && task.value && task.value.trim() !== '') {
+          completedTasksWeight += weight;
+        }
+      }
     });
 
     const sectionPercent = totalSectionWeight > 0 ? (completedTasksWeight / totalSectionWeight) * 100 : 0;
@@ -2712,6 +3045,8 @@ function updateProgress(rolePage) {
 
   updateTotalProgressDisplay(Math.round(totalWeightedProgress) + '%', rolePage);
 }
+
+//--------------
 
 function updateTotalProgressDisplay(progress, pageId) {
   const pageElement = document.getElementById(pageId);
