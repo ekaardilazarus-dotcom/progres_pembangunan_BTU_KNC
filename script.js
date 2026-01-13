@@ -1655,6 +1655,34 @@ function updateDashboardTitle(role, name) {
   }
 }
 
+function setupUser4Tabs() {
+  const page = document.getElementById('user4Page');
+  if (!page) return;
+  
+  const tabBtns = page.querySelectorAll('.admin-tab-btn');
+  const tabContents = page.querySelectorAll('.tab-content-item');
+  
+  console.log('Setting up User4 tabs, count:', tabBtns.length);
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabId = this.getAttribute('data-tab');
+      console.log('User4 Tab clicked:', tabId);
+      
+      // Hapus active dari semua tombol dan konten di halaman ini
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      // Tambah active ke yang dipilih
+      this.classList.add('active');
+      const targetTab = page.querySelector('#tab-' + tabId);
+      if (targetTab) {
+        targetTab.classList.add('active');
+      }
+    });
+  });
+}
+
 function showPage(role) {
   document.querySelectorAll('.page-content').forEach(page => {
     page.style.display = 'none';
@@ -1689,6 +1717,11 @@ function showPage(role) {
       setTimeout(() => {
         loadKavlingList();
         setupPelaksanaTabs();
+      }, 500);
+    } else if (role === 'user4') {
+      setTimeout(() => {
+        loadKavlingList();
+        setupUser4Tabs();
       }, 500);
     } else {
       setTimeout(loadKavlingList, 500);
@@ -2157,8 +2190,8 @@ function setupRoleButtons() {
           'user1': 'Pelaksana 1',
           'user2': 'Pelaksana 2', 
           'user3': 'Pelaksana 3',
-          'user4': 'Pelaksana 4',
-          'manager': 'Management',
+          'user4': 'Admin Property',
+          'manager': 'Supervisor',
           'admin': 'Admin'
         };
         
