@@ -2373,9 +2373,9 @@ function setupRoleButtons() {
           'user1': 'Pelaksana 1',
           'user2': 'Pelaksana 2', 
           'user3': 'Pelaksana 3',
-          'user4': 'Admin Property',
+          'user4': 'Admin Utilitas',
           'manager': 'Supervisor',
-          'admin': 'Admin'
+          'admin': 'AdminSystemWeb'
         };
         
         const modalTitle = document.getElementById('modalTitle');
