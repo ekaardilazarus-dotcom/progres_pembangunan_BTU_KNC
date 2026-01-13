@@ -768,16 +768,101 @@ footer {
 }
 /* Tambahkan di akhir file CSS */
 
-/* ===== ADMIN PANEL STYLES ===== */
-.admin-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding: 10px;
-  background: #1e293b;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* Admin Utilitas Tab Colors */
+.admin-tab-btn[data-tab="kunci-masuk"].active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+    color: white;
 }
+
+.admin-tab-btn[data-tab="kunci-keluar"].active {
+    background: linear-gradient(135deg, #f43f5e, #e11d48);
+    border-color: #f43f5e;
+    color: white;
+}
+
+.admin-tab-btn[data-tab="ho-user"].active {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    border-color: #8b5cf6;
+    color: white;
+}
+
+.admin-tab-btn[data-tab="utility-install"].active {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #f59e0b;
+    color: white;
+}
+
+.admin-tab-btn[data-tab="kunci-masuk"]:hover:not(.active) {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.admin-tab-btn[data-tab="kunci-keluar"]:hover:not(.active) {
+    background: rgba(244, 63, 94, 0.1);
+    border-color: #f43f5e;
+    color: #f43f5e;
+}
+
+.admin-tab-btn[data-tab="ho-user"]:hover:not(.active) {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: #8b5cf6;
+    color: #8b5cf6;
+}
+
+.admin-tab-btn[data-tab="utility-install"]:hover:not(.active) {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+/* Manager Tab Colors */
+.admin-tab-btn.tab-manager-notes.active {
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    border-color: #38bdf8;
+    color: white;
+}
+
+.admin-tab-btn.tab-manager-reports.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+    color: white;
+}
+
+/* Export Buttons */
+.btn-export {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-export.excel {
+    background: #166534;
+}
+
+.btn-export.pdf {
+    background: #991b1b;
+}
+
+.btn-export:hover {
+    filter: brightness(1.2);
+    transform: translateY(-1px);
+}
+
+.btn-export:active {
+    transform: translateY(0);
+}
+
 
 .admin-tab-btn {
   flex: 1;
