@@ -1,6 +1,6 @@
 // versi 0.234
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUv9ve9urk54EcCKtYowStDC0SF8kB4YAqLNJkfaCz6uIi7Bt-qsopHtcpzEfRuLoGqA/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw39cSaawtBKQ91j_rVKoTNjuzKwYlV1yW9dReEMtc_DyS2SdBQSeJrcAIJzgrZ8UFQMA/exec';
 
 let currentRole = null;
 let selectedKavling = null;
@@ -1288,9 +1288,11 @@ async function saveTahap4() {
     if (result.success) {
       showToast('success', `Berhasil! Tahap 4 untuk Blok ${selectedKavling} telah tersimpan.`);
       
-      // Update data lokal
+      // PERBAIKAN PENTING: Update data lokal
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap4) currentKavlingData.data.tahap4 = {};
+        
+        // Update semua field tahap 4
         Object.keys(tahapData).forEach(taskName => {
           if (taskName !== 'LT' && taskName !== 'LB' && taskName !== 'TYPE') {
             currentKavlingData.data.tahap4[taskName] = tahapData[taskName];
@@ -1298,14 +1300,35 @@ async function saveTahap4() {
         });
       }
       
-      updateProgress(rolePage);
-   // Jika completion dicentang, update total progress
-      if (completionCheckbox && completionCheckbox.checked) {
-        setTimeout(() => {
-          // Refresh data untuk mendapatkan progress terbaru
-          searchKavling();
-        }, 500);
+      // PERBAIKAN: Update total progress display dengan benar
+      if (result.totalProgress) {
+        updateTotalProgressDisplay(result.totalProgress, rolePage);
+        
+        // Update juga di overall rekap
+        const overallPercent = document.querySelector(`#${rolePage} .total-percent`);
+        const overallBar = document.querySelector(`#${rolePage} .total-bar`);
+        
+        if (overallPercent) {
+          overallPercent.textContent = result.totalProgress;
+        }
+        if (overallBar) {
+          // Parse persentase untuk width
+          let percentValue = 0;
+          if (typeof result.totalProgress === 'string') {
+            const match = result.totalProgress.match(/(\d+)%/);
+            if (match) {
+              percentValue = parseInt(match[1]);
+            }
+          }
+          overallBar.style.width = percentValue + '%';
+        }
       }
+      
+      // PERBAIKAN: Refresh data kavling untuk mendapatkan progress terbaru dari server
+      setTimeout(async () => {
+        await searchKavling(); // Ini akan memuat ulang data dengan progress terbaru
+        updateProgress(rolePage); // Update perhitungan progress lokal
+      }, 300);
       
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 4');
@@ -2564,11 +2587,17 @@ document.querySelectorAll('.btn-save-section[data-tahap="4"]').forEach(btn => {
 
   // 7. Tombol save tahap progress
   document.querySelectorAll('.btn-save-section:not(#tab-notes .btn-save-section)').forEach(btn => {
-    btn.addEventListener('click', function(e) {
+ const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    // Tambah listener baru
+    newBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      const section = btn.closest('.progress-section');
+      const section = this.closest('.progress-section');
       if (section) {
         const tahap = section.getAttribute('data-tahap');
+        console.log(`Save button clicked for tahap ${tahap}`);
+        
         if (tahap === '1') saveTahap1();
         else if (tahap === '2') saveTahap2();
         else if (tahap === '3') saveTahap3();
@@ -3030,14 +3059,33 @@ function updateProgress(rolePage) {
       progressFill.style.width = sectionPercent + '%';
     }
 
-    // Weights for overall progress: Tahap 1 (40%), Tahap 2 (30%), Tahap 3 (20%), Tahap 4 (10%)
-    const tahapWeights = { '1': 0.4, '2': 0.3, '3': 0.2, '4': 0.1 };
-    const weightFactor = tahapWeights[tahap] || 0.25;
+    // PERBAIKAN: Weight yang lebih realistis
+    // Tahap 1: 40%, Tahap 2: 30%, Tahap 3: 20%, Tahap 4: 10%
+    const tahapWeights = { 
+      '1': 0.40,  // 40%
+      '2': 0.30,  // 30%
+      '3': 0.20,  // 20%
+      '4': 0.10   // 10%
+    };
     
+    const weightFactor = tahapWeights[tahap] || 0.25;
     totalWeightedProgress += sectionPercent * weightFactor;
   });
-
+  // PERBAIKAN: Update dengan persentase yang benar
+  const roundedProgress = Math.round(totalWeightedProgress);
   updateTotalProgressDisplay(Math.round(totalWeightedProgress) + '%', rolePage);
+ // Juga update langsung di overall rekap
+  const overallPercent = pageElement.querySelector('.total-percent');
+  const overallBar = pageElement.querySelector('.total-bar');
+  
+  if (overallPercent) {
+    overallPercent.textContent = roundedProgress + '%';
+  }
+  if (overallBar) {
+    overallBar.style.width = roundedProgress + '%';
+  }
+  
+  console.log(`Updated progress for ${rolePage}: ${roundedProgress}%`);
 }
 
 //--------------
