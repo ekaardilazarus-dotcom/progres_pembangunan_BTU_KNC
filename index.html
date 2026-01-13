@@ -86,33 +86,52 @@
             <i class="fas fa-hard-hat"></i>
             <h3>Pelaksana 2</h3>
           </button>
-          <button class="role-btn user3" data-role="user3" type="button" aria-label="Login sebagai Pelaksana 3">
-            <i class="fas fa-hard-hat"></i>
-            <h3>Pelaksana 3</h3>
-          </button>
-          <button class="role-btn user4" data-role="user4" type="button" aria-label="Login sebagai Pelaksana 4">
+          <div style="grid-column: span 2; display: flex; justify-content: center;">
+            <button class="role-btn user3" data-role="user3" type="button" aria-label="Login sebagai Pelaksana 3" style="width: calc(50% - 6px);">
+              <i class="fas fa-hard-hat"></i>
+              <h3>Pelaksana 3</h3>
+            </button>
+          </div>
+          <button class="role-btn user4" data-role="user4" type="button" aria-label="Login sebagai Pelaksana 4" style="display: none;">
             <i class="fas fa-hard-hat"></i>
             <h3>Pelaksana 4</h3>
           </button>
         </div>
       </div>
 
-      <!-- Section Manager & Admin -->
+      <!-- Section Manager & Admin Property -->
       <div class="section-container">
-        <h2 class="section-title">Management Property & Admin</h2>
-        <div class="role-selector manager-set" id="managerSelector">
-          <button class="role-btn manager" data-role="manager" type="button" aria-label="Login sebagai MANAGEMENT">
-            <i class="fas fa-user-tie"></i>
-            <h3>MANAGEMENT</h3>
-            <span class="badge">Management Property</span>
+        <h2 class="section-title">Management & Admin Property</h2>
+        <div class="role-selector manager-handover-set" id="managerHandoverSelector">
+          <button class="role-btn user4" data-role="user4" type="button" aria-label="Login untuk Input Mutasi Kunci">
+            <div style="display: flex; gap: 10px; font-size: 2rem; margin-bottom: 12px; color: white;">
+              <i class="fas fa-key"></i>
+              <i class="fas fa-bolt"></i>
+              <i class="fas fa-tint"></i>
+            </div>
+            <h3>Admin Property</h3>
+            <span class="badge">Management Utilitas</span>
           </button>
-          <button class="role-btn admin" data-role="admin" type="button" aria-label="Login sebagai Admin">
+          <button class="role-btn manager" data-role="manager" type="button" aria-label="Login sebagai Supervisor">
+            <i class="fas fa-user-tie"></i>
+            <h3>Supervisor</h3>
+            <span class="badge">Management Kondisi Property</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Section Admin -->
+      <div class="section-container">
+        <h2 class="section-title">Administrator Sistem</h2>
+        <div class="role-selector admin-set" id="adminSelector">
+          <button class="role-btn admin" data-role="admin" type="button" aria-label="Login sebagai Admin" style="grid-column: span 2;">
             <i class="fas fa-user-secret"></i>
             <h3>Admin</h3>
             <span class="badge">Administrator Sistem</span>
           </button>
         </div>
       </div>
+    </div>
     </div>
 
     <!-- Global Loading Modal -->
@@ -917,177 +936,97 @@
     <div class="page-content user4-page" id="user4Page" aria-hidden="true">
       <div class="page-header">
         <div class="page-title">
-          <i class="fas fa-hard-hat"></i>
-          <h2 id="user4Title">Dashboard Pelaksana 4</h2>
+          <i class="fas fa-key"></i>
+          <h2 id="user4Title">Admin Property</h2>
         </div>
         <div style="display:flex; gap:15px; align-items:center;">
           <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
             <i class="fas fa-sign-out-alt"></i> Kembali ke Menu Awal & Logout
           </button>
-              <button class="btn-add-kavling" type="button" style="background: linear-gradient(135deg, #10b981, #059669); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
-      <i class="fas fa-plus-circle"></i> Tambah Kavling
-    </button>
-          <button class="sync-btn combined-btn" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
-            <i class="fas fa-sync-alt"></i> Sinkronkan Data
-          </button>
         </div>
       </div>
 
       <div class="page-layout">
-        <div class="sidebar-kavling">
-          <div class="search-section">
-            <div class="search-box">
-              <select id="searchKavlingUser4" class="search-select-large" aria-label="Pilih Blok/Kavling">
-                <option value="">-- Pilih Kavling --</option>
-              </select>
-            </div>
-            
-            <div class="kavling-info-display" id="kavlingInfoUser4">
-              <div class="info-item">
-                <span class="info-label">Blok/Kavling:</span>
-                <span class="info-value val-name">-</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Type:</span>
-                <span class="info-value val-type">-</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Luas Tanah (LT):</span>
-                <span class="info-value val-lt">-</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Luas Bangunan (LB):</span>
-                <span class="info-value val-lb">-</span>
-              </div>
-            </div>
-          </div>
+        <div class="admin-tabs">
+          <button class="admin-tab-btn active" data-tab="kunci-masuk">
+            <i class="fas fa-sign-in-alt"></i> Mutasi Kunci Masuk
+          </button>
+          <button class="admin-tab-btn" data-tab="kunci-keluar">
+            <i class="fas fa-sign-out-alt"></i> Mutasi Kunci Keluar
+          </button>
+          <button class="admin-tab-btn" data-tab="ho-user">
+            <i class="fas fa-user-check"></i> Mutasi HO Ke User
+          </button>
         </div>
 
-        <div class="page-body">
-          <div class="overall-rekap">
-            <div class="rekap-header">
-              <h3>Keseluruhan Progres Proyek</h3>
-              <span class="total-percent" aria-live="polite">0%</span>
-            </div>
-            <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
-          </div>
-
-          <!-- TAHAP 1 - DIPERBAIKI -->
-          <div class="progress-section detailed" data-tahap="1">
-            <div class="section-header-flex">
-              <h3>Tahap 1: Struktur & Infrastruktur</h3>
-              <span class="sub-percent">0%</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill tahap1" style="width: 0%"></div></div>
-            <div class="sub-tasks-grid">
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="LAND CLEARING"> Land Clearing</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PONDASI"> Pondasi</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="SLOOF"> Sloof</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PAS.DDG S/D2 CANOPY"> Pas.Ddg S/D Canopy</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PAS.DDG S/D RING BLK"> Pas.Ddg S/D Ring Blk</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="CONDUIT+INBOW DOOS"> Conduit + Inbow Doos</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PIPA AIR KOTOR"> Pipa Air Kotor</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PIPA AIR BERSIH"> Pipa Air Bersih</label>
-              
-              <!-- SISTEM PEMBUANGAN - TAHAP 1 -->
-              <label class="task-item waste-system">
-                <span class="item-title">Sistem Pembuangan =</span>
-                <div class="dual-state-buttons">
-                  <button type="button" class="state-btn system-btn" data-state="biotank" data-active="false" onclick="toggleSystemButton(this, 'biotank')">Biotank</button>
-                  <div class="vertical-divider">|</div>
-                  <button type="button" class="state-btn system-btn" data-state="ipal" data-active="false" onclick="toggleSystemButton(this, 'ipal')">Ipal</button>
-                  <div class="vertical-divider">|</div>
-                  <button type="button" class="state-btn system-btn" data-state="septictank" data-active="false" onclick="toggleSystemButton(this, 'septictank')">Septictank</button>
-                </div>
-                <input type="hidden" name="waste-system" value="" class="sub-task" data-weight="1" data-task="SISTEM PEMBUANGAN" id="wasteSystemInput">
-              </label>
-              
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PLESTER"> Plester</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="ACIAN & BENANGAN"> Acian & Benangan</label>
-              
-              <!-- COR MEJA DAPUR - TAHAP 1 -->
-              <label class="task-item table-kitchen">
-                <span class="item-title">Cor Meja Dapur =</span>
-                <div class="dual-state-buttons">
-                  <button type="button" class="state-btn table-btn" data-state="include" data-active="false" onclick="toggleTableButton(this, 'include')">Dengan Cor Meja Dapur</button>
-                  <div class="vertical-divider">|</div>
-                  <button type="button" class="state-btn table-btn" data-state="exclude" data-active="false" onclick="toggleTableButton(this, 'exclude')">Tanpa Cor Meja Dapur</button>
-                </div>
-                <input type="hidden" name="table-kitchen" value="" class="sub-task" data-weight="1" data-task="COR MEJA DAPUR" id="tableKitchenInput">
-              </label>
-            </div>
-           
-            <button class="btn-save-section" type="button" data-tahap="1"><i class="fas fa-save"></i> Simpan Tahap 1</button>
-          </div>
-
-          <!-- TAHAP 2 - DIPERBAIKI -->
-          <div class="progress-section detailed" data-tahap="2">
-            <div class="section-header-flex">
-              <h3>Tahap 2: Atap, Dinding & Lantai</h3>
-              <span class="sub-percent">0%</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill tahap2" style="width: 0%"></div></div>
-            <div class="sub-tasks-grid">
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="RANGKA ATAP"> Rangka Atap</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="GENTENG"> Genteng</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PLAFOND"> Plafond</label>
-              
-              <!-- KERAMIK DINDING TOILET & DAPUR - TAHAP 2 -->
-              <label class="task-item bathroom-tiles">
-                <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
-                <div class="dual-state-buttons">
-                  <button type="button" class="state-btn tiles-btn" data-state="include" data-active="false" onclick="toggleTilesButton(this, 'include')">Dengan Keramik Dinding</button>
-                  <div class="vertical-divider">|</div>
-                  <button type="button" class="state-btn tiles-btn" data-state="exclude" data-active="false" onclick="toggleTilesButton(this, 'exclude')">Tanpa Keramik Dinding</button>
-                </div>
-                <input type="hidden" name="bathroom-tiles" value="" class="sub-task" data-weight="1" data-task="KERAMIK DINDING TOILET & DAPUR" id="bathroomTilesInput">
-              </label>
-              
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="INSTALASI LISTRIK"> Instalasi Listrik</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="KERAMIK LANTAI"> Keramik Lantai</label>
-            </div>
-                        
-            <button class="btn-save-section" type="button" data-tahap="2"><i class="fas fa-save"></i> Simpan Tahap 2</button>
-          </div>
-
-          <!-- TAHAP 3 -->
-          <div class="progress-section detailed" data-tahap="3">
-            <div class="section-header-flex">
-              <h3>Tahap 3: Finishing & Serah Terima</h3>
-              <span class="sub-percent">0%</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill tahap3" style="width: 0%"></div></div>
-            <div class="sub-tasks-grid">
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="KUSEN PINTU & JENDELA"> Kusen Pintu & Jendela</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="DAUN PINTU & JENDELA"> Daun Pintu & Jendela</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="CAT DASAR + LAPIS AWAL"> Cat Dasar + Lapis Awal</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="FITTING LAMPU"> Fitting Lampu</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="FIXTURE & SANITER"> Fixture & Saniter</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="CAT FINISH INTERIOR"> Cat Finish Interior</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="CAT FINISH EXTERIOR"> Cat Finish Exterior</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="BAK KONTROL & BATAS CARPORT"> Bak Kontrol & Batas Carport</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PAVING HALAMAN"> Paving Halaman</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="GENERAL CLEANING"> General Cleaning</label>
-              <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="COMPLETION / Penyelesaian akhir"> Completion</label>
-              
-              <div class="comment-item" style="width: 100%; margin-top: 10px;">
-                <label style="display: block; margin-bottom: 5px; color: #94a3b8; font-size: 0.9rem;">Keterangan Tambahan:</label>
-                <textarea class="tahap-comments" data-task="KETERANGAN" style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155; resize: none;" placeholder="Masukkan komentar..."></textarea>
+        <div class="tab-content">
+          <!-- Mutasi Kunci Masuk -->
+          <div id="tab-kunci-masuk" class="tab-content-item active">
+            <div class="progress-section detailed">
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Diberikan Oleh:</label>
+                <input type="text" class="input-mutasi" placeholder="Nama Pemberi" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
               </div>
-            </div>           
-            <button class="btn-save-section" type="button" data-tahap="3"><i class="fas fa-save"></i> Simpan Tahap 3</button>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Diterima Oleh:</label>
+                <input type="text" class="input-mutasi" placeholder="Nama Penerima" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Tanggal:</label>
+                <input type="date" class="input-mutasi" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+              </div>
+              <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Mutasi Masuk</button>
+            </div>
+          </div>
+
+          <!-- Mutasi Kunci Keluar -->
+          <div id="tab-kunci-keluar" class="tab-content-item">
+            <div class="progress-section detailed">
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Diberikan Oleh:</label>
+                <input type="text" class="input-mutasi-keluar-dari" placeholder="Nama Pemberi" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Diterima Oleh:</label>
+                <input type="text" class="input-mutasi-keluar-ke" placeholder="Nama Penerima" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Tanggal:</label>
+                <input type="date" class="input-mutasi-keluar-tgl" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+              </div>
+              <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Mutasi Keluar</button>
+            </div>
+          </div>
+
+          <!-- Mutasi HO Ke User -->
+          <div id="tab-ho-user" class="tab-content-item">
+            <div class="progress-section detailed">
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Diberikan Oleh:</label>
+                <input type="text" class="input-mutasi-ho-dari" placeholder="Nama Pemberi" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Diterima Oleh:</label>
+                <input type="text" class="input-mutasi-ho-ke" placeholder="Nama Penerima" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Tanggal:</label>
+                <input type="date" class="input-mutasi-ho-tgl" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+              </div>
+              <button class="btn-save-section" type="button"><i class="fas fa-save"></i> Simpan Mutasi HO</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-<!-- PAGE: manager (SETELAH PELAKSANA, SEBELUM ADMIN) -->
-<div class="page-content manager-page" id="managerPage" aria-hidden="true">
-  <div class="page-header">
-    <div class="page-title">
-      <i class="fas fa-user-tie"></i>
-      <h2>Management Property</h2>
-    </div>
+    <!-- PAGE: manager (SETELAH PELAKSANA, SEBELUM ADMIN) -->
+    <div class="page-content manager-page" id="managerPage" aria-hidden="true">
+      <div class="page-header">
+        <div class="page-title">
+          <i class="fas fa-user-tie"></i>
+          <h2>Supervisor</h2>
+        </div>
     <div style="display:flex; gap:15px; align-items:center;">
       <button class="logout-btn combined-btn" type="button" style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding:8px 12px; border-radius:10px; color:white; border:none; font-weight:700; font-size: 0.9rem; cursor: pointer;">
         <i class="fas fa-sign-out-alt"></i> Kembali ke Menu Awal & Logout
@@ -1113,52 +1052,50 @@
         </button>
       </div>
 
-      <!-- Tab Content -->
-      <div class="tab-content">
-        <div id="tab-notes" class="tab-content-item active">
-          <div class="sidebar-kavling">
-            <div class="search-section">
-              <div class="search-box">
-                <select id="searchKavlingManager" class="search-select-large" aria-label="Pilih Blok/Kavling">
-                  <option value="">-- Pilih Kavling --</option>
-                </select>
-              </div>
-              
-              <div class="kavling-info-display" id="kavlingInfoManager">
-                <div class="info-item">
-                  <span class="info-label">Blok/Kavling:</span>
-                  <span class="info-value val-name">-</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Type:</span>
-                  <span class="info-value val-type">-</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Luas Tanah (LT):</span>
-                  <span class="info-value val-lt">-</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Luas Bangunan (LB):</span>
-                  <span class="info-value val-lb">-</span>
-                </div>
-              </div>
+            <div id="tab-notes" class="tab-content-item active">
+              <div class="sidebar-kavling">
+                <div class="search-section">
+                  <div class="search-box">
+                    <select id="searchKavlingManager" class="search-select-large" aria-label="Pilih Blok/Kavling">
+                      <option value="">-- Pilih Kavling --</option>
+                    </select>
+                  </div>
+                  
+                  <div class="kavling-info-display" id="kavlingInfoManager">
+                    <div class="info-item">
+                      <span class="info-label">Blok/Kavling:</span>
+                      <span class="info-value val-name">-</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Type:</span>
+                      <span class="info-value val-type">-</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Luas Tanah (LT):</span>
+                      <span class="info-value val-lt">-</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Luas Bangunan (LB):</span>
+                      <span class="info-value val-lb">-</span>
+                    </div>
+                  </div>
 
-              <div id="managerProgressDisplay" style="margin-bottom: 20px; padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 12px; display: none;">
-                <div class="info-item" style="margin-bottom: 10px;">
-                  <span class="info-label">Progres Keseluruhan:</span>
-                  <span class="info-value val-overall" style="font-size: 1.2rem;">0%</span>
-                </div>
-                <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
-              </div>
+                  <div id="managerProgressDisplay" style="margin-bottom: 20px; padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 12px; display: none;">
+                    <div class="info-item" style="margin-bottom: 10px;">
+                      <span class="info-label">Progres Keseluruhan:</span>
+                      <span class="info-value val-overall" style="font-size: 1.2rem;">0%</span>
+                    </div>
+                    <div class="progress-bar main"><div class="progress-fill total-bar" style="width: 0%"></div></div>
+                  </div>
 
-              <div class="notes-section" style="margin-top: 20px;">
-                <h3 style="margin-bottom: 10px; color: #38bdf8;">Catatan Kondisi Property</h3>
-                <textarea id="propertyNotesManager" style="width: 100%; height: 150px; padding: 15px; border-radius: 12px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: none;" placeholder="Masukkan catatan kondisi property di sini..."></textarea>
-                <button class="btn-save-section" type="button" style="margin-top: 10px;"><i class="fas fa-save"></i> Simpan Catatan</button>
+                  <div class="notes-section" style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 10px; color: #38bdf8;">Catatan Kondisi Property</h3>
+                    <textarea id="propertyNotesManager" style="width: 100%; height: 150px; padding: 15px; border-radius: 12px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: none;" placeholder="Masukkan catatan kondisi property di sini..."></textarea>
+                    <button class="btn-save-section" type="button" style="margin-top: 10px;"><i class="fas fa-save"></i> Simpan Catatan</button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
         <div id="tab-reports" class="tab-content-item">
           <div id="summaryReportContainer">
