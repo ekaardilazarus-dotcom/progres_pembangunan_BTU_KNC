@@ -1633,14 +1633,21 @@ async function submitNewKavling() {
   const typeInput = document.getElementById('newKavlingType');
   const submitBtn = document.getElementById('submitNewKavling');
   
-  if (!nameInput || !ltInput || !lbInput) {
-    console.error('Missing inputs');
+ if (!nameInput || !ltInput || !lbInput) { 
+    console.error('Missing inputs:', {
+      nameInput: !!nameInput,
+      ltInput: !!ltInput,
+      lbInput: !!lbInput,
+      typeInput: !!typeInput
+    });
+    showToast('error', 'Form tidak lengkap!');
     return;
   }
   
   const name = nameInput.value.trim();
   const lt = ltInput.value.trim();
-  const type = typeInput.value.trim(); 
+  const lb = lbInput.value.trim(); 
+  const type = typeInput.value.trim();
   
   console.log('Kavling data:', { name, lt, lb, type });
 
