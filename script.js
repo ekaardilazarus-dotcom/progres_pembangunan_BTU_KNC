@@ -2509,7 +2509,6 @@ function setupAdminTabs() {
   });
 }
 
-// ========== SETUP EVENT LISTENERS ==========
 function setupDynamicEventListeners() {
   console.log('Setting up dynamic event listeners...');
   
@@ -2563,19 +2562,6 @@ function setupDynamicEventListeners() {
     });
   });
 
-  // btn.save tahap 4
-document.querySelectorAll('.btn-save-section[data-tahap="4"]').forEach(btn => {
-  // Hapus event listener lama jika ada
-  const newBtn = btn.cloneNode(true);
-  btn.parentNode.replaceChild(newBtn, btn);
-  
-  // Tambah event listener baru
-  newBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    saveTahap4();
-  });
-});
-  
   // 6. Tombol save catatan manager
   const managerSaveNotesBtn = document.querySelector('#tab-notes .btn-save-section');
   if (managerSaveNotesBtn) {
@@ -2585,23 +2571,38 @@ document.querySelectorAll('.btn-save-section[data-tahap="4"]').forEach(btn => {
     });
   }
 
-  // 7. Tombol save tahap progress
+  // 7. **PERBAIKAN: Tombol save tahap progress (HAPUS bagian spesifik tahap 4)**
   document.querySelectorAll('.btn-save-section:not(#tab-notes .btn-save-section)').forEach(btn => {
- const newBtn = btn.cloneNode(true);
+    const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
     
     // Tambah listener baru
     newBtn.addEventListener('click', function(e) {
       e.preventDefault();
+      console.log('Save button clicked:', this);
+      
       const section = this.closest('.progress-section');
       if (section) {
         const tahap = section.getAttribute('data-tahap');
-        console.log(`Save button clicked for tahap ${tahap}`);
+        console.log(`Processing tahap ${tahap}`);
         
-        if (tahap === '1') saveTahap1();
-        else if (tahap === '2') saveTahap2();
-        else if (tahap === '3') saveTahap3();
-        else if (tahap === '4') saveTahap4();
+        if (tahap === '1') {
+          console.log('Calling saveTahap1');
+          saveTahap1();
+        } else if (tahap === '2') {
+          console.log('Calling saveTahap2');
+          saveTahap2();
+        } else if (tahap === '3') {
+          console.log('Calling saveTahap3');
+          saveTahap3();
+        } else if (tahap === '4') {
+          console.log('Calling saveTahap4');
+          saveTahap4();
+        } else {
+          console.log('Unknown tahap:', tahap);
+        }
+      } else {
+        console.log('No progress section found for this button');
       }
     });
   });
@@ -2617,6 +2618,7 @@ document.querySelectorAll('.btn-save-section[data-tahap="4"]').forEach(btn => {
       
       // Tambah event listener baru
       newEl.addEventListener('change', () => {
+        console.log('Kavling dropdown changed:', selectId);
         searchKavling();
       });
     }
@@ -2656,6 +2658,11 @@ document.querySelectorAll('.btn-save-section[data-tahap="4"]').forEach(btn => {
   // 13. Setup pelaksana tabs jika di halaman user1
   if (document.getElementById('user1Page')) {
     setupPelaksanaTabs();
+  }
+  
+  // 14. Setup user4 tabs jika di halaman user4
+  if (document.getElementById('user4Page')) {
+    setupUser4Tabs();
   }
   
   console.log('Dynamic event listeners setup complete');
