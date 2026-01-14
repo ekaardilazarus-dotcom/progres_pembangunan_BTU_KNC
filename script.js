@@ -1,4 +1,4 @@
-// versi 0.234
+// versi 0.334
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw39cSaawtBKQ91j_rVKoTNjuzKwYlV1yW9dReEMtc_DyS2SdBQSeJrcAIJzgrZ8UFQMA/exec';
 
@@ -564,7 +564,7 @@ function getSelectIdByRole(role) {
     'user4': 'searchKavlingUser4',
     'manager': 'searchKavlingManager'
   };
-  return selectIds[role] || 'searchKavlingManager';
+  return selectIds[role] || `searchKavling${role.charAt(0).toUpperCase() + role.slice(1)}`;
 }
 
 function getKavlingInfoIdByRole(role) {
@@ -575,7 +575,7 @@ function getKavlingInfoIdByRole(role) {
     'user4': 'kavlingInfoUser4',
     'manager': 'kavlingInfoManager'
   };
-  return infoIds[role] || 'kavlingInfoManager';
+  return infoIds[role] || `kavlingInfo${role.charAt(0).toUpperCase() + role.slice(1)}`;
 }
 
 // ========== FUNGSI updateKavlingInfo (PERBAIKAN) ==========
@@ -891,28 +891,26 @@ function findCheckboxByTaskName(taskName, tahap, pageId) {
   const pageElement = document.getElementById(pageId);
   if (!pageElement) return null;
   
-  // Clean the task name for matching
-  const cleanTaskName = taskName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  
+  const cleanTaskName = taskName.toUpperCase().trim();
   const checkboxes = pageElement.querySelectorAll(`[data-tahap="${tahap}"] .sub-task[type="checkbox"]`);
   
-  for (const checkbox of checkboxes) {
-    const label = checkbox.closest('label');
+  for (let cb of checkboxes) {
+    if (cb.getAttribute('data-task') === cleanTaskName) {
+      return cb;
+    }
+  }
+  
+  // Fallback: search by text content if data-task doesn't match
+  const cleanSearch = cleanTaskName.replace(/[^A-Z0-9]/g, '');
+  for (let cb of checkboxes) {
+    const label = cb.closest('label');
     if (label) {
-      const labelText = label.textContent.toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (labelText.includes(cleanTaskName) || cleanTaskName.includes(labelText)) {
-        return checkbox;
+      const labelText = label.textContent.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (labelText.includes(cleanSearch) || cleanSearch.includes(labelText)) {
+        return cb;
       }
     }
   }
-  
-  if (tahap === 4 && taskName.includes('COMPLETION')) {
-    const completionInput = pageElement.querySelector('.sub-task-text[data-task*="completion"]');
-    if (completionInput) {
-      return completionInput;
-    }
-  }
-  
   return null;
 }
 
@@ -936,10 +934,12 @@ async function saveTahap1() {
     "Land Clearing": "LAND CLEARING",
     "Pondasi": "PONDASI",
     "Sloof": "SLOOF",
-    "Pas.Ddg Sampai Dengan Canopy": "PAS.DDG S/D2 CANOPY",
-    "Pas.Ddg Sampai Dengan Ring Blk": "PAS.DDG S/D RING BLK",
     "Pas.Ddg S/D Canopy": "PAS.DDG S/D2 CANOPY",
     "Pas.Ddg S/D Ring Blk": "PAS.DDG S/D RING BLK",
+    "PAS.DDG S/D2 CANOPY": "PAS.DDG S/D2 CANOPY",
+    "PAS.DDG S/D RING BLK": "PAS.DDG S/D RING BLK",
+    "Pas.Ddg S/D Canopy ": "PAS.DDG S/D2 CANOPY",
+    "Pas.Ddg S/D Ring Blk ": "PAS.DDG S/D RING BLK",
     "Conduit + Inbow Doos": "CONDUIT+INBOW DOOS",
     "Pipa Air Kotor": "PIPA AIR KOTOR",
     "Pipa Air Bersih": "PIPA AIR BERSIH",
@@ -951,15 +951,15 @@ async function saveTahap1() {
 
   const tahapData = {};
 
-  // Handle checkbox biasa
-  checkboxes.forEach(checkbox => {
-    if (checkbox.type === 'checkbox') {
-      const label = checkbox.closest('label');
-      const uiTaskName = label.textContent.trim();
-      const spreadsheetTaskName = t1Mapping[uiTaskName] || uiTaskName;
-      tahapData[spreadsheetTaskName] = checkbox.checked;
-    }
-  });
+    // Handle checkbox biasa
+    checkboxes.forEach(checkbox => {
+      if (checkbox.type === 'checkbox') {
+        const spreadsheetTaskName = checkbox.getAttribute('data-task');
+        if (spreadsheetTaskName) {
+          tahapData[spreadsheetTaskName] = checkbox.checked;
+        }
+      }
+    });
 
   // Handle Sistem Pembuangan
   if (wasteSystemInput && wasteSystemInput.value) {
@@ -2251,56 +2251,59 @@ function showPage(role) {
 }
 
 function setupPelaksanaTabs() {
-  const tabBtns = document.querySelectorAll('#user1Page .admin-tab-btn');
-  const tabContents = document.querySelectorAll('#user1Page .tab-content-item');
-  const page = document.getElementById('user1Page');
+  const roles = ['user1', 'user2', 'user3'];
   
-  console.log('Setting up pelaksana tabs, count:', tabBtns.length);
-
-  // Set active tab pertama kali jika belum ada yang active
-  if (tabBtns.length > 0 && !document.querySelector('#user1Page .admin-tab-btn.active')) {
-    tabBtns[0].classList.add('active');
-    const firstTabId = tabBtns[0].getAttribute('data-tab');
-    const firstTab = document.getElementById(`tab-${firstTabId}`);
-    if (firstTab) firstTab.classList.add('active');
-    if (page) page.setAttribute('data-active-tab', firstTabId);
-  } else {
-    // Sync data-active-tab attribute with current active button if it exists
-    const currentActiveBtn = document.querySelector('#user1Page .admin-tab-btn.active');
-    if (currentActiveBtn && page) {
-      page.setAttribute('data-active-tab', currentActiveBtn.getAttribute('data-tab'));
-    }
-  }
-  
-  tabBtns.forEach(btn => {
-    // Remove old listener and add new one
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
+  roles.forEach(role => {
+    const pageId = role + 'Page';
+    const page = document.getElementById(pageId);
+    if (!page) return;
     
-    newBtn.addEventListener('click', function() {
-      const tabId = this.getAttribute('data-tab');
-      console.log('Tab clicked:', tabId);
-      
-      // Select all fresh buttons and contents after clone
-      const allBtns = document.querySelectorAll('#user1Page .admin-tab-btn');
-      const allContents = document.querySelectorAll('#user1Page .tab-content-item');
-      
-      // Hapus active dari semua
-      allBtns.forEach(b => b.classList.remove('active'));
-      allContents.forEach(c => c.classList.remove('active'));
-      
-      // Tambah active ke yang dipilih
-      this.classList.add('active');
-      const targetTab = document.getElementById(`tab-${tabId}`);
-      if (targetTab) {
-        targetTab.classList.add('active');
-      }
+    const tabBtns = page.querySelectorAll('.admin-tab-btn');
+    const tabContents = page.querySelectorAll('.tab-content-item');
+    
+    console.log(`Setting up pelaksana tabs for ${role}, count:`, tabBtns.length);
 
-      // Update parent data attribute for conditional styling
-      if (page) {
-        page.setAttribute('data-active-tab', tabId);
-        console.log('Set data-active-tab to:', tabId);
+    // Set active tab pertama kali jika belum ada yang active
+    if (tabBtns.length > 0 && !page.querySelector('.admin-tab-btn.active')) {
+      tabBtns[0].classList.add('active');
+      const firstTabId = tabBtns[0].getAttribute('data-tab');
+      const firstTab = page.querySelector(`#tab-${firstTabId}`);
+      if (firstTab) firstTab.classList.add('active');
+      page.setAttribute('data-active-tab', firstTabId);
+    } else {
+      const currentActiveBtn = page.querySelector('.admin-tab-btn.active');
+      if (currentActiveBtn) {
+        page.setAttribute('data-active-tab', currentActiveBtn.getAttribute('data-tab'));
       }
+    }
+
+    tabBtns.forEach(btn => {
+      // Remove old listener and add new one
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      newBtn.addEventListener('click', function() {
+        const tabId = this.getAttribute('data-tab');
+        console.log(`Tab clicked for ${role}:`, tabId);
+        
+        // Re-select fresh buttons and contents after clones
+        const allBtns = page.querySelectorAll('.admin-tab-btn');
+        const allContents = page.querySelectorAll('.tab-content-item');
+        
+        // Reset
+        allBtns.forEach(b => b.classList.remove('active'));
+        allContents.forEach(c => c.classList.remove('active'));
+        
+        // Set active
+        this.classList.add('active');
+        const targetTab = page.querySelector(`#tab-${tabId}`);
+        if (targetTab) {
+          targetTab.classList.add('active');
+        }
+
+        // Update parent data attribute
+        page.setAttribute('data-active-tab', tabId);
+      });
     });
   });
 }
@@ -2664,8 +2667,8 @@ function setupDynamicEventListeners() {
     setupManagerTabs();
   }
   
-  // 13. Setup pelaksana tabs jika di halaman user1
-  if (document.getElementById('user1Page')) {
+  // 13. Setup pelaksana tabs
+  if (document.getElementById('user1Page') || document.getElementById('user2Page') || document.getElementById('user3Page')) {
     setupPelaksanaTabs();
   }
   
