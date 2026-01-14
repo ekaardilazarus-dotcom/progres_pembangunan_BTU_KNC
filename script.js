@@ -1,6 +1,6 @@
 // versi 0.334
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBYbfxCaIfXbq_lHtV6_vFAd24wdsuqeLdXo4mzsY-wJdbxxLQ88jR16sfd3hpQbYzXw/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbdZ_NcYV6963rdWWRX_r6V64BBIT3SFb3V-KNMZPB44uci28SqsQ2k0YHXJKX_kd0Ug/exec';
 
 let currentRole = null;
 let selectedKavling = null;
@@ -91,6 +91,56 @@ function loadUtilitasDataFromData(data) {
   if (propNotesInput) propNotesInput.value = data.propertyNotes || '';
 }
 
+// ========== FUNGSI LOAD KEY DELIVERY DATA ==========
+async function loadKeyDeliveryData() {
+  if (!selectedKavling) return;
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getKeyDeliveryData',
+      kavling: selectedKavling
+    });
+    
+    if (result.success && result.hasData) {
+      updateKeyDeliveryDisplay(result);
+    } else if (result.success && !result.hasData) {
+      // Data kosong, tampilkan form kosong
+      resetKeyDeliveryForm();
+    }
+  } catch (error) {
+    console.error('Error loading key delivery data:', error);
+  }
+}
+
+function updateKeyDeliveryDisplay(data) {
+  const deliverySection = document.getElementById('tab-delivery');
+  if (!deliverySection) return;
+  
+  const deliveryToInput = deliverySection.querySelector('.delivery-section');
+  const deliveryDateInput = deliverySection.querySelector('.key-delivery-date');
+  
+  if (deliveryToInput) {
+    deliveryToInput.value = data.deliveryTo || '';
+  }
+  
+  if (deliveryDateInput) {
+    deliveryDateInput.value = data.deliveryDate || '';
+  }
+}
+
+function resetKeyDeliveryForm() {
+  const deliverySection = document.getElementById('tab-delivery');
+  if (!deliverySection) return;
+  
+  const deliveryToInput = deliverySection.querySelector('.delivery-section');
+  const deliveryDateInput = deliverySection.querySelector('.key-delivery-date');
+  
+  if (deliveryToInput) deliveryToInput.value = '';
+  if (deliveryDateInput) deliveryDateInput.value = '';
+}
+
+
+
 function updateUtilitasProgressDisplay(totalProgress) {
   const percentEl = document.getElementById('utilityOverallPercent');
   const barEl = document.getElementById('utilityOverallBar');
@@ -161,6 +211,13 @@ function setupUser4EventListeners() {
         hideGlobalLoading();
       }
     });
+      const btnSaveKeyDelivery = document.querySelector('#tab-delivery .btn-save-section');
+  if (btnSaveKeyDelivery) {
+    btnSaveKeyDelivery.addEventListener('click', async function(e) {
+      e.preventDefault();
+      await saveKeyDelivery();
+    });
+  }
   }
 
   const btnSaveNotes = document.getElementById('btnSaveUtilityNotes');
@@ -229,7 +286,49 @@ function setupUser4Tabs() {
     }
   });
 }
+// ========== DEBUG: CHECK KEY DELIVERY HTML STRUCTURE ==========
+function debugKeyDeliveryStructure() {
+  console.log('=== DEBUG KEY DELIVERY STRUCTURE ===');
+  
+  const user4Page = document.getElementById('user4Page');
+  if (!user4Page) {
+    console.log('❌ user4Page not found');
+    return;
+  }
+  
+  // Cari tab delivery
+  const deliveryTab = user4Page.querySelector('#tab-delivery');
+  if (!deliveryTab) {
+    console.log('❌ tab-delivery not found');
+    return;
+  }
+  
+  console.log('✅ tab-delivery found');
+  
+  // Cari elemen input
+  const deliveryToInput = deliveryTab.querySelector('.delivery-section');
+  const deliveryDateInput = deliveryTab.querySelector('.key-delivery-date');
+  const saveButton = deliveryTab.querySelector('.btn-save-section');
+  
+  console.log('Elements found:', {
+    deliveryToInput: deliveryToInput ? '✅' : '❌',
+    deliveryDateInput: deliveryDateInput ? '✅' : '❌',
+    saveButton: saveButton ? '✅' : '❌'
+  });
+  
+  if (deliveryToInput) {
+    console.log('delivery-section type:', deliveryToInput.type || deliveryToInput.tagName);
+  }
+  
+  if (deliveryDateInput) {
+    console.log('key-delivery-date type:', deliveryDateInput.type || deliveryDateInput.tagName);
+  }
+}
 
+// Panggil setelah DOM siap
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(debugKeyDeliveryStructure, 1500);
+});
 // ========== KAVLING FUNCTIONS ==========
 async function loadKavlingList() {
   console.log('Loading kavling list...');
@@ -453,10 +552,13 @@ async function searchKavling() {
       
       if (currentRole === 'user4') {
         // Load data untuk Admin Utilitas
-        loadUtilitasDataFromData(currentKavlingData);
-        
-        // Update progress display untuk utilitas menggunakan data AH
-        updateUtilitasProgressDisplay(currentKavlingData.totalAH);
+       loadUtilitasDataFromData(currentKavlingData);
+    updateUtilitasProgressDisplay(currentKavlingData.totalAH);
+    
+    // ===== TAMBAHAN BARU: Load key delivery data =====
+    setTimeout(() => {
+      loadKeyDeliveryData();
+    }, 300);
       }
       
       showToast('success', `Data ${kavlingName} berhasil dimuat!`);
@@ -1684,7 +1786,9 @@ function setupUser4Page() {
     newBtn.addEventListener('click', function(e) {
       e.preventDefault();
       saveUtilitasData();
+      setupKeyDeliveryButton();
     });
+   
   }
   
   // Setup save buttons untuk mutasi kunci
@@ -1701,6 +1805,20 @@ function setupUser4Page() {
   }
   
   console.log('User4 page setup complete');
+}
+// ========== FUNGSI SETUP KEY DELIVERY BUTTON ==========
+function setupKeyDeliveryButton() {
+  const btnSaveKeyDelivery = document.querySelector('#tab-delivery .btn-save-section');
+  if (btnSaveKeyDelivery) {
+    // Hapus listener lama jika ada
+    const newBtn = btnSaveKeyDelivery.cloneNode(true);
+    btnSaveKeyDelivery.parentNode.replaceChild(newBtn, btnSaveKeyDelivery);
+    
+    newBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      saveKeyDelivery();
+    });
+  }
 }
 
 function setupMutasiButtons() {
@@ -2217,6 +2335,13 @@ function setupUser4Tabs() {
       const targetTab = page.querySelector('#tab-' + tabId);
       if (targetTab) {
         targetTab.classList.add('active');
+        
+        // ===== TAMBAHAN: Load data ketika tab diaktifkan =====
+        if (tabId === 'delivery' && selectedKavling) {
+          setTimeout(() => {
+            loadKeyDeliveryData();
+          }, 200);
+        }
       }
     });
   });
@@ -2694,6 +2819,20 @@ function setupDynamicEventListeners() {
   if (document.getElementById('user4Page')) {
     setupUser4Tabs();
   }
+
+   // 15. Setup tombol save key delivery untuk user4
+  const saveKeyDeliveryBtn = document.querySelector('#tab-delivery .btn-save-section');
+  if (saveKeyDeliveryBtn) {
+    const newBtn = saveKeyDeliveryBtn.cloneNode(true);
+    saveKeyDeliveryBtn.parentNode.replaceChild(newBtn, saveKeyDeliveryBtn);
+    
+    newBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Save key delivery button clicked');
+      await saveKeyDelivery();
+    });
+  }
   
   console.log('Dynamic event listeners setup complete');
 }
@@ -3049,7 +3188,75 @@ function toggleTableButton(button, option) {
 
 // ========== TAMBAHKAN FUNGSI YANG HILANG ==========
 // Fungsi-fungsi ini disebut di kode Anda tetapi tidak didefinisikan:
-
+// ========== FUNGSI SAVE KEY DELIVERY ==========
+async function saveKeyDelivery() {
+  if (!selectedKavling) {
+    showToast('warning', 'Pilih kavling terlebih dahulu!');
+    return;
+  }
+  
+  // Cari elemen-elemen di tab baru
+  const deliverySection = document.getElementById('tab-delivery');
+  if (!deliverySection) {
+    showToast('error', 'Tab penyerahan kunci tidak ditemukan');
+    return;
+  }
+  
+  const deliveryToInput = deliverySection.querySelector('.delivery-section');
+  const deliveryDateInput = deliverySection.querySelector('.key-delivery-date');
+  
+  if (!deliveryToInput || !deliveryDateInput) {
+    console.error('Input elements not found:', {
+      deliveryTo: !!deliveryToInput,
+      deliveryDate: !!deliveryDateInput
+    });
+    showToast('error', 'Form tidak lengkap!');
+    return;
+  }
+  
+  const deliveryTo = deliveryToInput.value.trim();
+  const deliveryDate = deliveryDateInput.value;
+  
+  if (!deliveryTo) {
+    showToast('warning', 'Harap isi "Penyerahan Kunci Ke"');
+    deliveryToInput.focus();
+    return;
+  }
+  
+  showGlobalLoading('Menyimpan data penyerahan kunci...');
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'saveKeyDelivery',
+      kavling: selectedKavling,
+      deliveryTo: deliveryTo,
+      deliveryDate: deliveryDate,
+      user: currentRole
+    });
+    
+    if (result.success) {
+      showToast('success', 'Data penyerahan kunci berhasil disimpan!');
+      
+      // Update data lokal
+      if (currentKavlingData) {
+        if (!currentKavlingData.keyDelivery) currentKavlingData.keyDelivery = {};
+        currentKavlingData.keyDelivery.deliveryTo = deliveryTo;
+        currentKavlingData.keyDelivery.deliveryDate = deliveryDate;
+      }
+      
+      // Clear form jika berhasil
+      deliveryToInput.value = '';
+      deliveryDateInput.value = '';
+    } else {
+      showToast('error', 'Gagal menyimpan: ' + result.message);
+    }
+  } catch (error) {
+    console.error('Error saving key delivery:', error);
+    showToast('error', 'Error: ' + error.message);
+  } finally {
+    hideGlobalLoading();
+  }
+}
 function updateProgress(rolePage) {
   const pageElement = document.getElementById(rolePage);
   if (!pageElement) return;
