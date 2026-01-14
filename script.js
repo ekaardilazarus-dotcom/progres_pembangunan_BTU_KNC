@@ -80,14 +80,15 @@ function loadUtilitasDataFromData(data) {
     keyInput.value = data.data?.tahap4?.['PENYERAHAN KUNCI'] || '';
   }
   
-  // Utility Dates (assuming these exist in data structure or will be handled by GAS)
+  // Utility Dates
   const listrikInput = document.getElementById('listrikInstallDate');
   const airInput = document.getElementById('airInstallDate');
   const notesInput = document.getElementById('utilityNotes');
+  const propNotesInput = document.getElementById('utilityPropertyNotes');
   
   if (listrikInput) listrikInput.value = data.utilitas?.listrikDate || '';
   if (airInput) airInput.value = data.utilitas?.airDate || '';
-  if (notesInput) notesInput.value = data.utilitas?.notes || data.propertyNotes || '';
+  if (propNotesInput) propNotesInput.value = data.propertyNotes || '';
 }
 
 function updateUtilitasProgressDisplay(totalProgress) {
@@ -137,7 +138,6 @@ function setupUser4EventListeners() {
       
       const listrikDate = document.getElementById('listrikInstallDate').value;
       const airDate = document.getElementById('airInstallDate').value;
-      const notes = document.getElementById('utilityNotes').value;
       
       showGlobalLoading('Menyimpan data utilitas...');
       
@@ -147,12 +147,45 @@ function setupUser4EventListeners() {
           kavling: selectedKavling,
           listrikDate: listrikDate,
           airDate: airDate,
-          notes: notes,
           user: 'user4'
         });
         
         if (result.success) {
           showToast('success', 'Data utilitas berhasil disimpan!');
+        } else {
+          showToast('error', 'Gagal menyimpan: ' + result.message);
+        }
+      } catch (error) {
+        showToast('error', 'Error: ' + error.message);
+      } finally {
+        hideGlobalLoading();
+      }
+    });
+  }
+
+  const btnSaveNotes = document.getElementById('btnSaveUtilityNotes');
+  if (btnSaveNotes) {
+    btnSaveNotes.addEventListener('click', async function() {
+      if (!selectedKavling) {
+        showToast('warning', 'Pilih kavling terlebih dahulu!');
+        return;
+      }
+      
+      const notes = document.getElementById('utilityPropertyNotes').value;
+      
+      showGlobalLoading('Menyimpan catatan property...');
+      
+      try {
+        const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+          action: 'savePropertyNotes',
+          kavling: selectedKavling,
+          notes: notes,
+          user: 'user4'
+        });
+        
+        if (result.success) {
+          showToast('success', 'Catatan property berhasil disimpan!');
+          if (currentKavlingData) currentKavlingData.propertyNotes = notes;
         } else {
           showToast('error', 'Gagal menyimpan: ' + result.message);
         }
@@ -392,6 +425,7 @@ async function searchKavling() {
         lt: data.lt || '-',
         lb: data.lb || '-',
         propertyNotes: data.propertyNotes || '',
+        totalAH: data.totalAH || '0%', // Ambil dari kolom AH
         data: data.data || {}
       };
      
@@ -405,10 +439,8 @@ async function searchKavling() {
       if (currentRole === 'manager') {
         loadPropertyNotesFromData(currentKavlingData);
         
-        // Update progress display untuk manager
-        if (data.data?.tahap4?.TOTAL) {
-          updateManagerProgressDisplay(data.data.tahap4.TOTAL);
-        }
+        // Update progress display untuk manager menggunakan data AH
+        updateManagerProgressDisplay(currentKavlingData.totalAH);
         
         // Jika di tab reports, load laporan
         const activeTab = document.querySelector('#managerPage .admin-tab-btn.active');
@@ -423,10 +455,8 @@ async function searchKavling() {
         // Load data untuk Admin Utilitas
         loadUtilitasDataFromData(currentKavlingData);
         
-        // Update progress display untuk utilitas
-        if (data.data?.tahap4?.TOTAL) {
-          updateUtilitasProgressDisplay(data.data.tahap4.TOTAL);
-        }
+        // Update progress display untuk utilitas menggunakan data AH
+        updateUtilitasProgressDisplay(currentKavlingData.totalAH);
       }
       
       showToast('success', `Data ${kavlingName} berhasil dimuat!`);
@@ -461,7 +491,7 @@ function loadPropertyNotesFromData(data) {
   }
 }
 //----------------------------------------------
-function updateManagerProgressDisplay(progressData) {
+function updateManagerProgressDisplay(totalProgress) {
   const progressDisplay = document.getElementById('managerProgressDisplay');
   if (!progressDisplay) {
     console.error('managerProgressDisplay element not found');
@@ -472,42 +502,24 @@ function updateManagerProgressDisplay(progressData) {
   
   const overallVal = progressDisplay.querySelector('.val-overall');
   const progressFill = progressDisplay.querySelector('.total-bar');
-  const totalProgress = progressData?.totalProgress || '0%';
-  
-  console.log('Progress data:', progressData);
-  console.log('Total Progress:', totalProgress);
   
   if (overallVal) {
-    // PERBAIKAN: Format persentase dengan benar
-    let displayProgress = totalProgress;
+    let displayProgress = totalProgress || '0%';
     
     // Jika masih berupa angka desimal (0.97), konversi ke persen
     if (typeof totalProgress === 'string' && !totalProgress.includes('%')) {
       const num = parseFloat(totalProgress);
       if (!isNaN(num)) {
-        if (num <= 1) {
-          // Angka desimal (0.97) -> 97%
-          displayProgress = Math.round(num * 100) + '%';
-        } else {
-          // Angka bulat (97) -> 97%
-          displayProgress = Math.round(num) + '%';
-        }
+        displayProgress = (num <= 1 ? Math.round(num * 100) : Math.round(num)) + '%';
       }
     } else if (typeof totalProgress === 'number') {
-      // Jika tipe data number (0.97)
-      if (totalProgress <= 1) {
-        displayProgress = Math.round(totalProgress * 100) + '%';
-      } else {
-        displayProgress = Math.round(totalProgress) + '%';
-      }
+      displayProgress = (totalProgress <= 1 ? Math.round(totalProgress * 100) : Math.round(totalProgress)) + '%';
     }
     
     overallVal.textContent = displayProgress;
-    console.log('Display progress:', displayProgress);
   }
   
   if (progressFill) {
-    // PERBAIKAN: Hitung persentase untuk width
     let percentValue = 0;
     
     if (typeof totalProgress === 'string') {
@@ -515,39 +527,22 @@ function updateManagerProgressDisplay(progressData) {
       if (percentMatch) {
         percentValue = parseInt(percentMatch[1]);
       } else {
-        // Jika angka desimal string ("0.97")
         const num = parseFloat(totalProgress);
         if (!isNaN(num)) {
-          if (num <= 1) {
-            percentValue = Math.round(num * 100);
-          } else {
-            percentValue = Math.round(num);
-          }
+          percentValue = num <= 1 ? Math.round(num * 100) : Math.round(num);
         }
       }
     } else if (typeof totalProgress === 'number') {
-      // Jika tipe data number
-      if (totalProgress <= 1) {
-        percentValue = Math.round(totalProgress * 100);
-      } else {
-        percentValue = Math.round(totalProgress);
-      }
+      percentValue = totalProgress <= 1 ? Math.round(totalProgress * 100) : Math.round(totalProgress);
     }
     
-    console.log('Percent value for bar:', percentValue + '%');
     progressFill.style.width = percentValue + '%';
     
-    // Update class untuk warna - MENGGUNAKAN CLASS CSS
     progressFill.className = 'total-bar';
-    if (percentValue >= 89) {
-      progressFill.classList.add('bar-high');
-    } else if (percentValue >= 60) {
-      progressFill.classList.add('bar-medium');
-    } else if (percentValue >= 10) {
-      progressFill.classList.add('bar-low');
-    } else {
-      progressFill.classList.add('bar-very-low');
-    }
+    if (percentValue >= 89) progressFill.classList.add('bar-high');
+    else if (percentValue >= 60) progressFill.classList.add('bar-medium');
+    else if (percentValue >= 10) progressFill.classList.add('bar-low');
+    else progressFill.classList.add('bar-very-low');
   }
 }
 function extractLTandLB(tipeString) {
@@ -943,6 +938,8 @@ async function saveTahap1() {
     "Sloof": "SLOOF",
     "Pas.Ddg Sampai Dengan Canopy": "PAS.DDG S/D2 CANOPY",
     "Pas.Ddg Sampai Dengan Ring Blk": "PAS.DDG S/D RING BLK",
+    "Pas.Ddg S/D Canopy": "PAS.DDG S/D2 CANOPY",
+    "Pas.Ddg S/D Ring Blk": "PAS.DDG S/D RING BLK",
     "Conduit + Inbow Doos": "CONDUIT+INBOW DOOS",
     "Pipa Air Kotor": "PIPA AIR KOTOR",
     "Pipa Air Bersih": "PIPA AIR BERSIH",
