@@ -650,6 +650,12 @@ function loadProgressData(progressData) {
         const buttons = taskItem.querySelectorAll('.system-btn');
         const hiddenInput = taskItem.querySelector('#wasteSystemInput');
         
+        // Reset active state first
+        buttons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('data-active', 'false');
+        });
+        
         buttons.forEach(btn => {
           if (btn.getAttribute('data-state') === sistemPembuanganValue.toLowerCase()) {
             btn.classList.add('active');
@@ -670,6 +676,12 @@ function loadProgressData(progressData) {
       if (taskItem) {
         const buttons = taskItem.querySelectorAll('.table-btn');
         const hiddenInput = taskItem.querySelector('#tableKitchenInput');
+        
+        // Reset active state first
+        buttons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('data-active', 'false');
+        });
         
         buttons.forEach(btn => {
           if (btn.getAttribute('data-state') === 'include' && corMejaDapurValue === 'Dengan Cor Meja Dapur') {
@@ -717,6 +729,12 @@ function loadProgressData(progressData) {
       if (taskItem) {
         const buttons = taskItem.querySelectorAll('.tiles-btn');
         const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
+        
+        // Reset active state first
+        buttons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('data-active', 'false');
+        });
         
         buttons.forEach(btn => {
           if (btn.getAttribute('data-state') === 'include' && keramikDindingValue === 'Dengan Keramik Dinding') {
