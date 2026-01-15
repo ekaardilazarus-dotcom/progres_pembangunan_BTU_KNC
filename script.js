@@ -26,10 +26,13 @@ document.addEventListener('click', function(e) {
 function showStatusModal(type, title, message) {
   const modal = document.getElementById('loadingModal');
   const textEl = document.getElementById('loadingText');
-  if (!modal || !textEl) return;
+  const modalContent = modal.querySelector('.modal-content');
+
+  if (!modalContent) return;
 
   const isDelete = type === 'delete-success';
   const isSuccess = type === 'success' || isDelete;
+  const isError = type === 'error';
   
   let iconHtml = '';
   if (type === 'loading') {
@@ -429,7 +432,7 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
       console.log('Selected item via onclick:', item);
       
       // Tampilkan loading popup
-      showGlobalLoading(`Memuat data kavling ${item}...`);
+     showStatusModal('loading', 'Mohon Tunggu', `Sedang mengambil data kavling ${item}...`);
       
       inputEl.value = item;
       selectEl.value = item;
