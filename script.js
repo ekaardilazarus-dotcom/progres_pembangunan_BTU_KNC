@@ -822,7 +822,7 @@ function updateTabsState() {
     // Aktifkan semua checkbox dan input
     enableAllInputs();
   }
-}
+}  // <-- HANYA SATU KURUNG PENUTUP DI SINI!
 
 // ========== FUNGSI BARU: Aktifkan/Nonaktifkan Input ==========
 function disableAllInputs() {
@@ -879,8 +879,7 @@ function enableAllInputs() {
     input.disabled = false;
     input.style.opacity = '1';
   });
-}
-}
+}  // <-- HAPUS TANDA KURUNG INI } YANG ADA DI BARIS 643-644
 
 async function searchKavling(isSync = false) {
   console.log('=== FUNGSI searchKavling DIPANGGIL ===');
