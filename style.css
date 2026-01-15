@@ -433,12 +433,32 @@ h1 {
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
 }
 
-.task-item input {
-  width: 24px;
-  height: 24px;
+.task-item label {
+  color: #f1f5f9 !important; /* Lebih terang dari #cbd5e1 */
+  font-weight: 500 !important;
+  font-size: 1rem !important;
+  cursor: pointer;
+  flex: 1;
+  margin: 0;
+  padding: 4px 0;
+  transition: all 0.2s ease;
+}
+
+/* PERBAIKAN: Checkbox itu sendiri */
+.task-item input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
+  cursor: pointer;
+  accent-color: #38bdf8; /* Warna checkbox modern */
+  transform: scale(1.1);
+  margin-right: 10px;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 .btn-save-section {
@@ -1894,8 +1914,24 @@ footer {
 
 /* ===== TASK COMPLETED STYLE ===== */
 .task-completed {
-  background: rgba(16, 185, 129, 0.1) !important;
+  background: rgba(16, 185, 129, 0.15) !important;
   border-left: 4px solid #10b981 !important;
+  border-color: #10b981 !important;
+}
+
+.task-completed label {
+  color: #10b981 !important;
+  font-weight: 600 !important;
+  text-decoration: none; /* Jangan pakai line-through */
+}
+.task-item:hover {
+  background: #3c4a62;
+  transform: translateX(2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.task-item:hover label {
+  color: white !important;
 }
 
 /* ===== PROGRESS COLORS ===== */
@@ -1986,17 +2022,20 @@ footer {
   margin-left: 10px;
 }
 
-.state-btn {
+.state-btn,
+.system-btn,
+.tiles-btn,
+.table-btn {
   flex: 1;
   padding: 10px 16px;
   border: none;
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
-  cursor: pointer;
+  cursor: pointer !important; /* FORCE cursor */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: transparent;
-  color: #94a3b8;
+  background: #475569; /* Warna default lebih terang */
+  color: #f1f5f9 !important; /* Font lebih terang */
   text-align: center;
   min-width: 0;
   white-space: nowrap;
@@ -2005,48 +2044,73 @@ footer {
   justify-content: center;
   position: relative;
   overflow: hidden;
+  pointer-events: auto !important; /* FORCE pointer events */
+  opacity: 1 !important; /* FORCE opacity */
 }
 
-.state-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #cbd5e1;
+
+.state-btn:hover,
+.system-btn:hover,
+.tiles-btn:hover,
+.table-btn:hover {
+  background: #64748b !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.state-btn.active {
-  background: #3b82f6;
-  color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+.state-btn.active,
+.system-btn.active,
+.tiles-btn.active,
+.table-btn.active {
+  background: #3b82f6 !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   transform: translateY(-1px);
+  font-weight: 600;
 }
 
-.state-btn.active::before {
-  content: '✓';
+.state-btn.active::after,
+.system-btn.active::after,
+.tiles-btn.active::after,
+.table-btn.active::after {
+  content: '';
   position: absolute;
   top: 2px;
-  right: 6px;
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: white;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
 }
 
-.state-btn[data-state="biotank"].active {
-  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+/* PERBAIKAN: Warna khusus untuk masing-masing tombol */
+.state-btn[data-state="biotank"].active,
+.system-btn[data-state="biotank"].active {
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8) !important;
 }
 
-.state-btn[data-state="ipal"].active {
-  background: linear-gradient(135deg, #10b981, #34d399);
+.state-btn[data-state="ipal"].active,
+.system-btn[data-state="ipal"].active {
+  background: linear-gradient(135deg, #10b981, #34d399) !important;
 }
 
-.state-btn[data-state="septictank"].active {
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+.state-btn[data-state="septictank"].active,
+.system-btn[data-state="septictank"].active {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa) !important;
 }
 
-.state-btn[data-state="include"].active {
-  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+.state-btn[data-state="include"].active,
+.tiles-btn[data-state="include"].active,
+.table-btn[data-state="include"].active {
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8) !important;
 }
 
-.state-btn[data-state="exclude"].active {
-  background: linear-gradient(135deg, #f43f5e, #fb7185);
+.state-btn[data-state="exclude"].active,
+.tiles-btn[data-state="exclude"].active,
+.table-btn[data-state="exclude"].active {
+  background: linear-gradient(135deg, #f43f5e, #fb7185) !important;
 }
 
 .vertical-divider {
@@ -2447,15 +2511,6 @@ input[type="checkbox"]:disabled + label {
 
 input[type="checkbox"]:disabled {
   cursor: not-allowed;
-}
-
-.state-btn:disabled,
-.system-btn:disabled,
-.tiles-btn:disabled,
-.table-btn:disabled {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-  pointer-events: none !important;
 }
 
 input[type="text"]:disabled,
