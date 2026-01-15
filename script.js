@@ -16,13 +16,53 @@ const defaultDisplayNames = {
 };
 
 // ========== UTILITY FUNCTIONS ==========
-function showGlobalLoading(text = 'Mohon Tunggu...') {
+function showStatusModal(type, title, message) {
   const modal = document.getElementById('loadingModal');
   const textEl = document.getElementById('loadingText');
-  if (modal && textEl) {
-    textEl.textContent = text;
-    modal.style.display = 'flex';
+  if (!modal || !textEl) return;
+
+  const isDelete = type === 'delete-success';
+  const isSuccess = type === 'success' || isDelete;
+  
+  let iconHtml = '';
+  if (type === 'loading') {
+    iconHtml = '<i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #38bdf8; margin-bottom: 20px;"></i>';
+  } else if (isSuccess) {
+    iconHtml = `
+      <div class="success-checkmark">
+        <div class="check-icon ${isDelete ? 'delete' : ''}">
+          <span class="icon-line line-tip"></span>
+          <span class="icon-line line-long"></span>
+          <div class="icon-circle"></div>
+          <div class="icon-fix"></div>
+        </div>
+      </div>
+    `;
   }
+
+  modal.querySelector('.modal-content').innerHTML = `
+    ${iconHtml}
+    <h2 style="font-size: 1.25rem; margin-top: 10px;">${title}</h2>
+    <p style="color: #94a3b8; margin-top: 5px;">${message}</p>
+  `;
+  
+  modal.style.display = 'flex';
+
+  if (isSuccess) {
+    setTimeout(() => {
+      hideGlobalLoading();
+      // Restore original content for next use
+      modal.querySelector('.modal-content').innerHTML = `
+        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #38bdf8; margin-bottom: 20px;"></i>
+        <h2 style="font-size: 1.25rem;">Mohon Tunggu</h2>
+        <p id="loadingText">Sedang mengambil data...</p>
+      `;
+    }, 2000);
+  }
+}
+
+function showGlobalLoading(text = 'Mohon Tunggu...') {
+  showStatusModal('loading', 'Mohon Tunggu', text);
 }
 
 function hideGlobalLoading() {
@@ -329,6 +369,207 @@ function debugKeyDeliveryStructure() {
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(debugKeyDeliveryStructure, 1500);
 });
+// ========== SEARCH CONTAINER FUNCTIONS ==========
+let allKavlings = [];
+
+function setupCustomSearch(inputId, listId, selectId) {
+  const input = document.getElementById(inputId);
+  const list = document.getElementById(listId);
+  const select = document.getElementById(selectId);
+
+  if (!input || !list || !select) return;
+
+  input.addEventListener('focus', () => {
+    if (allKavlings.length > 0) {
+      renderSearchList(allKavlings, list, input, select);
+      list.style.display = 'block';
+    }
+  });
+
+  input.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filtered = allKavlings.filter(k => k.toLowerCase().includes(searchTerm));
+    renderSearchList(filtered, list, input, select);
+    list.style.display = 'block';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !list.contains(e.target)) {
+      list.style.display = 'none';
+    }
+  });
+}
+
+function renderSearchList(items, listEl, inputEl, selectEl) {
+  listEl.innerHTML = '';
+  
+  if (items.length === 0) {
+    const noResult = document.createElement('div');
+    noResult.className = 'custom-dropdown-item no-results';
+    noResult.textContent = 'Tidak ada kavling ditemukan';
+    listEl.appendChild(noResult);
+    return;
+  }
+
+  // Limit to first 100 items for performance
+  const displayItems = items.slice(0, 100);
+
+  displayItems.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'custom-dropdown-item';
+    div.textContent = item;
+    div.addEventListener('click', () => {
+      console.log('Selected item:', item);
+      inputEl.value = item;
+      selectEl.value = item;
+      listEl.style.display = 'none';
+      
+      // Ensure the value is synced and trigger search
+      selectedKavling = item;
+      
+      // Force change event for any listeners
+      const event = new Event('change', { bubbles: true });
+      selectEl.dispatchEvent(event);
+      
+      // Trigger search directly
+      searchKavling();
+    });
+    listEl.appendChild(div);
+  });
+  
+  if (items.length > 100) {
+    const more = document.createElement('div');
+    more.className = 'custom-dropdown-item no-results';
+    more.textContent = `...dan ${items.length - 100} lainnya (ketik untuk mencari)`;
+    listEl.appendChild(more);
+  }
+}
+
+// ========== EDIT KAVLING FUNCTIONS ==========
+function setupEditKavling() {
+  const editBtns = document.querySelectorAll('.btn-edit-kavling');
+  const modal = document.getElementById('editKavlingModal');
+  const closeBtn = document.getElementById('closeEditKavling');
+  const submitBtn = document.getElementById('submitEditKavling');
+
+  editBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!selectedKavling || !currentKavlingData) {
+        showToast('warning', 'Pilih kavling terlebih dahulu di menu "Pilih Kavling"!');
+        const selectId = getSelectIdByRole(currentRole);
+        const selectEl = document.getElementById(selectId);
+        if (selectEl) {
+          selectEl.focus();
+          // Visual highlight
+          selectEl.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.5)';
+          setTimeout(() => selectEl.style.boxShadow = '', 2000);
+        }
+        return;
+      }
+
+      // Fill modal with current data
+      document.getElementById('editKavlingName').value = currentKavlingData.kavling;
+      document.getElementById('editKavlingType').value = currentKavlingData.type || '';
+      document.getElementById('editKavlingLT').value = currentKavlingData.lt || '';
+      document.getElementById('editKavlingLB').value = currentKavlingData.lb || '';
+
+      modal.style.display = 'flex';
+    });
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => modal.style.display = 'none');
+  }
+
+  if (submitBtn) {
+    submitBtn.addEventListener('click', async () => {
+      const name = document.getElementById('editKavlingName').value;
+      const type = document.getElementById('editKavlingType').value;
+      const lt = document.getElementById('editKavlingLT').value;
+      const lb = document.getElementById('editKavlingLB').value;
+
+      if (!type) {
+        showToast('warning', 'Type kavling harus diisi!');
+        return;
+      }
+
+      showGlobalLoading('Mengupdate data kavling...');
+
+      try {
+        const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+          action: 'editKavling', // User said they will handle backend connection
+          kavling: name,
+          type: type,
+          lt: lt,
+          lb: lb,
+          user: currentRole
+        });
+
+        if (result.success) {
+          showStatusModal('success', 'Berhasil Update', `Data kavling ${name} telah diperbarui.`);
+          modal.style.display = 'none';
+          // Refresh data
+          await searchKavling();
+        } else {
+          showToast('error', 'Gagal update: ' + (result.message || 'Unknown error'));
+        }
+      } catch (error) {
+        showToast('error', 'Error: ' + error.message);
+      } finally {
+        hideGlobalLoading();
+      }
+    });
+  }
+
+  const deleteBtn = document.getElementById('deleteKavlingData');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      const name = document.getElementById('editKavlingName').value;
+      
+      if (!confirm(`Apakah Anda yakin ingin menghapus data kavling ${name}? Tindakan ini tidak dapat dibatalkan.`)) {
+        return;
+      }
+
+      showGlobalLoading('Menghapus data kavling...');
+
+      try {
+        const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+          action: 'deleteKavling', // Handled by user manually later
+          kavling: name,
+          user: currentRole
+        });
+
+        if (result.success) {
+          showStatusModal('delete-success', 'Berhasil Hapus', `Data kavling ${name} telah dihapus.`);
+          modal.style.display = 'none';
+          selectedKavling = null;
+          currentKavlingData = null;
+          // Refresh list and UI
+          await loadKavlingList();
+          updateTabsState();
+          // Reset displays
+          const rolePage = currentRole + 'Page';
+          updateKavlingInfo({kavling: '-', type: '-', lt: '-', lb: '-'}, rolePage);
+        } else {
+          showToast('error', 'Gagal menghapus: ' + (result.message || 'Unknown error'));
+        }
+      } catch (error) {
+        showToast('error', 'Error: ' + error.message);
+      } finally {
+        hideGlobalLoading();
+      }
+    });
+  }
+}
+
+// ========== INITIALIZATION ==========
+document.addEventListener('DOMContentLoaded', () => {
+  setupEditKavling();
+  setupCustomSearch('searchKavlingUser1Input', 'searchKavlingUser1List', 'searchKavlingUser1');
+  setupCustomSearch('searchKavlingManagerInput', 'searchKavlingManagerList', 'searchKavlingManager');
+  updateTabsState(); // Initial state: disabled if no kavling
+});
+
 // ========== KAVLING FUNCTIONS ==========
 async function loadKavlingList() {
   console.log('Loading kavling list...');
@@ -340,6 +581,7 @@ async function loadKavlingList() {
     });
     
     if (result.success && result.kavlings && result.kavlings.length > 0) {
+      allKavlings = result.kavlings; // Store globally
       updateAllKavlingSelects(result.kavlings);
       console.log(`✅ Loaded ${result.kavlings.length} kavlings`);
       
@@ -478,10 +720,47 @@ function setSelectedKavlingInDropdowns(kavlingName) {
   
   selectIds.forEach(selectId => {
     const selectElement = document.getElementById(selectId);
-    if (selectElement && Array.from(selectElement.options).some(opt => opt.value === kavlingName)) {
-      selectElement.value = kavlingName;
+    if (selectElement) {
+      if (kavlingName === '') {
+        selectElement.value = '';
+      } else if (Array.from(selectElement.options).some(opt => opt.value === kavlingName)) {
+        selectElement.value = kavlingName;
+      }
+      
+      // Also update the custom search inputs if they exist
+      const inputId = selectId + 'Input';
+      const inputEl = document.getElementById(inputId);
+      if (inputEl) inputEl.value = kavlingName || '';
     }
   });
+}
+
+// ========== PROGRESS FUNCTIONS ==========
+function updateTabsState() {
+  const pelaksanaTabs = document.querySelectorAll('.pelaksana-tabs .admin-tab-btn');
+  const pelaksanaContent = document.querySelector('.pelaksana-tab-content');
+  
+  if (!selectedKavling) {
+    pelaksanaTabs.forEach(btn => {
+      btn.style.opacity = '0.5';
+      btn.style.pointerEvents = 'none';
+      btn.style.cursor = 'not-allowed';
+    });
+    if (pelaksanaContent) {
+      pelaksanaContent.style.opacity = '0.5';
+      pelaksanaContent.style.pointerEvents = 'none';
+    }
+  } else {
+    pelaksanaTabs.forEach(btn => {
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+      btn.style.cursor = 'pointer';
+    });
+    if (pelaksanaContent) {
+      pelaksanaContent.style.opacity = '1';
+      pelaksanaContent.style.pointerEvents = 'auto';
+    }
+  }
 }
 
 async function searchKavling() {
@@ -497,11 +776,22 @@ async function searchKavling() {
       return;
     }
     
-    const kavlingName = selectElement.value.trim();
+    // Check custom input first for current role
+    const inputId = selectId + 'Input';
+    const inputEl = document.getElementById(inputId);
+    let kavlingName = selectElement.value.trim();
+    
+    if (!kavlingName && inputEl) {
+      kavlingName = inputEl.value.trim();
+      if (kavlingName) {
+        selectElement.value = kavlingName;
+      }
+    }
     
     if (!kavlingName) {
-      showToast('warning', 'Pilih kavling terlebih dahulu dari dropdown!');
-      selectElement.focus();
+      showToast('warning', 'Pilih kavling terlebih dahulu dari pencarian!');
+      if (inputEl) inputEl.focus();
+      else selectElement.focus();
       return;
     }
     
@@ -516,6 +806,7 @@ async function searchKavling() {
     
    if (data.success) {
       selectedKavling = kavlingName;
+      updateTabsState(); // Enable tabs when kavling is loaded
       
       // ✅ Simpan SEMUA data dari server dengan struktur yang benar
       currentKavlingData = {
@@ -2256,12 +2547,8 @@ function updateDashboardTitle(role, name) {
   selectedKavling = null;
   currentKavlingData = null;
   
-  // Clear all kavling dropdowns
-  const selectIds = ['searchKavlingUser1', 'searchKavlingUser2', 'searchKavlingUser3', 'searchKavlingUser4', 'searchKavlingManager'];
-  selectIds.forEach(id => {
-    const select = document.getElementById(id);
-    if (select) select.value = '';
-  });
+  // Clear all kavling selections including custom search inputs
+  setSelectedKavlingInDropdowns('');
 
   // Clear info displays
   const infoIds = ['kavlingInfoUser1', 'kavlingInfoUser2', 'kavlingInfoUser3', 'kavlingInfoUser4', 'kavlingInfoManager'];
@@ -2489,12 +2776,8 @@ async function syncData() {
     selectedKavling = null;
     currentKavlingData = null;
     
-    // Clear all dropdowns
-    const selectIds = ['searchKavlingUser1', 'searchKavlingUser2', 'searchKavlingUser3', 'searchKavlingUser4', 'searchKavlingManager'];
-    selectIds.forEach(id => {
-      const select = document.getElementById(id);
-      if (select) select.value = '';
-    });
+    // Clear all selections including custom search inputs
+    setSelectedKavlingInDropdowns('');
 
     // Clear info displays
     const infoIds = ['kavlingInfoUser1', 'kavlingInfoUser2', 'kavlingInfoUser3', 'kavlingInfoUser4', 'kavlingInfoManager'];
