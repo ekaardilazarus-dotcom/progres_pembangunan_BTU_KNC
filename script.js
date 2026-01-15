@@ -902,41 +902,89 @@ function disableAllInputs() {
 function enableAllInputs() {
   const pageId = currentRole + 'Page';
   const page = document.getElementById(pageId);
-  if (!page) return;
+  if (!page) {
+    console.error(`❌ Page ${pageId} not found for enableAllInputs`);
+    return;
+  }
   
-  // PERBAIKAN: Enable semua input kecuali yang memang harus tetap disabled
-  const allInputs = page.querySelectorAll('input, textarea, button');
+  console.log(`🔧 Enabling all inputs for ${pageId}`);
   
-  allInputs.forEach(input => {
-    // Skip input pencarian (sudah selalu aktif)
-    if (input.id.includes('searchKavling') || 
-        input.classList.contains('search-input-custom')) {
-      return;
-    }
+  // 1. Enable semua checkbox
+ const checkboxes = page.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach((cb, index) => {
+    cb.disabled = false;
+    cb.readOnly = false;
+    cb.style.opacity = '1';
+    cb.style.cursor = 'pointer';
+    cb.style.pointerEvents = 'auto';
     
-    // Skip tombol khusus yang sudah memiliki state sendiri
-    if (input.classList.contains('logout-btn') || 
-        input.classList.contains('sync-btn') ||
-        input.classList.contains('btn-add-kavling') ||
-        input.classList.contains('btn-edit-kavling')) {
-      return;
-    }
-    
-    input.disabled = false;
-    input.style.opacity = '1';
-    
-    if (input.tagName === 'BUTTON') {
-      input.style.pointerEvents = 'auto';
+    // Tambah event listener langsung jika belum ada
+    if (!cb.hasAttribute('data-listener-added')) {
+      cb.addEventListener('change', function() {
+        console.log(`Checkbox ${index} changed directly`);
+        const label = this.closest('label');
+        if (label) {
+          if (this.checked) {
+            label.classList.add('task-completed');
+          } else {
+            label.classList.remove('task-completed');
+          }
+        }
+        updateProgress(pageId);
+      });
+      cb.setAttribute('data-listener-added', 'true');
     }
   });
   
-  // Enable tombol state khusus
+  // 2. Enable tombol state
   const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
-  stateButtons.forEach(btn => {
+  stateButtons.forEach((btn, index) => {
     btn.disabled = false;
     btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.style.pointerEvents = 'auto';
+    
+    if (!btn.hasAttribute('data-listener-added')) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log(`State button ${index} clicked directly`);
+        
+        if (this.classList.contains('system-btn')) {
+          toggleSystemButton(this, this.getAttribute('data-state'));
+        } else if (this.classList.contains('tiles-btn')) {
+          toggleTilesButton(this, this.getAttribute('data-state'));
+        } else if (this.classList.contains('table-btn')) {
+          toggleTableButton(this, this.getAttribute('data-state'));
+        }
+      });
+      btn.setAttribute('data-listener-added', 'true');
+    }
+  });
+  
+  // 3. Enable input text/date/textarea
+  const textInputs = page.querySelectorAll('input[type="text"], input[type="date"], textarea');
+  textInputs.forEach(input => {
+    input.disabled = false;
+    input.readOnly = false;
+    input.style.opacity = '1';
+    input.style.cursor = 'text';
+    input.style.pointerEvents = 'auto';
+  });
+  
+  // 4. Enable tombol save
+  const saveButtons = page.querySelectorAll('.btn-save-section');
+  saveButtons.forEach(btn => {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
     btn.style.pointerEvents = 'auto';
   });
+  
+  console.log(`✅ Enabled: ${checkboxes.length} checkboxes, ${stateButtons.length} state buttons, ${saveButtons.length} save buttons`);
+  
+  // Debug output
+  debugInputStatus();
 }
 
 async function searchKavling(isSync = false) {
@@ -1095,37 +1143,55 @@ async function searchKavling(isSync = false) {
     showToast('error', 'Gagal mengambil data: ' + error.message);
   }
 }
+
 // Fungsi baru untuk load property notes dari data
 function setupCheckboxListeners(pageId) {
   const page = document.getElementById(pageId);
   if (!page) return;
   
-  // Hapus event listener lama jika ada
-  const checkboxes = page.querySelectorAll('input[type="checkbox"]');
+  console.log(`Setting up checkbox listeners for ${pageId}`);
+  
+  // Hanya ambil checkbox yang ada di progress sections
+  const checkboxes = page.querySelectorAll('.progress-section input[type="checkbox"].sub-task');
+  
   checkboxes.forEach(checkbox => {
-    // Clone checkbox untuk hapus event listener lama
+    // Clone untuk hapus event listener lama
     const newCheckbox = checkbox.cloneNode(true);
     checkbox.parentNode.replaceChild(newCheckbox, checkbox);
     
-    // Tambah event listener baru
+    // Setup event listener untuk checkbox baru
     newCheckbox.addEventListener('change', function() {
+      console.log(`Checkbox changed: ${this.id || this.name || 'unnamed'}`, this.checked);
+      
       const label = this.closest('label');
-      if (this.checked) {
-        label.classList.add('task-completed');
-      } else {
-        label.classList.remove('task-completed');
+      if (label) {
+        if (this.checked) {
+          label.classList.add('task-completed');
+        } else {
+          label.classList.remove('task-completed');
+        }
       }
+      
+      // Update progress
       updateProgress(pageId);
     });
+    
+    // Pastikan checkbox enabled
+    newCheckbox.disabled = false;
+    newCheckbox.style.pointerEvents = 'auto';
+    newCheckbox.style.opacity = '1';
+    newCheckbox.style.cursor = 'pointer';
   });
-    // Setup tombol state (sistem pembuangan, keramik, dll)
-  setupStateButtons(pageId);
+  
+  console.log(`✅ Setup ${checkboxes.length} checkbox listeners for ${pageId}`);
 }
 
 // ========== FUNGSI BARU: Setup State Buttons ==========
 function setupStateButtons(pageId) {
   const page = document.getElementById(pageId);
   if (!page) return;
+  
+  console.log(`Setting up state buttons for ${pageId}`);
   
   // Setup tombol sistem pembuangan
   const systemBtns = page.querySelectorAll('.system-btn');
@@ -1134,9 +1200,16 @@ function setupStateButtons(pageId) {
     btn.parentNode.replaceChild(newBtn, btn);
     
     newBtn.addEventListener('click', function() {
+      console.log('System button clicked:', this.getAttribute('data-state'));
       const systemType = this.getAttribute('data-state');
       toggleSystemButton(this, systemType);
     });
+    
+    // Pastikan tombol enabled
+    newBtn.disabled = false;
+    newBtn.style.pointerEvents = 'auto';
+    newBtn.style.opacity = '1';
+    newBtn.style.cursor = 'pointer';
   });
   
   // Setup tombol keramik dinding
@@ -1146,9 +1219,15 @@ function setupStateButtons(pageId) {
     btn.parentNode.replaceChild(newBtn, btn);
     
     newBtn.addEventListener('click', function() {
+      console.log('Tiles button clicked:', this.getAttribute('data-state'));
       const option = this.getAttribute('data-state');
       toggleTilesButton(this, option);
     });
+    
+    newBtn.disabled = false;
+    newBtn.style.pointerEvents = 'auto';
+    newBtn.style.opacity = '1';
+    newBtn.style.cursor = 'pointer';
   });
   
   // Setup tombol cor meja dapur
@@ -1158,10 +1237,18 @@ function setupStateButtons(pageId) {
     btn.parentNode.replaceChild(newBtn, btn);
     
     newBtn.addEventListener('click', function() {
+      console.log('Table button clicked:', this.getAttribute('data-state'));
       const option = this.getAttribute('data-state');
       toggleTableButton(this, option);
     });
+    
+    newBtn.disabled = false;
+    newBtn.style.pointerEvents = 'auto';
+    newBtn.style.opacity = '1';
+    newBtn.style.cursor = 'pointer';
   });
+  
+  console.log(`✅ Setup ${systemBtns.length + tilesBtns.length + tableBtns.length} state buttons for ${pageId}`);
 }
 
 //----------------------------------------------
@@ -1533,9 +1620,22 @@ function loadProgressData(progressData) {
     }
   }
   
-  updateProgress(rolePage);
+  // ===== TAMBAHKAN INI DI AKHIR FUNGSI =====
+  setTimeout(() => {
+    // Setup ulang event listener setelah data dimuat
+    setupCheckboxListeners(rolePage);
+    setupStateButtons(rolePage);
+    
+    // Aktifkan semua input untuk editing
+    enableAllInputs();
+    
+    // Update progress calculation
+    updateProgress(rolePage);
+    
+    console.log(`✅ Data loaded for ${rolePage}, inputs should be editable now`);
+    console.log(`📋 Debug: Found ${pageElement.querySelectorAll('input[type="checkbox"]').length} checkboxes`);
+  }, 300);
 }
-//
 
 // ===== FUNGSI TAMBAHAN UNTUK FORMAT TANGGAL =====
 function formatDateForInput(dateValue) {
@@ -2972,7 +3072,7 @@ function showPage(role) {
     
     // ⚡ RESET: Nonaktifkan semua input terlebih dahulu
     disableAllInputs();
-     // ⚡ Khusus aktifkan input pencarian
+   // ⚡ Aktifkan hanya input pencarian
     enableSearchInputs();
     
     if (role === 'admin') {
@@ -2989,11 +3089,18 @@ function showPage(role) {
       setTimeout(() => {
         loadKavlingList();
         setupPelaksanaTabs();
+        
+        // Setup awal untuk checkbox di halaman pelaksana
+        setTimeout(() => {
+          setupCheckboxListeners(role + 'Page');
+          setupStateButtons(role + 'Page');
+        }, 800);
       }, 500);
     } else if (role === 'user4') {
       setTimeout(() => {
         loadKavlingList();
         setupUser4Tabs();
+        setupUser4EventListeners();
       }, 500);
     } else {
       setTimeout(loadKavlingList, 500);
@@ -3475,6 +3582,38 @@ function setupDynamicEventListeners() {
 function initApp() {
   console.log('=== INITIALIZING APP ===');
   
+  // Setup event delegation untuk checkbox
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('sub-task') && e.target.type === 'checkbox') {
+      console.log('Checkbox changed via event delegation:', e.target);
+      const page = e.target.closest('.page-content');
+      if (page) {
+        const pageId = page.id;
+        updateProgress(pageId);
+      }
+    }
+  }); // <-- INI YANG HILANG: TUTUP FUNGSI EVENT LISTENER
+  
+  // Event delegation untuk tombol state
+  document.addEventListener('click', function(e) {
+    if (e.target && (e.target.classList.contains('system-btn') || 
+                     e.target.classList.contains('tiles-btn') || 
+                     e.target.classList.contains('table-btn'))) {
+      console.log('State button clicked via global event delegation:', e.target);
+      
+      const type = e.target.classList.contains('system-btn') ? 'system' : 
+                   e.target.classList.contains('tiles-btn') ? 'tiles' : 'table';
+      
+      if (type === 'system') {
+        toggleSystemButton(e.target, e.target.getAttribute('data-state'));
+      } else if (type === 'tiles') {
+        toggleTilesButton(e.target, e.target.getAttribute('data-state'));
+      } else if (type === 'table') {
+        toggleTableButton(e.target, e.target.getAttribute('data-state'));
+      }
+    }
+  });
+  
   // Setup semua event listener
   setupDynamicEventListeners();
   
@@ -3496,7 +3635,9 @@ function initApp() {
       }
     });
   }
-   setupEditKavling();
+  
+  setupEditKavling();
+  
   // Cek session login
   const savedRole = sessionStorage.getItem('loggedRole');
   if (savedRole) {
@@ -3505,6 +3646,40 @@ function initApp() {
   }
   
   console.log('=== APP INITIALIZED ===');
+}
+
+function debugInputStatus() {
+  if (!currentRole) return;
+  
+  const pageId = currentRole + 'Page';
+  const page = document.getElementById(pageId);
+  if (!page) return;
+  
+  console.log(`🔍 DEBUG INPUT STATUS untuk ${pageId}:`);
+  
+  // Checkboxes
+  const checkboxes = page.querySelectorAll('input[type="checkbox"]');
+  console.log(`Total checkbox: ${checkboxes.length}`);
+  checkboxes.forEach((cb, index) => {
+    console.log(`Checkbox ${index + 1}:`, {
+      id: cb.id || 'no-id',
+      checked: cb.checked,
+      disabled: cb.disabled,
+      style: {
+        opacity: cb.style.opacity,
+        cursor: cb.style.cursor,
+        pointerEvents: cb.style.pointerEvents
+      }
+    });
+  });
+  
+  // State buttons
+  const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
+  console.log(`Total state buttons: ${stateButtons.length}`);
+  
+  // Save buttons
+  const saveButtons = page.querySelectorAll('.btn-save-section');
+  console.log(`Total save buttons: ${saveButtons.length}`);
 }
 
 // Fungsi khusus untuk setup tombol role
