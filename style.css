@@ -2437,3 +2437,50 @@ footer {
   display: inline-block;
   margin-top: 2px;
 }
+
+/* ===== DISABLED STATE STYLES ===== */
+input[type="checkbox"]:disabled + label {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: #64748b !important;
+}
+
+input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+}
+
+.state-btn:disabled,
+.system-btn:disabled,
+.tiles-btn:disabled,
+.table-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+input[type="text"]:disabled,
+input[type="date"]:disabled,
+textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #1e293b !important;
+}
+
+/* Active state untuk tombol yang bisa diklik */
+.state-btn:not(:disabled):hover,
+.system-btn:not(:disabled):hover,
+.tiles-btn:not(:disabled):hover,
+.table-btn:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  cursor: pointer !important;
+}
+
+/* Checkbox label yang aktif */
+input[type="checkbox"]:not(:disabled) + label {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:not(:disabled) + label:hover {
+  background: rgba(56, 189, 248, 0.1);
+}
