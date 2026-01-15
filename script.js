@@ -790,7 +790,6 @@ function setSelectedKavlingInDropdowns(kavlingName) {
 }
 
 // ========== PROGRESS FUNCTIONS ==========
-// ========== FUNGSI PERBAIKAN updateTabsState ==========
 function updateTabsState() {
   const pelaksanaTabs = document.querySelectorAll('.pelaksana-tabs .admin-tab-btn');
   const pelaksanaContent = document.querySelector('.pelaksana-tab-content');
@@ -803,7 +802,7 @@ function updateTabsState() {
     });
     if (pelaksanaContent) {
       pelaksanaContent.style.opacity = '0.5';
-      pelaksanaContent.style.pointerEvents = 'none';
+      pelaksanaContent.style.pointerEvents = 'auto';
     }
     
     // Nonaktifkan semua checkbox dan input
@@ -830,26 +829,40 @@ function disableAllInputs() {
   const page = document.getElementById(pageId);
   if (!page) return;
   
-  // Disable semua checkbox
-  const checkboxes = page.querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach(cb => {
-    cb.disabled = true;
-    cb.style.opacity = '0.5';
+  // PERBAIKAN: JANGAN disable input pencarian!
+  // Cari semua input kecuali input pencarian
+  const allInputs = page.querySelectorAll('input[type="checkbox"], input[type="text"], input[type="date"], textarea, button');
+  
+  allInputs.forEach(input => {
+    // Skip jika ini input pencarian
+    if (input.id.includes('searchKavling') || 
+        input.classList.contains('search-input-custom') ||
+        input.parentElement?.classList.contains('custom-search-container')) {
+      return;
+    }
+    
+    // Skip jika ini tombol logout/sync/tambah kavling
+    if (input.classList.contains('logout-btn') || 
+        input.classList.contains('sync-btn') ||
+        input.classList.contains('btn-add-kavling') ||
+        input.classList.contains('btn-edit-kavling')) {
+      return;
+    }
+    
+    input.disabled = true;
+    input.style.opacity = '0.5';
+    
+    if (input.tagName === 'BUTTON') {
+      input.style.pointerEvents = 'none';
+    }
   });
   
-  // Disable semua tombol state
+  // Disable tombol state khusus (sistem pembuangan, dll)
   const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
   stateButtons.forEach(btn => {
     btn.disabled = true;
     btn.style.opacity = '0.5';
     btn.style.pointerEvents = 'none';
-  });
-  
-  // Disable textarea dan input lainnya
-  const textInputs = page.querySelectorAll('input[type="text"], input[type="date"], textarea');
-  textInputs.forEach(input => {
-    input.disabled = true;
-    input.style.opacity = '0.5';
   });
 }
 
@@ -858,28 +871,40 @@ function enableAllInputs() {
   const page = document.getElementById(pageId);
   if (!page) return;
   
-  // Enable semua checkbox
-  const checkboxes = page.querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach(cb => {
-    cb.disabled = false;
-    cb.style.opacity = '1';
+  // PERBAIKAN: Enable semua input kecuali yang memang harus tetap disabled
+  const allInputs = page.querySelectorAll('input, textarea, button');
+  
+  allInputs.forEach(input => {
+    // Skip input pencarian (sudah selalu aktif)
+    if (input.id.includes('searchKavling') || 
+        input.classList.contains('search-input-custom')) {
+      return;
+    }
+    
+    // Skip tombol khusus yang sudah memiliki state sendiri
+    if (input.classList.contains('logout-btn') || 
+        input.classList.contains('sync-btn') ||
+        input.classList.contains('btn-add-kavling') ||
+        input.classList.contains('btn-edit-kavling')) {
+      return;
+    }
+    
+    input.disabled = false;
+    input.style.opacity = '1';
+    
+    if (input.tagName === 'BUTTON') {
+      input.style.pointerEvents = 'auto';
+    }
   });
   
-  // Enable semua tombol state
+  // Enable tombol state khusus
   const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
   stateButtons.forEach(btn => {
     btn.disabled = false;
     btn.style.opacity = '1';
     btn.style.pointerEvents = 'auto';
   });
-  
-  // Enable textarea dan input lainnya
-  const textInputs = page.querySelectorAll('input[type="text"], input[type="date"], textarea');
-  textInputs.forEach(input => {
-    input.disabled = false;
-    input.style.opacity = '1';
-  });
-}  // <-- HAPUS TANDA KURUNG INI } YANG ADA DI BARIS 643-644
+}
 
 async function searchKavling(isSync = false) {
   console.log('=== FUNGSI searchKavling DIPANGGIL ===');
