@@ -425,11 +425,11 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
     const div = document.createElement('div');
     div.className = 'custom-dropdown-item';
     div.textContent = item;
-    div.onclick = function() {
+    div.onclick = async function() {
       console.log('Selected item via onclick:', item);
       
-      // Show loading popup immediately
-      showGlobalLoading('Memuat data kavling ' + item + '...');
+      // Tampilkan loading popup
+      showGlobalLoading(`Memuat data kavling ${item}...`);
       
       inputEl.value = item;
       selectEl.value = item;
@@ -442,8 +442,45 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
       const event = new Event('change', { bubbles: true });
       selectEl.dispatchEvent(event);
       
-      // Trigger search directly
-      searchKavling();
+      // Tunggu 300ms untuk efek visual
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      try {
+        const data = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+          action: 'getKavlingData',
+          kavling: item
+        });
+        
+        if (data.success) {
+          currentKavlingData = {
+            kavling: data.kavling || item,
+            type: data.type || '-', 
+            lt: data.lt || '-',
+            lb: data.lb || '-',
+            propertyNotes: data.propertyNotes || '',
+            totalAH: data.totalAH || '0%',
+            data: data.data || {}
+          };
+          
+          updateKavlingInfo(currentKavlingData, currentRole + 'Page');
+          loadProgressData(data.data);
+          
+          // Tampilkan sukses dan auto close
+          showStatusModal('success', 'Data Dimuat', `Data ${item} berhasil dimuat!`);
+          
+          setTimeout(() => {
+            hideGlobalLoading();
+            showToast('success', `Data ${item} berhasil dimuat!`);
+          }, 1500);
+          
+        } else {
+          hideGlobalLoading();
+          showToast('error', data.message || 'Kavling tidak ditemukan');
+        }
+      } catch (error) {
+        hideGlobalLoading();
+        showToast('error', 'Gagal mengambil data: ' + error.message);
+      }
     };
     listEl.appendChild(div);
   });
@@ -902,21 +939,26 @@ async function searchKavling(isSync = false) {
     }, 300);
       }
       
-      showToast('success', `Data ${kavlingName} berhasil dimuat!`);
+      // Tampilkan sukses dan auto close setelah 1.5 detik
+      showStatusModal('success', 'Data Dimuat', `Data ${kavlingName} berhasil dimuat!`);
+     
+     setTimeout(() => {
+        hideGlobalLoading();
+        showToast('success', `Data ${kavlingName} berhasil dimuat!`);
+      }, 1500);
       
     } else {
+      hideGlobalLoading();
       showToast('error', data.message || 'Kavling tidak ditemukan');
       selectElement.value = '';
     }
     
-  } catch (error) {
+ } catch (error) {
     console.error('Error dalam searchKavling:', error);
-    showToast('error', 'Gagal mengambil data: ' + error.message);
-  } finally {
     hideGlobalLoading();
+    showToast('error', 'Gagal mengambil data: ' + error.message);
   }
-}      
-
+}
 // Fungsi baru untuk load property notes dari data
 function loadPropertyNotesFromData(data) {
   const notesEl = document.getElementById('propertyNotesManager');
@@ -2683,6 +2725,43 @@ function setupUser4Tabs() {
     });
   });
 }
+// Fungsi untuk load kavling list dengan loading
+async function loadKavlingListWithLoading() {
+  console.log('Loading kavling list with loading modal...');
+  showGlobalLoading('Memuat daftar kavling...');
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getKavlingList'
+    });
+    
+    if (result.success && result.kavlings && result.kavlings.length > 0) {
+      allKavlings = result.kavlings; // Store globally
+      updateAllKavlingSelects(result.kavlings);
+      console.log(`✅ Loaded ${result.kavlings.length} kavlings`);
+      
+      // Tampilkan sukses dan auto close
+      showStatusModal('success', 'Daftar Dimuat', `${result.kavlings.length} kavling berhasil dimuat!`);
+      
+      setTimeout(() => {
+        hideGlobalLoading();
+      }, 1500);
+      
+      return result.kavlings;
+    } else {
+      hideGlobalLoading();
+      console.log('❌ No kavlings found:', result.message);
+      showToast('warning', 'Tidak ada data kavling ditemukan');
+      return [];
+    }
+    
+  } catch (error) {
+    hideGlobalLoading();
+    console.error('❌ Error loading kavling list:', error);
+    showToast('error', 'Gagal memuat daftar kavling');
+    return [];
+  }
+}
 
 function showPage(role) {
   document.querySelectorAll('.page-content').forEach(page => {
@@ -2808,6 +2887,7 @@ function clearSession() {
   currentKavlingData = null;
 }
 
+
 // ========== SYNC & SETUP ==========
 async function syncData() {
   const rolePage = currentRole + 'Page';
@@ -2820,7 +2900,7 @@ async function syncData() {
   
   try {
     showGlobalLoading('Sinkronisasi data...');
-    await loadKavlingList();
+   await loadKavlingListWithLoading();
     
     // Clear selections and reset UI
     selectedKavling = null;
@@ -2875,18 +2955,26 @@ async function syncData() {
       fills.forEach(el => el.style.width = '0%');
     }
 
-    showToast('success', 'Data berhasil disinkronisasi dan tampilan dibersihkan!');
+ // Tampilkan success dan auto close setelah 1.5 detik
+    showStatusModal('success', 'Sinkronisasi Berhasil', 'Data berhasil disinkronisasi!');
+    
+    setTimeout(() => {
+      hideGlobalLoading();
+      showToast('success', 'Data berhasil disinkronisasi dan tampilan dibersihkan!');
+    }, 1500);
+    
   } catch (error) {
     console.error('Sync error:', error);
+    hideGlobalLoading();
     showToast('error', 'Gagal sinkronisasi data');
   } finally {
     if (syncBtn) {
       syncBtn.disabled = false;
       syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Sinkronkan Data';
     }
-    hideGlobalLoading();
   }
 }
+
 
 // ========== TAB FUNCTIONS ==========
 function setupManagerTabs() {
@@ -3681,6 +3769,8 @@ function updateTotalProgressDisplay(progress, pageId) {
     totalBarEl.style.width = progress;
   }
 }
+
+
 
 function savePropertyNotes() {
   // Fungsi untuk save property notes
