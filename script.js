@@ -16,6 +16,13 @@ const defaultDisplayNames = {
 };
 
 // ========== UTILITY FUNCTIONS ==========
+// Global event listener for sync buttons
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.sync-btn')) {
+    searchKavling(true); // isSync = true
+  }
+});
+
 function showStatusModal(type, title, message) {
   const modal = document.getElementById('loadingModal');
   const textEl = document.getElementById('loadingText');
@@ -418,8 +425,12 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
     const div = document.createElement('div');
     div.className = 'custom-dropdown-item';
     div.textContent = item;
-    div.addEventListener('click', () => {
-      console.log('Selected item:', item);
+    div.onclick = function() {
+      console.log('Selected item via onclick:', item);
+      
+      // Show loading popup immediately
+      showGlobalLoading('Memuat data kavling ' + item + '...');
+      
       inputEl.value = item;
       selectEl.value = item;
       listEl.style.display = 'none';
@@ -433,7 +444,7 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
       
       // Trigger search directly
       searchKavling();
-    });
+    };
     listEl.appendChild(div);
   });
   
@@ -566,6 +577,9 @@ function setupEditKavling() {
 document.addEventListener('DOMContentLoaded', () => {
   setupEditKavling();
   setupCustomSearch('searchKavlingUser1Input', 'searchKavlingUser1List', 'searchKavlingUser1');
+  setupCustomSearch('searchKavlingUser2Input', 'searchKavlingUser2List', 'searchKavlingUser2');
+  setupCustomSearch('searchKavlingUser3Input', 'searchKavlingUser3List', 'searchKavlingUser3');
+  setupCustomSearch('searchKavlingUser4Input', 'searchKavlingUser4List', 'searchKavlingUser4');
   setupCustomSearch('searchKavlingManagerInput', 'searchKavlingManagerList', 'searchKavlingManager');
   updateTabsState(); // Initial state: disabled if no kavling
 });
@@ -763,7 +777,7 @@ function updateTabsState() {
   }
 }
 
-async function searchKavling() {
+async function searchKavling(isSync = false) {
   console.log('=== FUNGSI searchKavling DIPANGGIL ===');
   
   try {
@@ -794,8 +808,44 @@ async function searchKavling() {
       else selectElement.focus();
       return;
     }
-    
-    showGlobalLoading('Mengambil data kavling ' + kavlingName + '...');
+
+    // Clear all inputs/status before sync to give "refresh" feel
+    const pageElement = document.getElementById(rolePage);
+    if (pageElement) {
+      // Clear status text info
+      const infoId = getKavlingInfoIdByRole(currentRole);
+      const infoDisplay = document.getElementById(infoId);
+      if (infoDisplay) {
+        infoDisplay.querySelectorAll('.info-value').forEach(el => el.textContent = '-');
+      }
+
+      const checkboxes = pageElement.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.checked = false;
+        const label = cb.closest('label');
+        if (label) label.classList.remove('task-completed');
+      });
+      
+      const textareas = pageElement.querySelectorAll('textarea');
+      textareas.forEach(ta => ta.value = '');
+      
+      const dateInputs = pageElement.querySelectorAll('input[type="date"]');
+      dateInputs.forEach(di => di.value = '');
+      
+      const stateButtons = pageElement.querySelectorAll('.state-btn');
+      stateButtons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('data-active', 'false');
+      });
+
+      // Reset progress bars
+      const progressBars = pageElement.querySelectorAll('.progress-fill');
+      progressBars.forEach(bar => bar.style.width = '0%');
+      const percentTexts = pageElement.querySelectorAll('.sub-percent, .total-percent');
+      percentTexts.forEach(txt => txt.textContent = '0%');
+    }
+    showGlobalLoading('Menyinkronkan data ' + kavlingName + '...');
+
     
     const data = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'getKavlingData',
