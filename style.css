@@ -2484,3 +2484,44 @@ input[type="checkbox"]:not(:disabled) + label {
 input[type="checkbox"]:not(:disabled) + label:hover {
   background: rgba(56, 189, 248, 0.1);
 }
+
+/* ===== INPUT PENCARIAN YANG SELALU AKTIF ===== */
+.search-input-custom {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.search-input-custom:disabled {
+  opacity: 1 !important;
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: white !important;
+  cursor: pointer !important;
+}
+
+.custom-search-container {
+  pointer-events: auto !important;
+}
+
+.custom-dropdown-list {
+  pointer-events: auto !important;
+}
+
+.custom-dropdown-item {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.custom-dropdown-item:hover {
+  background: #334155 !important;
+  pointer-events: auto !important;
+}
+
+/* Pastikan input pencarian tidak terpengaruh oleh disabled state */
+.search-input-custom,
+input[id*="searchKavling"],
+input[id*="searchKavling"]:focus {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  cursor: text !important;
+}
