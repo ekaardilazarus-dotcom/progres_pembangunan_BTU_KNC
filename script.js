@@ -387,27 +387,60 @@ function setupCustomSearch(inputId, listId, selectId) {
   const list = document.getElementById(listId);
   const select = document.getElementById(selectId);
 
-  if (!input || !list || !select) return;
+ if (!input || !list || !select) {
+    console.error(`Custom search elements not found: ${inputId}, ${listId}, ${selectId}`);
+    return;
+  }
 
-  input.addEventListener('focus', () => {
+  // Pastikan input selalu aktif
+  input.disabled = false;
+  input.style.pointerEvents = 'auto';
+  input.style.cursor = 'text';
+  
+  // Hapus event listener lama jika ada
+  const newInput = input.cloneNode(true);
+  input.parentNode.replaceChild(newInput, input);
+  
+  // Setup event listeners baru
+  newInput.addEventListener('focus', () => {
+    console.log(`Input ${inputId} focused`);
     if (allKavlings.length > 0) {
-      renderSearchList(allKavlings, list, input, select);
+      renderSearchList(allKavlings, list, newInput, select);
+      list.style.display = 'block';
+      list.style.zIndex = '1000';
+    }
+  });
+
+  newInput.addEventListener('input', (e) => {
+    console.log(`Input ${inputId} changed:`, e.target.value);
+    const searchTerm = e.target.value.toLowerCase();
+    const filtered = allKavlings.filter(k => k.toLowerCase().includes(searchTerm));
+    renderSearchList(filtered, list, newInput, select);
+    list.style.display = 'block';
+  });
+
+  newInput.addEventListener('click', (e) => {
+    console.log(`Input ${inputId} clicked`);
+    e.stopPropagation();
+    if (allKavlings.length > 0 && list.style.display === 'none') {
+      renderSearchList(allKavlings, list, newInput, select);
       list.style.display = 'block';
     }
   });
 
-  input.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const filtered = allKavlings.filter(k => k.toLowerCase().includes(searchTerm));
-    renderSearchList(filtered, list, input, select);
-    list.style.display = 'block';
-  });
-
+  // Tutup dropdown ketika klik di luar
   document.addEventListener('click', (e) => {
-    if (!input.contains(e.target) && !list.contains(e.target)) {
+    if (!newInput.contains(e.target) && !list.contains(e.target)) {
       list.style.display = 'none';
     }
   });
+
+  // Prevent closing when clicking inside dropdown
+  list.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+  
+  console.log(`Custom search setup complete for ${inputId}`);
 }
 
 function renderSearchList(items, listEl, inputEl, selectEl) {
@@ -2939,6 +2972,8 @@ function showPage(role) {
     
     // ⚡ RESET: Nonaktifkan semua input terlebih dahulu
     disableAllInputs();
+     // ⚡ Khusus aktifkan input pencarian
+    enableSearchInputs();
     
     if (role === 'admin') {
       setTimeout(() => {
@@ -2964,6 +2999,27 @@ function showPage(role) {
       setTimeout(loadKavlingList, 500);
     }
   }
+}
+// ========== FUNGSI BARU: Aktifkan Input Pencarian Saja ==========
+function enableSearchInputs() {
+  const pageId = currentRole + 'Page';
+  const page = document.getElementById(pageId);
+  if (!page) return;
+  
+  // Aktifkan semua input pencarian
+  const searchInputs = page.querySelectorAll('.search-input-custom, input[id*="searchKavling"]');
+  searchInputs.forEach(input => {
+    input.disabled = false;
+    input.style.opacity = '1';
+    input.style.pointerEvents = 'auto';
+    input.style.cursor = 'text';
+  });
+  
+  // Aktifkan dropdown list jika ada
+  const dropdownLists = page.querySelectorAll('.custom-dropdown-list');
+  dropdownLists.forEach(list => {
+    list.style.pointerEvents = 'auto';
+  });
 }
 
 function setupPelaksanaTabs() {
