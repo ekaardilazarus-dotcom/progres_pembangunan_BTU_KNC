@@ -790,6 +790,7 @@ function setSelectedKavlingInDropdowns(kavlingName) {
 }
 
 // ========== PROGRESS FUNCTIONS ==========
+// ========== FUNGSI PERBAIKAN updateTabsState ==========
 function updateTabsState() {
   const pelaksanaTabs = document.querySelectorAll('.pelaksana-tabs .admin-tab-btn');
   const pelaksanaContent = document.querySelector('.pelaksana-tab-content');
@@ -804,6 +805,9 @@ function updateTabsState() {
       pelaksanaContent.style.opacity = '0.5';
       pelaksanaContent.style.pointerEvents = 'none';
     }
+    
+    // Nonaktifkan semua checkbox dan input
+    disableAllInputs();
   } else {
     pelaksanaTabs.forEach(btn => {
       btn.style.opacity = '1';
@@ -814,7 +818,68 @@ function updateTabsState() {
       pelaksanaContent.style.opacity = '1';
       pelaksanaContent.style.pointerEvents = 'auto';
     }
+    
+    // Aktifkan semua checkbox dan input
+    enableAllInputs();
   }
+}
+
+// ========== FUNGSI BARU: Aktifkan/Nonaktifkan Input ==========
+function disableAllInputs() {
+  const pageId = currentRole + 'Page';
+  const page = document.getElementById(pageId);
+  if (!page) return;
+  
+  // Disable semua checkbox
+  const checkboxes = page.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.disabled = true;
+    cb.style.opacity = '0.5';
+  });
+  
+  // Disable semua tombol state
+  const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
+  stateButtons.forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.pointerEvents = 'none';
+  });
+  
+  // Disable textarea dan input lainnya
+  const textInputs = page.querySelectorAll('input[type="text"], input[type="date"], textarea');
+  textInputs.forEach(input => {
+    input.disabled = true;
+    input.style.opacity = '0.5';
+  });
+}
+
+function enableAllInputs() {
+  const pageId = currentRole + 'Page';
+  const page = document.getElementById(pageId);
+  if (!page) return;
+  
+  // Enable semua checkbox
+  const checkboxes = page.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.disabled = false;
+    cb.style.opacity = '1';
+  });
+  
+  // Enable semua tombol state
+  const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
+  stateButtons.forEach(btn => {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+  });
+  
+  // Enable textarea dan input lainnya
+  const textInputs = page.querySelectorAll('input[type="text"], input[type="date"], textarea');
+  textInputs.forEach(input => {
+    input.disabled = false;
+    input.style.opacity = '1';
+  });
+}
 }
 
 async function searchKavling(isSync = false) {
@@ -941,7 +1006,18 @@ async function searchKavling(isSync = false) {
       loadKeyDeliveryData();
     }, 300);
       }
-      
+     
+     // ⚡ Aktifkan semua input setelah data dimuat
+            setTimeout(() => {
+        enableAllInputs();
+        
+        // Tambahkan event listener untuk checkbox
+        setupCheckboxListeners(rolePage);
+        
+        // Update tabs state
+        updateTabsState();
+      }, 100);
+     
       // Tampilkan sukses dan auto close setelah 1.5 detik
       showStatusModal('success', 'Data Dimuat', `Data ${kavlingName} berhasil dimuat!`);
      
@@ -963,21 +1039,74 @@ async function searchKavling(isSync = false) {
   }
 }
 // Fungsi baru untuk load property notes dari data
-function loadPropertyNotesFromData(data) {
-  const notesEl = document.getElementById('propertyNotesManager');
-  if (!notesEl) return;
+function setupCheckboxListeners(pageId) {
+  const page = document.getElementById(pageId);
+  if (!page) return;
   
-  // PERBAIKAN: Ambil notes dari data.propertyNotes ATAU data.data.keterangan
- const notes = data.propertyNotes || '';
-  
-  notesEl.value = notes;
-  notesEl.placeholder = 'Masukkan catatan kondisi property (AH) di sini...';
-  
-  // Update character counter jika ada
-  if (typeof updateNotesCounter === 'function') {
-    updateNotesCounter(notes.length);
-  }
+  // Hapus event listener lama jika ada
+  const checkboxes = page.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(checkbox => {
+    // Clone checkbox untuk hapus event listener lama
+    const newCheckbox = checkbox.cloneNode(true);
+    checkbox.parentNode.replaceChild(newCheckbox, checkbox);
+    
+    // Tambah event listener baru
+    newCheckbox.addEventListener('change', function() {
+      const label = this.closest('label');
+      if (this.checked) {
+        label.classList.add('task-completed');
+      } else {
+        label.classList.remove('task-completed');
+      }
+      updateProgress(pageId);
+    });
+  });
+    // Setup tombol state (sistem pembuangan, keramik, dll)
+  setupStateButtons(pageId);
 }
+
+// ========== FUNGSI BARU: Setup State Buttons ==========
+function setupStateButtons(pageId) {
+  const page = document.getElementById(pageId);
+  if (!page) return;
+  
+  // Setup tombol sistem pembuangan
+  const systemBtns = page.querySelectorAll('.system-btn');
+  systemBtns.forEach(btn => {
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    newBtn.addEventListener('click', function() {
+      const systemType = this.getAttribute('data-state');
+      toggleSystemButton(this, systemType);
+    });
+  });
+  
+  // Setup tombol keramik dinding
+  const tilesBtns = page.querySelectorAll('.tiles-btn');
+  tilesBtns.forEach(btn => {
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    newBtn.addEventListener('click', function() {
+      const option = this.getAttribute('data-state');
+      toggleTilesButton(this, option);
+    });
+  });
+  
+  // Setup tombol cor meja dapur
+  const tableBtns = page.querySelectorAll('.table-btn');
+  tableBtns.forEach(btn => {
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    newBtn.addEventListener('click', function() {
+      const option = this.getAttribute('data-state');
+      toggleTableButton(this, option);
+    });
+  });
+}
+
 //----------------------------------------------
 function updateManagerProgressDisplay(totalProgress) {
   const progressDisplay = document.getElementById('managerProgressDisplay');
@@ -2784,7 +2913,8 @@ function showPage(role) {
     const savedName = sessionStorage.getItem('loggedDisplayName');
     if (savedName) updateDashboardTitle(role, savedName);
     
-    updateProgress(role + 'Page');
+    // ⚡ RESET: Nonaktifkan semua input terlebih dahulu
+    disableAllInputs();
     
     if (role === 'admin') {
       setTimeout(() => {
@@ -2796,7 +2926,7 @@ function showPage(role) {
         loadKavlingList();
         setupManagerTabs();
       }, 500);
-    } else if (role === 'user1') {
+    } else if (role === 'user1' || role === 'user2' || role === 'user3') {
       setTimeout(() => {
         loadKavlingList();
         setupPelaksanaTabs();
