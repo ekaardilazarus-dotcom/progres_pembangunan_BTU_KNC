@@ -1,6 +1,6 @@
-// versi 0.334
+// versi 0.4
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbdZ_NcYV6963rdWWRX_r6V64BBIT3SFb3V-KNMZPB44uci28SqsQ2k0YHXJKX_kd0Ug/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4j4f2AlMMu1nZzLePeqdLzyMYj59lmlvVmnV9QywZwGwpLYhvNa7ExtrIAc3SWmDC/exec';
 
 let currentRole = null;
 let selectedKavling = null;
@@ -3195,7 +3195,7 @@ function initApp() {
       }
     });
   }
-  
+   setupEditKavling();
   // Cek session login
   const savedRole = sessionStorage.getItem('loggedRole');
   if (savedRole) {
