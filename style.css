@@ -800,7 +800,225 @@ footer {
 }
 /* Tambahkan di akhir file CSS */
 
-/* Admin Utilitas Tab Colors */
+/* Dashboard Buttons Grid for Mobile */
+.dashboard-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.dashboard-buttons-grid button {
+  padding: 12px 8px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+}
+
+@media (min-width: 769px) {
+  .dashboard-buttons-grid {
+    display: flex;
+    flex-direction: row;
+    width: auto;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .dashboard-buttons-grid button {
+    padding: 8px 12px;
+    width: auto;
+  }
+}
+
+/* Hover states for Edit Kavling Modal Buttons */
+.btn-edit-submit:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+.btn-edit-cancel:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);
+}
+.btn-edit-delete:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+}
+.btn-edit-submit:active, .btn-edit-cancel:active, .btn-edit-delete:active {
+  transform: translateY(0);
+}
+
+/* Success & Progress Modals */
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  position: relative;
+}
+
+.check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #4caf50;
+}
+
+.check-icon::before {
+  top: 3px;
+  left: -2px;
+  width: 30px;
+  transform-origin: 100% 50%;
+  border-radius: 100px 0 0 100px;
+}
+
+.check-icon::after {
+  top: 0;
+  left: 30px;
+  width: 60px;
+  transform-origin: 0 50%;
+  border-radius: 0 100px 100px 0;
+  animation: rotate-circle 4.25s ease-in;
+}
+
+.check-icon .icon-line {
+  height: 5px;
+  background-color: #4caf50;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.check-icon .icon-line.line-tip {
+  top: 46px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: icon-line-tip 0.75s;
+}
+
+.check-icon .icon-line.line-long {
+  top: 38px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: icon-line-long 0.75s;
+}
+
+.check-icon .icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid rgba(76, 175, 80, 0.5);
+  box-sizing: content-box;
+  position: absolute;
+}
+
+.check-icon .icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 28px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+}
+
+@keyframes icon-line-tip {
+  0% { width: 0; left: 1px; top: 19px; }
+  54% { width: 0; left: 1px; top: 19px; }
+  70% { width: 50px; left: -8px; top: 37px; }
+  84% { width: 17px; left: 21px; top: 48px; }
+  100% { width: 25px; left: 14px; top: 46px; }
+}
+
+@keyframes icon-line-long {
+  0% { width: 0; right: 46px; top: 54px; }
+  65% { width: 0; right: 46px; top: 54px; }
+  84% { width: 55px; right: 0px; top: 35px; }
+  100% { width: 47px; right: 8px; top: 38px; }
+}
+
+/* Red checkmark for delete */
+.check-icon.delete { border-color: #f44336; }
+.check-icon.delete .icon-line { background-color: #f44336; }
+.check-icon.delete .icon-circle { border-color: rgba(244, 67, 54, 0.5); }
+
+.custom-search-container {
+  position: relative;
+  width: 100%;
+}
+
+.search-input-custom {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  border: 2px solid #334155;
+  background: #0f172a;
+  color: white;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.search-input-custom:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+}
+
+.custom-dropdown-list {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.2s ease;
+}
+
+.custom-dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  color: #f8fafc;
+  transition: all 0.2s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.custom-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.custom-dropdown-item:hover {
+  background: #334155;
+  color: #38bdf8;
+}
+
+.custom-dropdown-item.no-results {
+  color: #94a3b8;
+  font-style: italic;
+  cursor: default;
+}
+
+/* Override search-box default arrow since we use a custom input now */
+.search-box::after {
+  display: none;
+}
+
 .admin-tab-btn[data-tab="kunci-masuk"].active {
     background: linear-gradient(135deg, #10b981, #059669);
     border-color: #10b981;
