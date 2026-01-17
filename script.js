@@ -1,4 +1,4 @@
-// versi 0.4
+// versi 0.44
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4j4f2AlMMu1nZzLePeqdLzyMYj59lmlvVmnV9QywZwGwpLYhvNa7ExtrIAc3SWmDC/exec';
 
@@ -1170,10 +1170,7 @@ async function searchKavling(isSync = false) {
         }
 
         // TAMBAHAN: Update Property Notes khusus untuk user4
-        const propNotesInput = document.getElementById('utilityPropertyNotes');
-        if (propNotesInput) {
-          propNotesInput.value = currentKavlingData.propertyNotes || '';
-        }
+        // Logic will now use loadProgressData since we added .tahap-comments class
       }
      
      // ⚡ Aktifkan semua input setelah data dimuat
@@ -1256,16 +1253,23 @@ function toggleSystemButton(button, state) {
   const buttons = parent.querySelectorAll('.system-btn');
   const hiddenInput = parent.querySelector('input[type="hidden"]');
   
+  const wasActive = button.classList.contains('active');
+  
   buttons.forEach(btn => {
     btn.setAttribute('data-active', 'false');
     btn.classList.remove('active');
   });
   
-  button.setAttribute('data-active', 'true');
-  button.classList.add('active');
-  
-  if (hiddenInput) {
-    hiddenInput.value = state;
+  if (!wasActive) {
+    button.setAttribute('data-active', 'true');
+    button.classList.add('active');
+    if (hiddenInput) {
+      hiddenInput.value = state;
+    }
+  } else {
+    if (hiddenInput) {
+      hiddenInput.value = '';
+    }
   }
   
   // Update progress calculation
@@ -1278,16 +1282,23 @@ function toggleTilesButton(button, state) {
   const buttons = parent.querySelectorAll('.tiles-btn');
   const hiddenInput = parent.querySelector('input[type="hidden"]');
   
+  const wasActive = button.classList.contains('active');
+  
   buttons.forEach(btn => {
     btn.setAttribute('data-active', 'false');
     btn.classList.remove('active');
   });
   
-  button.setAttribute('data-active', 'true');
-  button.classList.add('active');
-  
-  if (hiddenInput) {
-    hiddenInput.value = state === 'include' ? 'Dengan Keramik Dinding' : 'Tanpa Keramik Dinding';
+  if (!wasActive) {
+    button.setAttribute('data-active', 'true');
+    button.classList.add('active');
+    if (hiddenInput) {
+      hiddenInput.value = state === 'include' ? 'Dengan Keramik Dinding' : 'Tanpa Keramik Dinding';
+    }
+  } else {
+    if (hiddenInput) {
+      hiddenInput.value = '';
+    }
   }
   
   // Update progress calculation
@@ -1300,16 +1311,23 @@ function toggleTableButton(button, state) {
   const buttons = parent.querySelectorAll('.table-btn');
   const hiddenInput = parent.querySelector('input[type="hidden"]');
   
+  const wasActive = button.classList.contains('active');
+  
   buttons.forEach(btn => {
     btn.setAttribute('data-active', 'false');
     btn.classList.remove('active');
   });
   
-  button.setAttribute('data-active', 'true');
-  button.classList.add('active');
-  
-  if (hiddenInput) {
-    hiddenInput.value = state === 'include' ? 'Dengan Cor Meja Dapur' : 'Tanpa Cor Meja Dapur';
+  if (!wasActive) {
+    button.setAttribute('data-active', 'true');
+    button.classList.add('active');
+    if (hiddenInput) {
+      hiddenInput.value = state === 'include' ? 'Dengan Cor Meja Dapur' : 'Tanpa Cor Meja Dapur';
+    }
+  } else {
+    if (hiddenInput) {
+      hiddenInput.value = '';
+    }
   }
   
   // Update progress calculation
@@ -1504,18 +1522,18 @@ function loadProgressData(progressData) {
   if (progressData.tahap1) {
     // Handle Sistem Pembuangan
     const sistemPembuanganValue = progressData.tahap1['SISTEM PEMBUANGAN'];
-    if (sistemPembuanganValue) {
-      const taskItem = pageElement.querySelector('.waste-system');
-      if (taskItem) {
-        const buttons = taskItem.querySelectorAll('.system-btn');
-        const hiddenInput = taskItem.querySelector('#wasteSystemInput');
-        
-        // Reset active state first
-        buttons.forEach(btn => {
-          btn.classList.remove('active');
-          btn.setAttribute('data-active', 'false');
-        });
-        
+    const wasteSystemItem = pageElement.querySelector('.waste-system');
+    if (wasteSystemItem) {
+      const buttons = wasteSystemItem.querySelectorAll('.system-btn');
+      const hiddenInput = wasteSystemItem.querySelector('#wasteSystemInput');
+      
+      // Reset active state first
+      buttons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('data-active', 'false');
+      });
+      
+      if (sistemPembuanganValue) {
         buttons.forEach(btn => {
           if (btn.getAttribute('data-state') === sistemPembuanganValue.toLowerCase()) {
             btn.classList.add('active');
@@ -1526,23 +1544,25 @@ function loadProgressData(progressData) {
         if (hiddenInput) {
           hiddenInput.value = sistemPembuanganValue;
         }
+      } else {
+        if (hiddenInput) hiddenInput.value = '';
       }
-    } // <-- HAPUS setTimeout() DI SINI
+    }
     
     // Handle Cor Meja Dapur
     const corMejaDapurValue = progressData.tahap1['COR MEJA DAPUR'];
-    if (corMejaDapurValue) {
-      const taskItem = pageElement.querySelector('.table-kitchen');
-      if (taskItem) {
-        const buttons = taskItem.querySelectorAll('.table-btn');
-        const hiddenInput = taskItem.querySelector('#tableKitchenInput');
-        
-        // Reset active state first
-        buttons.forEach(btn => {
-          btn.classList.remove('active');
-          btn.setAttribute('data-active', 'false');
-        });
-        
+    const tableKitchenItem = pageElement.querySelector('.table-kitchen');
+    if (tableKitchenItem) {
+      const buttons = tableKitchenItem.querySelectorAll('.table-btn');
+      const hiddenInput = tableKitchenItem.querySelector('#tableKitchenInput');
+      
+      // Reset active state first
+      buttons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('data-active', 'false');
+      });
+      
+      if (corMejaDapurValue) {
         buttons.forEach(btn => {
           if (btn.getAttribute('data-state') === 'include' && corMejaDapurValue === 'Dengan Cor Meja Dapur') {
             btn.classList.add('active');
@@ -1556,6 +1576,8 @@ function loadProgressData(progressData) {
         if (hiddenInput) {
           hiddenInput.value = corMejaDapurValue;
         }
+      } else {
+        if (hiddenInput) hiddenInput.value = '';
       }
     }
     
@@ -1584,18 +1606,18 @@ function loadProgressData(progressData) {
   if (progressData.tahap2) {
     // Handle Keramik Dinding Toilet & Dapur
     const keramikDindingValue = progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'];
-    if (keramikDindingValue) {
-      const taskItem = pageElement.querySelector('.bathroom-tiles');
-      if (taskItem) {
-        const buttons = taskItem.querySelectorAll('.tiles-btn');
-        const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
-        
-        // Reset active state first
-        buttons.forEach(btn => {
-          btn.classList.remove('active');
-          btn.setAttribute('data-active', 'false');
-        });
-        
+    const bathroomTilesItem = pageElement.querySelector('.bathroom-tiles');
+    if (bathroomTilesItem) {
+      const buttons = bathroomTilesItem.querySelectorAll('.tiles-btn');
+      const hiddenInput = bathroomTilesItem.querySelector('#bathroomTilesInput');
+      
+      // Reset active state first
+      buttons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('data-active', 'false');
+      });
+      
+      if (keramikDindingValue) {
         buttons.forEach(btn => {
           if (btn.getAttribute('data-state') === 'include' && keramikDindingValue === 'Dengan Keramik Dinding') {
             btn.classList.add('active');
@@ -1609,6 +1631,8 @@ function loadProgressData(progressData) {
         if (hiddenInput) {
           hiddenInput.value = keramikDindingValue;
         }
+      } else {
+        if (hiddenInput) hiddenInput.value = '';
       }
     }
     
