@@ -1,6 +1,6 @@
-// versi 0.45
+// versi 0.4
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsAzZ8bUgp-jyWN09CNQ7_qLCOn7qfzqhoXOMjNKQ3GduLH5e7ySD_qdgQSO1wXeZTtQ/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4j4f2AlMMu1nZzLePeqdLzyMYj59lmlvVmnV9QywZwGwpLYhvNa7ExtrIAc3SWmDC/exec';
 
 let currentRole = null;
 let selectedKavling = null;
@@ -1163,18 +1163,8 @@ async function searchKavling(isSync = false) {
         // Load data untuk Admin Utilitas
         loadUtilitasDataFromData(currentKavlingData);
         updateUtilitasProgressDisplay(currentKavlingData.totalAH);
-         loadAdminUtilitasScript();
+        
         // Load additional data from Admin Utilitas Apps Script
-                        // Load data setelah delay
-                setTimeout(async () => {
-                    try {
-                        await loadAdminUtilitasData(selectedKavling);
-                    } catch (error) {
-                        console.error('Error in admin utilitas load:', error);
-                    }
-                }, 400);
-            }
-      
         if (typeof loadAdminUtilitasData === 'function') {
             loadAdminUtilitasData(kavlingName);
         }
@@ -4612,138 +4602,43 @@ function debugTahap4Structure() {
   });
 }
 // ========== INTEGRATION WITH ADMIN UTILITAS ==========
-window.ADMIN_UTILITAS_LOADED = false;
+// Tambahkan di akhir script.js, sebelum penutup
+
 // Fungsi untuk memanggil scriptadmin.js jika user4
 function loadAdminUtilitasScript() {
-    if (window.ADMIN_UTILITAS_LOADED) return;
-    
-    console.log('Loading Admin Utilitas script...');
-    
-    if (!document.getElementById('admin-utilitas-script')) {
-        const script = document.createElement('script');
-        script.id = 'admin-utilitas-script';
-        script.src = 'scriptadmin.js';
-        script.onload = function() {
-            console.log('Admin Utilitas script loaded');
-            window.ADMIN_UTILITAS_LOADED = true;
-            
-            // Inisialisasi Admin Utilitas jika di halaman user4
-            if (currentRole === 'user4') {
-                setTimeout(() => {
-                    if (typeof initAdminUtilitas === 'function') {
-                        initAdminUtilitas();
-                    }
-                }, 300);
-            }
-        };
-        script.onerror = function() {
-            console.error('Failed to load Admin Utilitas script');
-        };
-        document.head.appendChild(script);
-    }
-}
-
-
-async function loadAdminUtilitasData(kavlingName) {
-    if (!kavlingName) return;
-    
-    console.log('loadAdminUtilitasData called for:', kavlingName);
-    
-    // Tunggu script dimuat jika belum
-    if (!window.ADMIN_UTILITAS_LOADED) {
-        console.log('Admin Utilitas script not loaded yet, loading...');
-        loadAdminUtilitasScript();
-        
-        // Tunggu 500ms lalu coba lagi
-        setTimeout(async () => {
-            if (window.adminUtilitas && typeof window.adminUtilitas.loadData === 'function') {
-                try {
-                    await window.adminUtilitas.loadData(kavlingName);
-                } catch (error) {
-                    console.error('Error loading admin data after delay:', error);
+    if (currentRole === 'user4') {
+        // Cek apakah script sudah dimuat
+        if (!document.getElementById('admin-utilitas-script')) {
+            const script = document.createElement('script');
+            script.id = 'admin-utilitas-script';
+            script.src = 'scriptadmin.js';
+            script.onload = function() {
+                console.log('Admin Utilitas script loaded');
+                if (window.adminUtilitas && window.adminUtilitas.init) {
+                    window.adminUtilitas.init();
                 }
-            }
-        }, 500);
-    } else if (window.adminUtilitas && typeof window.adminUtilitas.loadData === 'function') {
-        try {
-            await window.adminUtilitas.loadData(kavlingName);
-        } catch (error) {
-            console.error('Error loading admin data:', error);
+            };
+            document.head.appendChild(script);
         }
     }
 }
 
-// Override showPage untuk user4
-const originalShowPage = window.showPage;
-window.showPage = function(role) {
+// Modifikasi fungsi showPage untuk load script admin
+const originalShowPage = showPage;
+showPage = function(role) {
     originalShowPage(role);
     
+    // Load admin utilitas script jika role user4
     if (role === 'user4') {
-        // Load script admin jika belum
-        loadAdminUtilitasScript();
-        
-        // Setup minimal di sini
-        setTimeout(() => {
-            setupUser4PageMinimal();
-        }, 200);
+        setTimeout(loadAdminUtilitasScript, 300);
     }
 };
-function setupUser4PageMinimal() {
-    console.log('Setting up minimal User4 page...');
-    
-    // Hanya setup yang penting dan tidak akan konflik
-    const searchSelect = document.getElementById('searchKavlingUser4');
-    if (searchSelect) {
-        // Hapus listener lama jika ada
-        const newSelect = searchSelect.cloneNode(true);
-        searchSelect.parentNode.replaceChild(newSelect, searchSelect);
-        
-        newSelect.addEventListener('change', function() {
-            if (this.value) {
-                searchKavling();
-            }
-        });
-    }
-    
-    // Setup custom search
-    const searchInput = document.getElementById('searchKavlingUser4Input');
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const dropdownList = document.getElementById('searchKavlingUser4List');
-            
-            if (dropdownList) {
-                const items = dropdownList.querySelectorAll('.custom-dropdown-item');
-                let hasVisible = false;
-                
-                items.forEach(item => {
-                    if (item.textContent.toLowerCase().includes(searchTerm)) {
-                        item.style.display = 'block';
-                        hasVisible = true;
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-                
-                const noResults = dropdownList.querySelector('.no-results');
-                if (!hasVisible && !noResults) {
-                    const msg = document.createElement('div');
-                    msg.className = 'custom-dropdown-item no-results';
-                    msg.textContent = 'Tidak ada kavling ditemukan';
-                    dropdownList.appendChild(msg);
-                } else if (noResults && hasVisible) {
-                    noResults.remove();
-                }
-            }
-        });
-    }
-}
 
-function debugAdminIntegration() {
-    console.log('=== DEBUG ADMIN INTEGRATION ===');
-    console.log('Current role:', currentRole);
-    console.log('Selected kavling:', selectedKavling);
-    console.log('Admin script loaded:', window.ADMIN_UTILITAS_LOADED);
-    console.log('Admin utilitas object:', window.adminUtilitas);
-    console.log('User4 page exists:', !!document.getElementById('user4Page'));
+// Juga load jika sudah di halaman user4 saat refresh
+if (window.currentRole === 'user4') {
+    setTimeout(loadAdminUtilitasScript, 1000);
 }
+// Panggil setelah DOM siap
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(debugTahap4Structure, 1000);
+});
