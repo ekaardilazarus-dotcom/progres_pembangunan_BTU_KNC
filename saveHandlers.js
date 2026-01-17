@@ -427,4 +427,66 @@ async function saveKeyDelivery() {
   const deliveryToInput = deliverySection.querySelector('.delivery-section');
   const deliveryDateInput = deliverySection.querySelector('.key-delivery-date');
   
-  if (!deliveryToInput ||
+  if (!deliveryToInput || !deliveryDateInput) {
+    console.error('Input elements not found:', {
+      deliveryTo: !!deliveryToInput,
+      deliveryDate: !!deliveryDateInput
+    });
+    showToast('error', 'Form tidak lengkap!');
+    return;
+  }
+  
+  const deliveryTo = deliveryToInput.value.trim();
+  const deliveryDate = deliveryDateInput.value;
+  
+  if (!deliveryTo) {
+    showToast('warning', 'Harap isi "Penyerahan Kunci Ke"');
+    deliveryToInput.focus();
+    return;
+  }
+  
+  showGlobalLoading('Menyimpan data penyerahan kunci...');
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'saveKeyDelivery',
+      kavling: selectedKavling,
+      deliveryTo: deliveryTo,
+      deliveryDate: deliveryDate,
+      user: currentRole
+    });
+    
+    if (result.success) {
+      showToast('success', 'Data penyerahan kunci berhasil disimpan!');
+      
+      // Update data lokal
+      if (currentKavlingData) {
+        if (!currentKavlingData.keyDelivery) currentKavlingData.keyDelivery = {};
+        currentKavlingData.keyDelivery.deliveryTo = deliveryTo;
+        currentKavlingData.keyDelivery.deliveryDate = deliveryDate;
+      }
+      
+      // Clear form jika berhasil
+      deliveryToInput.value = '';
+      deliveryDateInput.value = '';
+    } else {
+      showToast('error', 'Gagal menyimpan: ' + result.message);
+    }
+  } catch (error) {
+    console.error('Error saving key delivery:', error);
+    showToast('error', 'Error: ' + error.message);
+  } finally {
+    hideGlobalLoading();
+  }
+}
+
+// Export
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    saveTahap1,
+    saveTahap2,
+    saveTahap3,
+    saveTahap4,
+    saveKeyDelivery
+  };
+}
