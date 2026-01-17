@@ -1,4 +1,4 @@
-// versi 0.414
+// versi 0.4
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4j4f2AlMMu1nZzLePeqdLzyMYj59lmlvVmnV9QywZwGwpLYhvNa7ExtrIAc3SWmDC/exec';
 
@@ -471,6 +471,56 @@ function setupCustomSearch(inputId, listId, selectId) {
   console.log(`Custom search setup complete for ${inputId}`);
 }
 
+function clearInputsForNewLoad() {
+  console.log('Clearing all inputs and progress displays...');
+  
+  // 1. Reset Checkboxes and Labels
+  const checkboxes = document.querySelectorAll('.sub-task[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.checked = false;
+    const label = cb.closest('.task-item');
+    if (label) label.classList.remove('task-completed');
+  });
+
+  // 2. Reset Text, Hidden, and Date Inputs
+  const textInputs = document.querySelectorAll('.sub-task-text, .tahap-comments, .key-delivery-input, .key-delivery-date, input[type="hidden"].sub-task, .search-input-custom');
+  textInputs.forEach(input => {
+    // Don't clear the active search input that was just used
+    if (!input.id.includes('Input') || input.value === '') {
+       // if it's not an input field or it's already empty, we can skip or clear others
+    }
+    if (!input.classList.contains('search-input-custom')) {
+      input.value = '';
+    }
+  });
+
+  // 3. Reset Dual-State Buttons
+  const stateButtons = document.querySelectorAll('.state-btn');
+  stateButtons.forEach(btn => {
+    btn.setAttribute('data-active', 'false');
+    btn.classList.remove('active');
+  });
+
+  // 4. Reset ALL Progress Bars and Percentage Texts
+  const progressFills = document.querySelectorAll('.progress-fill');
+  progressFills.forEach(fill => {
+    fill.style.width = '0%';
+  });
+
+  const percentTexts = document.querySelectorAll('.total-percent, .sub-percent, .sub-percent-tahap');
+  percentTexts.forEach(text => {
+    text.textContent = '0%';
+  });
+
+  // 5. Reset Info Display values
+  const valDisplays = document.querySelectorAll('.info-value');
+  valDisplays.forEach(display => {
+    if (!display.classList.contains('val-name')) {
+      display.textContent = '-';
+    }
+  });
+}
+
 function renderSearchList(items, listEl, inputEl, selectEl) {
   listEl.innerHTML = '';
   
@@ -501,6 +551,9 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
       
       // Ensure the value is synced and trigger search
       selectedKavling = item;
+      
+      // Clear all inputs and progress displays before loading new data
+      clearInputsForNewLoad();
       
       // Force change event for any listeners
       const event = new Event('change', { bubbles: true });
@@ -620,8 +673,15 @@ function setupEditKavling() {
         if (result.success) {
           showStatusModal('success', 'Berhasil Update', `Data kavling ${name} telah diperbarui.`);
           modal.style.display = 'none';
-          // Refresh data
-          await searchKavling();
+          
+          // Clear all inputs before re-sync
+          clearInputsForNewLoad();
+          
+          // Refresh list of kavlings first
+          await loadKavlingList();
+          
+          // Re-sync specific kavling data
+          await searchKavling(true);
         } else {
           showToast('error', 'Gagal update: ' + (result.message || 'Unknown error'));
         }
@@ -655,28 +715,21 @@ function setupEditKavling() {
           showStatusModal('delete-success', 'Berhasil Hapus', `Data kavling ${name} telah dihapus.`);
           modal.style.display = 'none';
           
-          // Clear inputs
-          document.getElementById('editKavlingName').value = '';
-          document.getElementById('editKavlingType').value = '';
-          document.getElementById('editKavlingLT').value = '';
-          document.getElementById('editKavlingLB').value = '';
-          
-          // Reset selection
+          // Reset internal selection state
           selectedKavling = null;
           currentKavlingData = null;
           
-          // Refresh list and UI
-          await loadKavlingList();
-          updateTabsState();
+          // Reset UI inputs and progress displays
+          clearInputsForNewLoad();
           
-          // Reset displays
+          // Refresh kavling list from database
+          await loadKavlingList();
+          
+          // Reset display info to neutral
           const rolePage = currentRole + 'Page';
           updateKavlingInfo({kavling: '-', type: '-', lt: '-', lb: '-'}, rolePage);
           
-          // Reload page after a short delay to ensure everything is fresh
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
+          updateTabsState();
         } else {
           showToast('error', 'Gagal menghapus: ' + (result.message || 'Unknown error'));
         }
@@ -697,6 +750,10 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCustomSearch('searchKavlingUser3Input', 'searchKavlingUser3List', 'searchKavlingUser3');
   setupCustomSearch('searchKavlingUser4Input', 'searchKavlingUser4List', 'searchKavlingUser4');
   setupCustomSearch('searchKavlingManagerInput', 'searchKavlingManagerList', 'searchKavlingManager');
+  
+  // Set initial setup for each page if needed
+  setupUser4Page();
+  
   updateTabsState(); // Initial state: disabled if no kavling
 });
 
@@ -1019,40 +1076,8 @@ async function searchKavling(isSync = false) {
     }
 
     // Clear all inputs/status before sync to give "refresh" feel
-    const pageElement = document.getElementById(rolePage);
-    if (pageElement) {
-      // Clear status text info
-      const infoId = getKavlingInfoIdByRole(currentRole);
-      const infoDisplay = document.getElementById(infoId);
-      if (infoDisplay) {
-        infoDisplay.querySelectorAll('.info-value').forEach(el => el.textContent = '-');
-      }
-
-      const checkboxes = pageElement.querySelectorAll('input[type="checkbox"]');
-      checkboxes.forEach(cb => {
-        cb.checked = false;
-        const label = cb.closest('label');
-        if (label) label.classList.remove('task-completed');
-      });
-      
-      const textareas = pageElement.querySelectorAll('textarea');
-      textareas.forEach(ta => ta.value = '');
-      
-      const dateInputs = pageElement.querySelectorAll('input[type="date"]');
-      dateInputs.forEach(di => di.value = '');
-      
-      const stateButtons = pageElement.querySelectorAll('.state-btn');
-      stateButtons.forEach(btn => {
-        btn.classList.remove('active');
-        btn.setAttribute('data-active', 'false');
-      });
-
-      // Reset progress bars
-      const progressBars = pageElement.querySelectorAll('.progress-fill');
-      progressBars.forEach(bar => bar.style.width = '0%');
-      const percentTexts = pageElement.querySelectorAll('.sub-percent, .total-percent');
-      percentTexts.forEach(txt => txt.textContent = '0%');
-    }
+    clearInputsForNewLoad();
+    
     showGlobalLoading('Menyinkronkan data ' + kavlingName + '...');
 
     
@@ -3080,18 +3105,29 @@ async function submitNewKavling() {
     if (result.success) {
       showToast('success', result.message || 'Kavling berhasil ditambahkan');
       
-      // Reset form
-      nameInput.value = '';
-      ltInput.value = '';
-      lbInput.value = '';
-      typeInput.value = '';
+      // Clear all inputs and progress displays to start fresh
+      clearInputsForNewLoad();
+      
+      // Reset form fields in the modal
+      if (nameInput) nameInput.value = '';
+      if (ltInput) ltInput.value = '';
+      if (lbInput) lbInput.value = '';
+      if (typeInput) typeInput.value = '';
       
       // Tutup modal
       const modal = document.getElementById('addKavlingModal');
       if (modal) modal.style.display = 'none';
       
-      // Refresh daftar kavling
+      // Refresh daftar kavling dari server
       await loadKavlingList();
+      
+      // Optional: Auto-select the newly created kavling
+      if (name) {
+        selectedKavling = name;
+        setSelectedKavlingInDropdowns(name);
+        // Trigger a sync for the new kavling (which should have 0% progress)
+        await searchKavling(true);
+      }
       
     } else {
       showToast('error', result.message || 'Gagal menambahkan kavling');
