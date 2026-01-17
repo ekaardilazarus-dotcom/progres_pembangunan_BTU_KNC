@@ -101,7 +101,7 @@ function setupAdminUtilitasTabs() {
                 targetTab.classList.add('active');
                 
                 // Load data for specific tab if needed
-                if (selectedKavling) {
+                if (window.appGlobals.selectedKavling) {
                     switch(tabId) {
                         case 'ho-user':
                             loadHandoverData();
@@ -173,7 +173,7 @@ function setupAdminUtilitasSearch() {
 async function loadAdminUtilitasData(kavlingName) {
     if (!kavlingName) return;
     
-    showGlobalLoading('Memuat data handover & mutasi...');
+    window.ui.showGlobalLoading('Memuat data handover & mutasi...');
     
     try {
         // 1. Load data dari Apps Script 2 (adminutilitas.gs)
@@ -183,7 +183,7 @@ async function loadAdminUtilitasData(kavlingName) {
         });
         
         // 2. Load data dari Apps Script 1 (progres data) untuk info dasar
-        const progressData = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+        const progressData = await window.appGlobals.getDataFromServer(window.appGlobals.PROGRESS_APPS_SCRIPT_URL, {
             action: 'getKavlingData',
             kavling: kavlingName
         });
@@ -195,18 +195,18 @@ async function loadAdminUtilitasData(kavlingName) {
             // Update UI dengan data handover
             updateAdminUtilitasUI(kavlingName, progressData, handoverData);
             
-            showToast('success', `Data handover untuk ${kavlingName} berhasil dimuat`);
+            window.ui.showToast('success', `Data handover untuk ${kavlingName} berhasil dimuat`);
         } else {
             // Jika belum ada data, buat UI kosong
             updateAdminUtilitasUI(kavlingName, progressData, null);
-            showToast('info', `Belum ada data handover untuk ${kavlingName}`);
+            window.ui.showToast('info', `Belum ada data handover untuk ${kavlingName}`);
         }
         
     } catch (error) {
         console.error('Error loading admin data:', error);
-        showToast('error', 'Gagal memuat data handover: ' + error.message);
+        window.ui.showToast('error', 'Gagal memuat data handover: ' + error.message);
     } finally {
-        hideGlobalLoading();
+        window.ui.hideGlobalLoading();
     }
 }
 
@@ -324,7 +324,6 @@ function updateMutasiSection(jenis, handoverData) {
     // Filter mutasi berdasarkan jenis
     if (handoverData && handoverData.mutasiData && handoverData.mutasiData.length > 0) {
         const filteredMutasi = handoverData.mutasiData.filter(m => {
-            // Anda perlu menyesuaikan logika filtering berdasarkan struktur data
             return true; // Placeholder
         });
         
@@ -359,8 +358,8 @@ function updatePropertyNotes(progressData, handoverData) {
 
 // ========== SAVE FUNCTIONS ==========
 async function saveHandoverKunci() {
-    if (!selectedKavling) {
-        showToast('warning', 'Pilih kavling terlebih dahulu!');
+    if (!window.appGlobals.selectedKavling) {
+        window.ui.showToast('warning', 'Pilih kavling terlebih dahulu!');
         return;
     }
     
@@ -376,40 +375,40 @@ async function saveHandoverKunci() {
     const tgl = tglInput?.value || '';
     
     if (!dari || !ke) {
-        showToast('warning', 'Nama pemberi dan penerima harus diisi!');
+        window.ui.showToast('warning', 'Nama pemberi dan penerima harus diisi!');
         return;
     }
     
-    showGlobalLoading('Menyimpan data handover...');
+    window.ui.showGlobalLoading('Menyimpan data handover...');
     
     try {
         const result = await getAdminData({
             action: 'saveHandoverKunci',
-            kavling: selectedKavling,
+            kavling: window.appGlobals.selectedKavling,
             tglHandover: tgl,
             dari: dari,
             ke: ke
         });
         
         if (result.success) {
-            showToast('success', 'Data handover berhasil disimpan!');
+            window.ui.showToast('success', 'Data handover berhasil disimpan!');
             
             // Reload data
-            await loadAdminUtilitasData(selectedKavling);
+            await loadAdminUtilitasData(window.appGlobals.selectedKavling);
         } else {
-            showToast('error', 'Gagal menyimpan: ' + result.message);
+            window.ui.showToast('error', 'Gagal menyimpan: ' + result.message);
         }
     } catch (error) {
         console.error('Error saving handover:', error);
-        showToast('error', 'Error: ' + error.message);
+        window.ui.showToast('error', 'Error: ' + error.message);
     } finally {
-        hideGlobalLoading();
+        window.ui.hideGlobalLoading();
     }
 }
 
 async function saveUtilitasAdmin() {
-    if (!selectedKavling) {
-        showToast('warning', 'Pilih kavling terlebih dahulu!');
+    if (!window.appGlobals.selectedKavling) {
+        window.ui.showToast('warning', 'Pilih kavling terlebih dahulu!');
         return;
     }
     
@@ -422,35 +421,35 @@ async function saveUtilitasAdmin() {
     const listrikDate = listrikInput?.value || '';
     const airDate = airInput?.value || '';
     
-    showGlobalLoading('Menyimpan data utilitas...');
+    window.ui.showGlobalLoading('Menyimpan data utilitas...');
     
     try {
         const result = await getAdminData({
             action: 'saveUtilitas',
-            kavling: selectedKavling,
+            kavling: window.appGlobals.selectedKavling,
             tglListrik: listrikDate,
             tglAir: airDate
         });
         
         if (result.success) {
-            showToast('success', 'Data utilitas berhasil disimpan!');
+            window.ui.showToast('success', 'Data utilitas berhasil disimpan!');
             
             // Reload data
-            await loadAdminUtilitasData(selectedKavling);
+            await loadAdminUtilitasData(window.appGlobals.selectedKavling);
         } else {
-            showToast('error', 'Gagal menyimpan: ' + result.message);
+            window.ui.showToast('error', 'Gagal menyimpan: ' + result.message);
         }
     } catch (error) {
         console.error('Error saving utilitas:', error);
-        showToast('error', 'Error: ' + error.message);
+        window.ui.showToast('error', 'Error: ' + error.message);
     } finally {
-        hideGlobalLoading();
+        window.ui.hideGlobalLoading();
     }
 }
 
 async function saveMutasiAdmin(jenisMutasi) {
-    if (!selectedKavling) {
-        showToast('warning', 'Pilih kavling terlebih dahulu!');
+    if (!window.appGlobals.selectedKavling) {
+        window.ui.showToast('warning', 'Pilih kavling terlebih dahulu!');
         return;
     }
     
@@ -480,16 +479,16 @@ async function saveMutasiAdmin(jenisMutasi) {
     const tanggal = tglInput?.value || '';
     
     if (!dari || !ke) {
-        showToast('warning', 'Nama pemberi dan penerima harus diisi!');
+        window.ui.showToast('warning', 'Nama pemberi dan penerima harus diisi!');
         return;
     }
     
-    showGlobalLoading('Menyimpan data mutasi...');
+    window.ui.showGlobalLoading('Menyimpan data mutasi...');
     
     try {
         const result = await getAdminData({
             action: 'saveMutasi',
-            kavling: selectedKavling,
+            kavling: window.appGlobals.selectedKavling,
             jenisMutasi: jenisMutasi,
             dari: dari,
             ke: ke,
@@ -497,7 +496,7 @@ async function saveMutasiAdmin(jenisMutasi) {
         });
         
         if (result.success) {
-            showToast('success', `Data mutasi ${jenisMutasi.toLowerCase()} berhasil disimpan!`);
+            window.ui.showToast('success', `Data mutasi ${jenisMutasi.toLowerCase()} berhasil disimpan!`);
             
             // Clear form
             if (dariInput) dariInput.value = '';
@@ -505,21 +504,21 @@ async function saveMutasiAdmin(jenisMutasi) {
             if (tglInput) tglInput.value = '';
             
             // Reload data
-            await loadAdminUtilitasData(selectedKavling);
+            await loadAdminUtilitasData(window.appGlobals.selectedKavling);
         } else {
-            showToast('error', 'Gagal menyimpan: ' + result.message);
+            window.ui.showToast('error', 'Gagal menyimpan: ' + result.message);
         }
     } catch (error) {
         console.error('Error saving mutasi:', error);
-        showToast('error', 'Error: ' + error.message);
+        window.ui.showToast('error', 'Error: ' + error.message);
     } finally {
-        hideGlobalLoading();
+        window.ui.hideGlobalLoading();
     }
 }
 
 async function savePropertyNotesAdmin() {
-    if (!selectedKavling) {
-        showToast('warning', 'Pilih kavling terlebih dahulu!');
+    if (!window.appGlobals.selectedKavling) {
+        window.ui.showToast('warning', 'Pilih kavling terlebih dahulu!');
         return;
     }
     
@@ -528,43 +527,43 @@ async function savePropertyNotesAdmin() {
     
     const notes = notesTextarea.value.trim();
     
-    showGlobalLoading('Menyimpan catatan...');
+    window.ui.showGlobalLoading('Menyimpan catatan...');
     
     try {
         // Simpan ke Apps Script 1 (kolom property notes)
-        const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+        const result = await window.appGlobals.getDataFromServer(window.appGlobals.PROGRESS_APPS_SCRIPT_URL, {
             action: 'savePropertyNotes',
-            kavling: selectedKavling,
+            kavling: window.appGlobals.selectedKavling,
             notes: notes,
             user: 'user4'
         });
         
         if (result.success) {
-            showToast('success', 'Catatan berhasil disimpan!');
+            window.ui.showToast('success', 'Catatan berhasil disimpan!');
             
             // Update lokal data jika ada
-            if (currentKavlingData) {
-                currentKavlingData.propertyNotes = notes;
+            if (window.appGlobals.currentKavlingData) {
+                window.appGlobals.currentKavlingData.propertyNotes = notes;
             }
         } else {
-            showToast('error', 'Gagal menyimpan: ' + result.message);
+            window.ui.showToast('error', 'Gagal menyimpan: ' + result.message);
         }
     } catch (error) {
         console.error('Error saving property notes:', error);
-        showToast('error', 'Error: ' + error.message);
+        window.ui.showToast('error', 'Error: ' + error.message);
     } finally {
-        hideGlobalLoading();
+        window.ui.hideGlobalLoading();
     }
 }
 
 // ========== LOAD DATA FUNCTIONS ==========
 async function loadHandoverData() {
-    if (!selectedKavling) return;
+    if (!window.appGlobals.selectedKavling) return;
     
     try {
         const result = await getAdminData({
             action: 'getHandoverData',
-            kavling: selectedKavling
+            kavling: window.appGlobals.selectedKavling
         });
         
         if (result.success) {
@@ -576,12 +575,12 @@ async function loadHandoverData() {
 }
 
 async function loadUtilitasDataAdmin() {
-    if (!selectedKavling) return;
+    if (!window.appGlobals.selectedKavling) return;
     
     try {
         const result = await getAdminData({
             action: 'getHandoverData',
-            kavling: selectedKavling
+            kavling: window.appGlobals.selectedKavling
         });
         
         if (result.success) {
@@ -593,12 +592,12 @@ async function loadUtilitasDataAdmin() {
 }
 
 async function loadMutasiDataAdmin(jenis) {
-    if (!selectedKavling) return;
+    if (!window.appGlobals.selectedKavling) return;
     
     try {
         const result = await getAdminData({
             action: 'getHandoverData',
-            kavling: selectedKavling
+            kavling: window.appGlobals.selectedKavling
         });
         
         if (result.success) {
@@ -640,11 +639,9 @@ function formatDateForInput(dateStr) {
     if (!dateStr) return '';
     
     try {
-        // Coba parse berbagai format tanggal
         let date;
         
         if (typeof dateStr === 'string') {
-            // Format dd-MM-yyyy
             if (dateStr.includes('-')) {
                 const parts = dateStr.split('-');
                 if (parts.length === 3) {
@@ -654,7 +651,6 @@ function formatDateForInput(dateStr) {
                     date = new Date(year, month, day);
                 }
             }
-            // Format lain, coba parse langsung
             if (!date || isNaN(date.getTime())) {
                 date = new Date(dateStr);
             }
@@ -663,7 +659,6 @@ function formatDateForInput(dateStr) {
         }
         
         if (date && !isNaN(date.getTime())) {
-            // Format ke yyyy-MM-dd untuk input[type="date"]
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
@@ -676,59 +671,42 @@ function formatDateForInput(dateStr) {
     return '';
 }
 
-// ========== INTEGRATION WITH MAIN SCRIPT ==========
-// Fungsi untuk diintegrasikan dengan script.js utama
-
-function setupAdminUtilitasIntegration() {
-    console.log('Setting up Admin Utilitas integration...');
-    
-    // Override atau extend fungsi searchKavling untuk Admin Utilitas
-    const originalSearchKavling = window.searchKavling;
-    
-    window.searchKavling = async function(isSync = false) {
-        // Panggil fungsi original
-        if (originalSearchKavling) {
-            await originalSearchKavling.call(this, isSync);
-        }
-        
-        // Tambahkan khusus untuk Admin Utilitas
-        if (currentRole === 'user4' && selectedKavling) {
-            await loadAdminUtilitasData(selectedKavling);
-        }
-    };
-    
-    // Setup ketika page user4 ditampilkan
-    const originalShowPage = window.showPage;
-    
-    window.showPage = function(role) {
-        // Panggil fungsi original
-        if (originalShowPage) {
-            originalShowPage.call(this, role);
-        }
-        
-        // Inisialisasi Admin Utilitas jika role user4
-        if (role === 'user4') {
-            setTimeout(() => {
-                initAdminUtilitas();
-            }, 500);
-        }
-    };
-    
-    console.log('Admin Utilitas integration setup complete');
-}
-
 // ========== INITIALIZE WHEN READY ==========
 document.addEventListener('DOMContentLoaded', function() {
     // Setup integrasi dengan script.js utama
     setupAdminUtilitasIntegration();
     
     // Juga inisialisasi jika sudah di halaman user4
-    if (window.currentRole === 'user4') {
+    if (window.appGlobals && window.appGlobals.currentRole === 'user4') {
         setTimeout(() => {
             initAdminUtilitas();
         }, 1000);
     }
 });
+
+// ========== INTEGRATION WITH MAIN SCRIPT ==========
+function setupAdminUtilitasIntegration() {
+    console.log('Setting up Admin Utilitas integration...');
+    
+    // Override atau extend fungsi searchKavling untuk Admin Utilitas
+    const originalSearchKavling = window.appGlobals && window.appGlobals.searchKavling 
+        ? window.appGlobals.searchKavling 
+        : window.searchKavling;
+    
+    if (originalSearchKavling) {
+        window.searchKavling = async function(isSync = false) {
+            // Panggil fungsi original
+            await originalSearchKavling.call(this, isSync);
+            
+            // Tambahkan khusus untuk Admin Utilitas
+            if (window.appGlobals.currentRole === 'user4' && window.appGlobals.selectedKavling) {
+                await loadAdminUtilitasData(window.appGlobals.selectedKavling);
+            }
+        };
+    }
+    
+    console.log('Admin Utilitas integration setup complete');
+}
 
 // Ekspor fungsi yang mungkin diperlukan
 window.adminUtilitas = {
