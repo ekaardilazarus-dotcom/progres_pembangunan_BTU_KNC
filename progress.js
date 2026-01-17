@@ -1,76 +1,6 @@
-// progress.js - Fungsi progress dan tab management
+// progress.js - Progress Calculation and Management
 
-// Update kavling info display
-function updateKavlingInfo(data, pageId) {
-  const role = currentRole;
-  const infoId = getKavlingInfoIdByRole(role);
-  const infoDisplay = document.getElementById(infoId);
-  
-  if (!infoDisplay) return;
-  
-  if (role === 'manager') {
-    infoDisplay.innerHTML = `
-      <div class="info-item">
-        <span class="info-label">Blok/Kavling:</span>
-        <span class="info-value val-name">${data.kavling || '-'}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Type:</span>
-        <span class="info-value val-type">${data.type || '-'}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Luas Tanah (LT):</span>
-        <span class="info-value val-lt">${data.lt || '-'}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Luas Bangunan (LB):</span>
-        <span class="info-value val-lb">${data.lb || '-'}</span>
-      </div>
-    `;
-
-    // Update progress display untuk manager
-    if (data.data?.tahap4?.TOTAL) {
-      updateManagerProgressDisplay(data.data.tahap4.TOTAL);
-    }
-  } else {
-    infoDisplay.innerHTML = `
-      <div class="info-item">
-        <span class="info-label">Blok/Kavling:</span>
-        <span class="info-value val-name">${data.kavling || '-'}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">Type:</span>
-        <span class="info-value val-type">${data.type || '-'}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">LT:</span>
-        <span class="info-value val-lt">${data.lt || '-'}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">LB:</span>
-        <span class="info-value val-lb">${data.lb || '-'}</span>
-      </div>
-    `;
-  }
-}
-
-// Update total progress display
-function updateTotalProgressDisplay(progress, pageId) {
-  const pageElement = document.getElementById(pageId);
-  if (!pageElement) return;
-
-  const totalPercentEl = pageElement.querySelector('.total-percent');
-  if (totalPercentEl) {
-    totalPercentEl.textContent = progress;
-  }
-
-  const totalBarEl = pageElement.querySelector('.total-bar');
-  if (totalBarEl) {
-    totalBarEl.style.width = progress;
-  }
-}
-
-// Update progress calculation
+// ========== PROGRESS CALCULATION ==========
 function updateProgress(rolePage) {
   const pageElement = document.getElementById(rolePage);
   if (!pageElement) return;
@@ -97,7 +27,8 @@ function updateProgress(rolePage) {
         if (task.value && task.value.trim() !== '') {
           completedTasksWeight += weight;
         }
-      } else if (task.type === 'text' || task.type === 'textarea' || task.type === 'date') {
+      }
+      else if (task.type === 'text' || task.type === 'textarea' || task.type === 'date') {
         // Untuk field text/textarea/date di tahap 4, hitung jika ada isi
         if (tahap === '4' && task.value && task.value.trim() !== '') {
           completedTasksWeight += weight;
@@ -117,6 +48,13 @@ function updateProgress(rolePage) {
     }
 
     // Weight yang lebih realistis
+    const tahapWeights = { 
+      '1': 0.40,  // 40%
+      '2': 0.30,  // 30%
+      '3': 0.20,  // 20%
+      '4': 0.10   // 10%
+    };
+    
     const weightFactor = tahapWeights[tahap] || 0.25;
     totalWeightedProgress += sectionPercent * weightFactor;
   });
@@ -139,163 +77,538 @@ function updateProgress(rolePage) {
   console.log(`Updated progress for ${rolePage}: ${roundedProgress}%`);
 }
 
-// Update tabs state
-function updateTabsState() {
-  const pelaksanaTabs = document.querySelectorAll('.pelaksana-tabs .admin-tab-btn');
-  const pelaksanaContent = document.querySelector('.pelaksana-tab-content');
-  
-  // SELALU AKTIFKAN TABS (Hapus fungsi freeze)
-  pelaksanaTabs.forEach(btn => {
-    btn.style.opacity = '1';
-    btn.style.pointerEvents = 'auto';
-    btn.style.cursor = 'pointer';
-  });
-  
-  if (pelaksanaContent) {
-    pelaksanaContent.style.opacity = '1';
-    pelaksanaContent.style.pointerEvents = 'auto';
+function updateTotalProgressDisplay(progress, pageId) {
+  const pageElement = document.getElementById(pageId);
+  if (!pageElement) return;
+
+  const totalPercentEl = pageElement.querySelector('.total-percent');
+  if (totalPercentEl) {
+    totalPercentEl.textContent = progress;
   }
-  
-  // Selalu pastikan input aktif
-  enableAllInputs();
+
+  const totalBarEl = pageElement.querySelector('.total-bar');
+  if (totalBarEl) {
+    totalBarEl.style.width = progress;
+  }
 }
 
-// Aktifkan/nonaktifkan input
-function disableAllInputs() {
-  // Fungsi ini dikosongkan untuk menghapus fitur freeze/disable
-  console.log("Freeze disabled: All inputs remain active");
-  return;
-}
-
-function enableAllInputs() {
-  const pageId = currentRole + 'Page';
-  const page = document.getElementById(pageId);
-  if (!page) {
-    console.error(`❌ Page ${pageId} not found for enableAllInputs`);
+function updateManagerProgressDisplay(totalProgress) {
+  const progressDisplay = document.getElementById('managerProgressDisplay');
+  if (!progressDisplay) {
+    console.error('managerProgressDisplay element not found');
     return;
   }
   
-  console.log(`🔧 Enabling all inputs for ${pageId}`);
+  progressDisplay.style.display = 'block';
   
-  // 1. Enable semua checkbox
-  const checkboxes = page.querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach((cb, index) => {
-    cb.disabled = false;
-    cb.readOnly = false;
-    cb.style.opacity = '1';
-    cb.style.cursor = 'pointer';
-    cb.style.pointerEvents = 'auto';
+  const overallVal = progressDisplay.querySelector('.val-overall');
+  const progressFill = progressDisplay.querySelector('.total-bar');
+  
+  if (overallVal) {
+    let displayProgress = totalProgress || '0%';
     
-    // Tambah event listener langsung jika belum ada
-    if (!cb.hasAttribute('data-listener-added')) {
-      cb.addEventListener('change', function() {
-        console.log(`Checkbox ${index} changed directly`);
-        const label = this.closest('label');
+    // Jika masih berupa angka desimal (0.97), konversi ke persen
+    if (typeof totalProgress === 'string' && !totalProgress.includes('%')) {
+      const num = parseFloat(totalProgress);
+      if (!isNaN(num)) {
+        displayProgress = (num <= 1 ? Math.round(num * 100) : Math.round(num)) + '%';
+      }
+    } else if (typeof totalProgress === 'number') {
+      displayProgress = (totalProgress <= 1 ? Math.round(totalProgress * 100) : Math.round(totalProgress)) + '%';
+    }
+    
+    overallVal.textContent = displayProgress;
+  }
+  
+  if (progressFill) {
+    let percentValue = 0;
+    
+    if (typeof totalProgress === 'string') {
+      const percentMatch = totalProgress.match(/(\d+)%/);
+      if (percentMatch) {
+        percentValue = parseInt(percentMatch[1]);
+      } else {
+        const num = parseFloat(totalProgress);
+        if (!isNaN(num)) {
+          percentValue = num <= 1 ? Math.round(num * 100) : Math.round(num);
+        }
+      }
+    } else if (typeof totalProgress === 'number') {
+      percentValue = totalProgress <= 1 ? Math.round(totalProgress * 100) : Math.round(totalProgress);
+    }
+    
+    progressFill.style.width = percentValue + '%';
+    
+    progressFill.className = 'total-bar';
+    if (percentValue >= 89) progressFill.classList.add('bar-high');
+    else if (percentValue >= 60) progressFill.classList.add('bar-medium');
+    else if (percentValue >= 10) progressFill.classList.add('bar-low');
+    else progressFill.classList.add('bar-very-low');
+  }
+}
+
+function updateUtilitasProgressDisplay(totalProgress) {
+  const percentEl = document.getElementById('utilityOverallPercent');
+  const barEl = document.getElementById('utilityOverallBar');
+  
+  if (!percentEl || !barEl) return;
+  
+  let displayProgress = totalProgress;
+  let percentValue = 0;
+  
+  if (typeof totalProgress === 'string') {
+    if (totalProgress.includes('%')) {
+      percentValue = parseInt(totalProgress);
+    } else {
+      const num = parseFloat(totalProgress);
+      if (!isNaN(num)) {
+        percentValue = num <= 1 ? Math.round(num * 100) : Math.round(num);
+        displayProgress = percentValue + '%';
+      }
+    }
+  } else if (typeof totalProgress === 'number') {
+    percentValue = totalProgress <= 1 ? Math.round(totalProgress * 100) : Math.round(totalProgress);
+    displayProgress = percentValue + '%';
+  }
+  
+  percentEl.textContent = displayProgress;
+  barEl.style.width = percentValue + '%';
+  
+  // Color classes
+  barEl.className = 'total-bar';
+  if (percentValue >= 89) barEl.classList.add('bar-high');
+  else if (percentValue >= 60) barEl.classList.add('bar-medium');
+  else if (percentValue >= 10) barEl.classList.add('bar-low');
+  else barEl.classList.add('bar-very-low');
+}
+
+// ========== STATE BUTTON FUNCTIONS ==========
+function toggleSystemButton(button, systemType) {
+  console.log('toggleSystemButton called:', systemType);
+  
+  const taskItem = button.closest('.task-item');
+  if (!taskItem) return;
+  
+  const buttons = taskItem.querySelectorAll('.system-btn');
+  const hiddenInput = taskItem.querySelector('#wasteSystemInput');
+  
+  const wasActive = button.classList.contains('active');
+
+  // Reset semua tombol
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.style.backgroundColor = '';
+    btn.style.color = '';
+    btn.setAttribute('data-active', 'false');
+  });
+  
+  if (wasActive) {
+    hiddenInput.value = '';
+    console.log('System button deactivated');
+  } else {
+    // Aktifkan tombol yang diklik
+    button.classList.add('active');
+    button.style.backgroundColor = '#3b82f6';
+    button.style.color = 'white';
+    button.setAttribute('data-active', 'true');
+    
+    // Set nilai sesuai systemType
+    let displayValue = '';
+    switch(systemType) {
+      case 'septictank': displayValue = 'Septictank'; break;
+      case 'biotank': displayValue = 'Biotank'; break;
+      case 'ipal': displayValue = 'Ipal'; break;
+      default: displayValue = systemType;
+    }
+    
+    hiddenInput.value = displayValue;
+    console.log('System button activated:', displayValue);
+  }
+  
+  const rolePage = window.appGlobals.currentRole + 'Page';
+  updateProgress(rolePage);
+}
+
+function toggleTilesButton(button, option) {
+  console.log('toggleTilesButton called:', option);
+  
+  const taskItem = button.closest('.task-item');
+  if (!taskItem) return;
+  
+  const buttons = taskItem.querySelectorAll('.tiles-btn');
+  const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
+  
+  const wasActive = button.classList.contains('active');
+
+  // Reset semua tombol
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.style.backgroundColor = '';
+    btn.style.color = '';
+    btn.setAttribute('data-active', 'false');
+  });
+  
+  if (wasActive) {
+    hiddenInput.value = '';
+    console.log('Tiles button deactivated');
+  } else {
+    // Aktifkan tombol yang diklik
+    button.classList.add('active');
+    button.style.backgroundColor = '#3b82f6';
+    button.style.color = 'white';
+    button.setAttribute('data-active', 'true');
+    
+    hiddenInput.value = option === 'include' ? 'Dengan Keramik Dinding' : 'Tanpa Keramik Dinding';
+    console.log('Tiles button activated:', hiddenInput.value);
+  }
+  
+  const rolePage = window.appGlobals.currentRole + 'Page';
+  updateProgress(rolePage);
+}
+
+function toggleTableButton(button, option) {
+  console.log('toggleTableButton called:', option);
+  
+  const taskItem = button.closest('.task-item');
+  if (!taskItem) return;
+  
+  const buttons = taskItem.querySelectorAll('.table-btn');
+  const hiddenInput = taskItem.querySelector('#tableKitchenInput');
+  
+  const wasActive = button.classList.contains('active');
+
+  // Reset semua tombol
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.style.backgroundColor = '';
+    btn.style.color = '';
+    btn.setAttribute('data-active', 'false');
+  });
+  
+  if (wasActive) {
+    hiddenInput.value = '';
+    console.log('Table button deactivated');
+  } else {
+    // Aktifkan tombol yang diklik
+    button.classList.add('active');
+    button.style.backgroundColor = '#3b82f6';
+    button.style.color = 'white';
+    button.setAttribute('data-active', 'true');
+    
+    hiddenInput.value = option === 'include' ? 'Dengan Cor Meja Dapur' : 'Tanpa Cor Meja Dapur';
+    console.log('Table button activated:', hiddenInput.value);
+  }
+  
+  const rolePage = window.appGlobals.currentRole + 'Page';
+  updateProgress(rolePage);
+}
+
+// ========== PROGRESS DATA LOADING ==========
+function loadProgressData(progressData) {
+  if (!progressData) return;
+  
+  const rolePage = window.appGlobals.currentRole + 'Page';
+  const pageElement = document.getElementById(rolePage);
+  if (!pageElement) return;
+
+  // Load data untuk field pilihan khusus
+  if (progressData.tahap1) {
+    // Handle Sistem Pembuangan
+    const sistemPembuanganValue = progressData.tahap1['SISTEM PEMBUANGAN'];
+    if (sistemPembuanganValue) {
+      const taskItem = pageElement.querySelector('.waste-system');
+      if (taskItem) {
+        const buttons = taskItem.querySelectorAll('.system-btn');
+        const hiddenInput = taskItem.querySelector('#wasteSystemInput');
+        
+        // Reset active state first
+        buttons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('data-active', 'false');
+        });
+        
+        buttons.forEach(btn => {
+          if (btn.getAttribute('data-state') === sistemPembuanganValue.toLowerCase()) {
+            btn.classList.add('active');
+            btn.setAttribute('data-active', 'true');
+          }
+        });
+        
+        if (hiddenInput) {
+          hiddenInput.value = sistemPembuanganValue;
+        }
+      }
+    }
+    
+    // Handle Cor Meja Dapur
+    const corMejaDapurValue = progressData.tahap1['COR MEJA DAPUR'];
+    if (corMejaDapurValue) {
+      const taskItem = pageElement.querySelector('.table-kitchen');
+      if (taskItem) {
+        const buttons = taskItem.querySelectorAll('.table-btn');
+        const hiddenInput = taskItem.querySelector('#tableKitchenInput');
+        
+        // Reset active state first
+        buttons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('data-active', 'false');
+        });
+        
+        buttons.forEach(btn => {
+          if (btn.getAttribute('data-state') === 'include' && corMejaDapurValue === 'Dengan Cor Meja Dapur') {
+            btn.classList.add('active');
+            btn.setAttribute('data-active', 'true');
+          } else if (btn.getAttribute('data-state') === 'exclude' && corMejaDapurValue === 'Tanpa Cor Meja Dapur') {
+            btn.classList.add('active');
+            btn.setAttribute('data-active', 'true');
+          }
+        });
+        
+        if (hiddenInput) {
+          hiddenInput.value = corMejaDapurValue;
+        }
+      }
+    }
+    
+    // Load checkbox biasa untuk tahap 1
+    const checkboxTasks1 = ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 
+                           'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 
+                           'PIPA AIR BERSIH', 'PLESTER', 'ACIAN & BENANGAN'];
+    
+    checkboxTasks1.forEach(taskName => {
+      const isChecked = progressData.tahap1[taskName];
+      const checkbox = findCheckboxByTaskName(taskName, 1, rolePage);
+      if (checkbox) {
+        checkbox.checked = isChecked;
+        const label = checkbox.closest('label');
         if (label) {
-          if (this.checked) {
+          if (isChecked) {
             label.classList.add('task-completed');
           } else {
             label.classList.remove('task-completed');
           }
         }
-        updateProgress(pageId);
-      });
-      cb.setAttribute('data-listener-added', 'true');
-    }
-  });
+      }
+    });
+  }
   
-  // 2. Enable tombol state
-  const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
-  stateButtons.forEach((btn, index) => {
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
-    btn.style.pointerEvents = 'auto';
-    
-    if (!btn.hasAttribute('data-listener-added')) {
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log(`State button ${index} clicked directly`);
+  if (progressData.tahap2) {
+    // Handle Keramik Dinding Toilet & Dapur
+    const keramikDindingValue = progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'];
+    if (keramikDindingValue) {
+      const taskItem = pageElement.querySelector('.bathroom-tiles');
+      if (taskItem) {
+        const buttons = taskItem.querySelectorAll('.tiles-btn');
+        const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
         
-        if (this.classList.contains('system-btn')) {
-          toggleSystemButton(this, this.getAttribute('data-state'));
-        } else if (this.classList.contains('tiles-btn')) {
-          toggleTilesButton(this, this.getAttribute('data-state'));
-        } else if (this.classList.contains('table-btn')) {
-          toggleTableButton(this, this.getAttribute('data-state'));
+        // Reset active state first
+        buttons.forEach(btn => {
+          btn.classList.remove('active');
+          btn.setAttribute('data-active', 'false');
+        });
+        
+        buttons.forEach(btn => {
+          if (btn.getAttribute('data-state') === 'include' && keramikDindingValue === 'Dengan Keramik Dinding') {
+            btn.classList.add('active');
+            btn.setAttribute('data-active', 'true');
+          } else if (btn.getAttribute('data-state') === 'exclude' && keramikDindingValue === 'Tanpa Keramik Dinding') {
+            btn.classList.add('active');
+            btn.setAttribute('data-active', 'true');
+          }
+        });
+        
+        if (hiddenInput) {
+          hiddenInput.value = keramikDindingValue;
         }
-      });
-      btn.setAttribute('data-listener-added', 'true');
+      }
     }
-  });
+    
+    // Load checkbox biasa untuk tahap 2
+    const checkboxTasks2 = ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'INSTALASI LISTRIK', 'KERAMIK LANTAI'];
+    
+    checkboxTasks2.forEach(taskName => {
+      const isChecked = progressData.tahap2[taskName];
+      const checkbox = findCheckboxByTaskName(taskName, 2, rolePage);
+      if (checkbox) {
+        checkbox.checked = isChecked;
+        const label = checkbox.closest('label');
+        if (label) {
+          if (isChecked) {
+            label.classList.add('task-completed');
+          } else {
+            label.classList.remove('task-completed');
+          }
+        }
+      }
+    });
+  }
   
-  // 3. Enable input text/date/textarea
-  const textInputs = page.querySelectorAll('input[type="text"], input[type="date"], textarea');
-  textInputs.forEach(input => {
-    input.disabled = false;
-    input.readOnly = false;
-    input.style.opacity = '1';
-    input.style.cursor = 'text';
-    input.style.pointerEvents = 'auto';
-  });
+  if (progressData.tahap3) {
+    Object.keys(progressData.tahap3).forEach(taskName => {
+      const isChecked = progressData.tahap3[taskName];
+      const checkbox = findCheckboxByTaskName(taskName, 3, rolePage);
+      if (checkbox) {
+        checkbox.checked = isChecked;
+        const label = checkbox.closest('label');
+        if (label) {
+          if (isChecked) {
+            label.classList.add('task-completed');
+          } else {
+            label.classList.remove('task-completed');
+          }
+        }
+      }
+    });
+  }
+
+  if (progressData.tahap4) {
+    // Load Keterangan
+    if (progressData.tahap4['KETERANGAN']) {
+      const commentEl = pageElement.querySelector('.tahap-comments');
+      if (commentEl) {
+        commentEl.value = progressData.tahap4['KETERANGAN'];
+      }
+    }
+    
+    // Load Penyerahan Kunci
+    if (progressData.tahap4['PENYERAHAN KUNCI']) {
+      const deliveryEl = pageElement.querySelector('.key-delivery-input');
+      if (deliveryEl) {
+        deliveryEl.value = progressData.tahap4['PENYERAHAN KUNCI'];
+      }
+    }
+
+    // Load Tanggal Penyerahan Kunci
+    if (progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']) {
+      const dateEl = pageElement.querySelector('.key-delivery-date');
+      if (dateEl) {
+        const rawDate = progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'];
+        let formattedDate = '';
+        
+        if (rawDate instanceof Date || (typeof rawDate === 'string' && rawDate.includes('-'))) {
+          formattedDate = formatDateForInput(rawDate);
+        } else if (rawDate) {
+          formattedDate = formatDateForInput(new Date(rawDate));
+        }
+        
+        dateEl.value = formattedDate;
+      }
+    }
+
+    // Load Completion
+    if (progressData.tahap4['COMPLETION / Penyelesaian akhir']) {
+      const completionCheckbox = findCheckboxByTaskName('COMPLETION / Penyelesaian akhir', 4, rolePage);
+      if (completionCheckbox) {
+        completionCheckbox.checked = true;
+        const label = completionCheckbox.closest('label');
+        if (label) {
+          label.classList.add('task-completed');
+        }
+      }
+    }
+    
+    // Update total progress
+    if (progressData.tahap4['TOTAL']) {
+      updateTotalProgressDisplay(progressData.tahap4['TOTAL'] || '0%', rolePage);
+    }
+  }
   
-  // 4. Enable tombol save
-  const saveButtons = page.querySelectorAll('.btn-save-section');
-  saveButtons.forEach(btn => {
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
-    btn.style.pointerEvents = 'auto';
-  });
+  console.log(`🔄 Starting UI setup for ${rolePage}...`);
   
-  console.log(`✅ Enabled: ${checkboxes.length} checkboxes, ${stateButtons.length} state buttons, ${saveButtons.length} save buttons`);
-  
-  // Debug output
-  debugInputStatus();
+  setTimeout(() => {
+    console.log(`✅ Data loaded for ${rolePage}, setting up UI...`);
+    
+    // Setup checkbox listeners
+    setupCheckboxListeners(rolePage);
+    
+    // Setup state buttons
+    setupStateButtons(rolePage);
+    
+    // Update progress calculation
+    updateProgress(rolePage);
+    
+    console.log(`✅ UI setup complete for ${rolePage}!`);
+  }, 300);
 }
 
-// Enable search inputs only
-function enableSearchInputs() {
-  const pageId = currentRole + 'Page';
-  const page = document.getElementById(pageId);
-  if (!page) return;
+// ========== HELPER FUNCTIONS ==========
+function findCheckboxByTaskName(taskName, tahap, pageId) {
+  const pageElement = document.getElementById(pageId);
+  if (!pageElement) return null;
   
-  // Aktifkan semua input pencarian
-  const searchInputs = page.querySelectorAll('.search-input-custom, input[id*="searchKavling"]');
-  searchInputs.forEach(input => {
-    input.disabled = false;
-    input.style.opacity = '1';
-    input.style.pointerEvents = 'auto';
-    input.style.cursor = 'text';
-  });
+  const cleanTaskName = taskName.toUpperCase().trim();
+  const checkboxes = pageElement.querySelectorAll(`[data-tahap="${tahap}"] .sub-task[type="checkbox"]`);
   
-  // Aktifkan dropdown list jika ada
-  const dropdownLists = page.querySelectorAll('.custom-dropdown-list');
-  dropdownLists.forEach(list => {
-    list.style.pointerEvents = 'auto';
-  });
+  for (let cb of checkboxes) {
+    if (cb.getAttribute('data-task') === cleanTaskName) {
+      return cb;
+    }
+  }
+  
+  // Fallback: search by text content if data-task doesn't match
+  const cleanSearch = cleanTaskName.replace(/[^A-Z0-9]/g, '');
+  for (let cb of checkboxes) {
+    const label = cb.closest('label');
+    if (label) {
+      const labelText = label.textContent.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (labelText.includes(cleanSearch) || cleanSearch.includes(labelText)) {
+        return cb;
+      }
+    }
+  }
+  return null;
 }
 
-// Setup checkbox listeners
+function formatDateForInput(dateValue) {
+  try {
+    if (!dateValue) return '';
+    
+    let date;
+    if (dateValue instanceof Date) {
+      date = dateValue;
+    } else if (typeof dateValue === 'string') {
+      const parsed = new Date(dateValue);
+      if (!isNaN(parsed.getTime())) {
+        date = parsed;
+      } else {
+        const parts = dateValue.split(/[\/\-]/);
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const year = parseInt(parts[2], 10);
+          date = new Date(year, month, day);
+        } else {
+          return '';
+        }
+      }
+    } else {
+      return '';
+    }
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return '';
+  }
+}
+
 function setupCheckboxListeners(pageId) {
   const page = document.getElementById(pageId);
   if (!page) return;
   
   console.log(`Setting up checkbox listeners for ${pageId}`);
   
-  // Hanya ambil checkbox yang ada di progress sections
   const checkboxes = page.querySelectorAll('.progress-section input[type="checkbox"].sub-task');
   
   checkboxes.forEach(checkbox => {
-    // Clone untuk hapus event listener lama
     const newCheckbox = checkbox.cloneNode(true);
     checkbox.parentNode.replaceChild(newCheckbox, checkbox);
     
-    // Setup event listener untuk checkbox baru
     newCheckbox.addEventListener('change', function() {
-      console.log(`Checkbox changed: ${this.id || this.name || 'unnamed'}`, this.checked);
-      
       const label = this.closest('label');
       if (label) {
         if (this.checked) {
@@ -305,11 +618,9 @@ function setupCheckboxListeners(pageId) {
         }
       }
       
-      // Update progress
       updateProgress(pageId);
     });
     
-    // Pastikan checkbox enabled
     newCheckbox.disabled = false;
     newCheckbox.style.pointerEvents = 'auto';
     newCheckbox.style.opacity = '1';
@@ -319,7 +630,6 @@ function setupCheckboxListeners(pageId) {
   console.log(`✅ Setup ${checkboxes.length} checkbox listeners for ${pageId}`);
 }
 
-// Setup state buttons
 function setupStateButtons(pageId) {
   const page = document.getElementById(pageId);
   if (!page) return;
@@ -354,99 +664,16 @@ function setupStateButtons(pageId) {
   });
 }
 
-// Toggle functions for state buttons
-function toggleSystemButton(button, systemType) {
-  const taskItem = button.closest('.task-item');
-  const buttons = taskItem.querySelectorAll('.system-btn');
-  const hiddenInput = taskItem.querySelector('#wasteSystemInput');
-  
-  const wasActive = button.classList.contains('active');
-
-  // Reset semua tombol
-  buttons.forEach(btn => {
-    btn.classList.remove('active');
-    btn.setAttribute('data-active', 'false');
-  });
-  
-  if (wasActive) {
-    hiddenInput.value = '';
-  } else {
-    // Aktifkan tombol yang diklik
-    button.classList.add('active');
-    button.setAttribute('data-active', 'true');
-    hiddenInput.value = systemType;
-  }
-  
-  const rolePage = currentRole + 'Page';
-  updateProgress(rolePage);
-}
-
-function toggleTilesButton(button, option) {
-  const taskItem = button.closest('.task-item');
-  const buttons = taskItem.querySelectorAll('.tiles-btn');
-  const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
-  
-  const wasActive = button.classList.contains('active');
-
-  // Reset semua tombol
-  buttons.forEach(btn => {
-    btn.classList.remove('active');
-    btn.setAttribute('data-active', 'false');
-  });
-  
-  if (wasActive) {
-    hiddenInput.value = '';
-  } else {
-    // Aktifkan tombol yang diklik
-    button.classList.add('active');
-    button.setAttribute('data-active', 'true');
-    hiddenInput.value = option;
-  }
-  
-  const rolePage = currentRole + 'Page';
-  updateProgress(rolePage);
-}
-
-function toggleTableButton(button, option) {
-  const taskItem = button.closest('.task-item');
-  const buttons = taskItem.querySelectorAll('.table-btn');
-  const hiddenInput = taskItem.querySelector('#tableKitchenInput');
-  
-  const wasActive = button.classList.contains('active');
-
-  // Reset semua tombol
-  buttons.forEach(btn => {
-    btn.classList.remove('active');
-    btn.setAttribute('data-active', 'false');
-  });
-  
-  if (wasActive) {
-    hiddenInput.value = '';
-  } else {
-    // Aktifkan tombol yang diklik
-    button.classList.add('active');
-    button.setAttribute('data-active', 'true');
-    hiddenInput.value = option;
-  }
-  
-  const rolePage = currentRole + 'Page';
-  updateProgress(rolePage);
-}
-
-// Export
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    updateKavlingInfo,
-    updateTotalProgressDisplay,
-    updateProgress,
-    updateTabsState,
-    disableAllInputs,
-    enableAllInputs,
-    enableSearchInputs,
-    setupCheckboxListeners,
-    setupStateButtons,
-    toggleSystemButton,
-    toggleTilesButton,
-    toggleTableButton
-  };
-}
+// Export functions
+window.progress = {
+  updateProgress,
+  updateTotalProgressDisplay,
+  updateManagerProgressDisplay,
+  updateUtilitasProgressDisplay,
+  toggleSystemButton,
+  toggleTilesButton,
+  toggleTableButton,
+  loadProgressData,
+  setupCheckboxListeners,
+  setupStateButtons
+};
