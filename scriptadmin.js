@@ -1,8 +1,10 @@
 // scriptadmin.js - ADMIN UTILITAS HANDOVER & MUTASI
 // Dideploy terpisah untuk integrasi dengan adminutilitas.gs
 
-// Konfigurasi URL Apps Script khusus Admin Utilitas
-const ADMIN_UTILITAS_URL = 'https://script.google.com/macros/s/AKfycbwsAzZ8bUgp-jyWN09CNQ7_qLCOn7qfzqhoXOMjNKQ3GduLH5e7ySD_qdgQSO1wXeZTtQ/exec';
+// Variabel global untuk Admin Utilitas
+if (typeof ADMIN_UTILITAS_URL === 'undefined') {
+    window.ADMIN_UTILITAS_URL = 'https://script.google.com/macros/s/AKfycbwsAzZ8bUgp-jyWN09CNQ7_qLCOn7qfzqhoXOMjNKQ3GduLH5e7ySD_qdgQSO1wXeZTtQ/exec';
+}
 
 // Variabel global untuk Admin Utilitas
 let adminHandoverData = null;
@@ -608,19 +610,8 @@ async function loadMutasiDataAdmin(jenis) {
 }
 
 // ========== HELPER FUNCTIONS ==========
-function getAdminData(params) {
-    return new Promise((resolve, reject) => {
-        const callbackName = 'admin_callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        
-        window[callbackName] = function(data) {
-            resolve(data);
-            delete window[callbackName];
-            
-            const scriptId = 'admin_script_' + callbackName;
-            const scriptEl = document.getElementById(scriptId);
-            if (scriptEl) scriptEl.remove();
-        };
-        
+async function getAdminData(params) {
+    try {
         let requestUrl = ADMIN_UTILITAS_URL + '?';
         const urlParams = new URLSearchParams();
         
@@ -630,20 +621,19 @@ function getAdminData(params) {
             }
         });
         
-        urlParams.append('callback', callbackName);
         requestUrl += urlParams.toString();
+
+        const response = await fetch(requestUrl);
         
-        const script = document.createElement('script');
-        script.id = 'admin_script_' + callbackName;
-        script.src = requestUrl;
-        script.onerror = () => {
-            reject(new Error('Failed to load admin script'));
-            delete window[callbackName];
-            script.remove();
-        };
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
-        document.body.appendChild(script);
-    });
+        return await response.json();
+    } catch (error) {
+        console.error('Fetch error:', error);
+        throw error;
+    }
 }
 
 function formatDateForInput(dateStr) {
