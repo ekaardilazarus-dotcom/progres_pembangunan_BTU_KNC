@@ -14,6 +14,63 @@ if (typeof adminMutasiData === 'undefined') {
     window.adminMutasiData = [];
 }
 
+/**
+ * Setup tombol Lihat Data Mutasi untuk Admin Utilitas
+ * Dipanggil dari script.js loadProgressData
+ */
+function setupAdminUtilitasMutation(pageElement) {
+    const btnViewMutation = pageElement.querySelector('#btnViewMutationHistory');
+    if (!btnViewMutation) return;
+
+    btnViewMutation.onclick = function() {
+        // 1. Cek koneksi database (simulasi)
+        const isDatabaseConnected = true; 
+
+        if (!isDatabaseConnected) {
+            if (typeof showToast === 'function') {
+                showToast('error', 'Gagal: Belum terkoneksi dengan database. Hubungi administrator sistem!');
+            }
+            return;
+        }
+
+        const kavlingName = pageElement.querySelector('.val-name').textContent;
+        
+        if (!kavlingName || kavlingName === '-' || kavlingName === '') {
+            if (typeof showToast === 'function') {
+                showToast('error', 'Pilih kavling terlebih dahulu!');
+            }
+            const searchInput = pageElement.querySelector('#searchKavlingUser4Input');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.style.transition = 'all 0.3s ease';
+                searchInput.style.boxShadow = '0 0 0 4px rgba(244, 63, 94, 0.6)';
+                searchInput.style.borderColor = '#f43f5e';
+                setTimeout(() => {
+                    searchInput.style.boxShadow = '';
+                    searchInput.style.borderColor = '';
+                }, 3000);
+            }
+            return;
+        }
+
+        // Tampilkan loading modal dengan teks dinamis
+        const loadingModal = document.getElementById('loadingModal');
+        const loadingText = document.getElementById('loadingText');
+        if (loadingModal && loadingText) {
+            loadingText.textContent = `Mohon tunggu, memuat daftar mutasi dari kavling ${kavlingName}...`;
+            loadingModal.style.display = 'flex';
+            
+            // Simulasi loading sebelum menampilkan data
+            setTimeout(() => {
+                loadingModal.style.display = 'none';
+                if (typeof showToast === 'function') {
+                    showToast('info', `Menampilkan riwayat mutasi ${kavlingName}`);
+                }
+            }, 2000);
+        }
+    };
+}
+
 // ========== INITIALIZATION ==========
 function initAdminUtilitas() {
     console.log('Initializing Admin Utilitas functions...');
