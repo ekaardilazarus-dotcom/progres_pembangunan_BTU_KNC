@@ -7,8 +7,12 @@ if (typeof ADMIN_UTILITAS_URL === 'undefined') {
 }
 
 // Variabel global untuk Admin Utilitas
-let adminHandoverData = null;
-let adminMutasiData = [];
+if (typeof adminHandoverData === 'undefined') {
+    window.adminHandoverData = null;
+}
+if (typeof adminMutasiData === 'undefined') {
+    window.adminMutasiData = [];
+}
 
 // ========== INITIALIZATION ==========
 function initAdminUtilitas() {
@@ -66,12 +70,16 @@ function setupAdminUtilitasListeners() {
         });
     }
     
-    // 5. Save Property Notes untuk Admin Utilitas
-    const savePropertyNotesButton = document.getElementById('btnSaveUtilityNotes');
-    if (savePropertyNotesButton) {
-        savePropertyNotesButton.addEventListener('click', function(e) {
+    // 5. Fetch Mutasi Data Button
+    const fetchMutasiButton = document.getElementById('btnFetchMutasiData');
+    if (fetchMutasiButton) {
+        fetchMutasiButton.addEventListener('click', function(e) {
             e.preventDefault();
-            savePropertyNotesAdmin();
+            if (!selectedKavling) {
+                showToast('warning', 'Silakan pilih kavling terlebih dahulu!');
+                return;
+            }
+            loadAdminUtilitasData(selectedKavling);
         });
     }
 }
@@ -347,13 +355,10 @@ function updatePropertyNotes(progressData, handoverData) {
     const notesTextarea = document.getElementById('utilityPropertyNotes');
     if (!notesTextarea) return;
     
-    // Prioritize notes dari handover data, fallback ke progress data
-    if (handoverData && handoverData.notes) {
-        notesTextarea.value = handoverData.notes;
-    } else if (progressData && progressData.propertyNotes) {
+    // Notes will be loaded via script.js loadProgressData because of .tahap-comments class
+    // This function can remain as a fallback if needed
+    if (progressData && progressData.propertyNotes) {
         notesTextarea.value = progressData.propertyNotes;
-    } else {
-        notesTextarea.value = '';
     }
 }
 
@@ -531,7 +536,7 @@ async function savePropertyNotesAdmin() {
     showGlobalLoading('Menyimpan catatan...');
     
     try {
-        // Simpan ke Apps Script 1 (kolom property notes)
+        // Simpan ke Apps Script 1 (kolom property notes) - Sync dengan Tahap 4
         const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
             action: 'savePropertyNotes',
             kavling: selectedKavling,
@@ -542,9 +547,20 @@ async function savePropertyNotesAdmin() {
         if (result.success) {
             showToast('success', 'Catatan berhasil disimpan!');
             
-            // Update lokal data jika ada
+            // Update lokal data
             if (currentKavlingData) {
                 currentKavlingData.propertyNotes = notes;
+            }
+            
+            // Juga simpan ke Apps Script 2 (Admin Utilitas) jika diperlukan konsistensi
+            try {
+                await getAdminData({
+                    action: 'savePropertyNotes',
+                    kavling: selectedKavling,
+                    notes: notes
+                });
+            } catch (e) {
+                console.warn('Gagal sinkron ke Admin Utilitas DB, tapi data utama aman:', e);
             }
         } else {
             showToast('error', 'Gagal menyimpan: ' + result.message);
