@@ -1,17 +1,16 @@
-// reports.js - Fungsi laporan dan summary
+// report.js - Report and Summary Functions
 
-// Load summary report
+// ========== SUMMARY REPORT FUNCTIONS ==========
 async function loadSummaryReport() {
   try {
     showGlobalLoading('Mengambil laporan summary...');
     
-    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+    const result = await window.appGlobals.getDataFromServer(window.appGlobals.PROGRESS_APPS_SCRIPT_URL, {
       action: 'getSummaryReport'
     });
     
     if (result.success) {
       displaySummaryReport(result);
-      // Auto-filter to 'all' to show the list immediately
       setTimeout(() => filterKavlingByProgress('all'), 100);
     } else {
       showToast('error', result.message || 'Gagal mengambil laporan');
@@ -25,7 +24,6 @@ async function loadSummaryReport() {
   }
 }
 
-// Display summary report
 function displaySummaryReport(summaryData) {
   const container = document.getElementById('summaryReportContainer');
   if (!container) return;
@@ -146,7 +144,6 @@ function displaySummaryReport(summaryData) {
   container.innerHTML = html;
 }
 
-// Filter kavling by progress
 function filterKavlingByProgress(category) {
   const summaryData = window.lastSummaryData;
   if (!summaryData) {
@@ -204,7 +201,6 @@ function filterKavlingByProgress(category) {
       break;
     case 'all':
       title = 'Seluruh Data Kavling';
-      // Prioritaskan daftar lengkap
       kavlings = summaryData.allKavlings || summaryData.items || summaryData.kavlings || [];
       break;
     default:
@@ -222,7 +218,6 @@ function filterKavlingByProgress(category) {
   if (activeCard) activeCard.classList.add('active-filter');
 }
 
-// Render kavling section
 function renderKavlingSection(title, kavlings) {
   if (!kavlings || kavlings.length === 0) {
     return `
@@ -266,9 +261,7 @@ function renderKavlingSection(title, kavlings) {
   return html;
 }
 
-// Download to Excel
 function downloadKavlingToExcel(title) {
-  // Simple CSV generation as a proxy for Excel since we are in client-side JS without heavy libraries
   const sectionContainer = document.getElementById('filteredKavlingSection');
   const items = sectionContainer.querySelectorAll('.kavling-item');
   
@@ -286,7 +279,6 @@ function downloadKavlingToExcel(title) {
     const details = item.querySelector('.kavling-details').textContent;
     const progress = item.querySelector('.kavling-progress').textContent;
     
-    // Parse details LT: 72 | LB: 36
     const lt = details.match(/LT: (.*?) \|/) ? details.match(/LT: (.*?) \|/)[1] : '-';
     const lb = details.match(/LB: (.*)$/) ? details.match(/LB: (.*)$/)[1] : '-';
 
@@ -304,10 +296,10 @@ function downloadKavlingToExcel(title) {
   showToast('success', 'Laporan berhasil didownload');
 }
 
-// Load activity log
+// ========== ACTIVITY LOG ==========
 async function loadActivityLog() {
   try {
-    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+    const result = await window.appGlobals.getDataFromServer(window.appGlobals.PROGRESS_APPS_SCRIPT_URL, {
       action: 'getActivityLog',
       limit: 20
     });
@@ -321,7 +313,6 @@ async function loadActivityLog() {
   }
 }
 
-// Display activity log
 function displayActivityLog(logs) {
   const container = document.getElementById('activityLogContainer');
   if (!container) return;
@@ -373,15 +364,91 @@ function displayActivityLog(logs) {
   container.innerHTML = html;
 }
 
-// Export
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    loadSummaryReport,
-    displaySummaryReport,
-    filterKavlingByProgress,
-    renderKavlingSection,
-    downloadKavlingToExcel,
-    loadActivityLog,
-    displayActivityLog
-  };
+// ========== ADMIN USERS REPORT ==========
+async function loadUsersForAdmin() {
+  try {
+    showGlobalLoading('Memuat data pengguna...');
+    
+    const result = await window.appGlobals.getDataFromServer(window.appGlobals.USER_APPS_SCRIPT_URL, {
+      action: 'getUsers'
+    });
+    
+    if (result.success && result.users) {
+      displayUsersForAdmin(result.users);
+    } else {
+      showToast('error', result.message || 'Gagal memuat data pengguna');
+    }
+    
+  } catch (error) {
+    console.error('Error loading users:', error);
+    showToast('error', 'Gagal memuat data pengguna');
+  } finally {
+    hideGlobalLoading();
+  }
 }
+
+function displayUsersForAdmin(users) {
+  const container = document.getElementById('usersListContainer');
+  if (!container) return;
+  
+  if (!users || users.length === 0) {
+    container.innerHTML = '<p class="no-data">Tidak ada data pengguna</p>';
+    return;
+  }
+  
+  let html = `
+    <div class="users-header">
+      <h4><i class="fas fa-users"></i> Daftar Pengguna</h4>
+      <span class="users-count">${users.length} pengguna</span>
+    </div>
+    <div class="users-list">
+  `;
+  
+  users.forEach(user => {
+    const roleName = window.appGlobals.defaultDisplayNames[user.role] || user.role;
+    
+    html += `
+      <div class="user-item">
+        <div class="user-info">
+          <div class="user-role">
+            <span class="role-name">${roleName}</span>
+            <span class="role-code">(${user.role})</span>
+          </div>
+          <div class="user-name">
+            <i class="fas fa-user"></i> ${user.displayName || '-'}
+          </div>
+          <div class="user-password">
+            <i class="fas fa-key"></i> ${user.password ? '••••••••' : 'Tidak ada'}
+          </div>
+          <div class="user-id">
+            <i class="fas fa-hashtag"></i> Baris: ${user.id}
+          </div>
+        </div>
+        <div class="user-actions">
+          <button class="btn-edit-user" onclick="handleEditUser('${user.role}', '${user.displayName}', '${user.id}')">
+            <i class="fas fa-user-edit"></i> Edit
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// ========== HANDLE EDIT USER (Placeholder) ==========
+function handleEditUser(role, displayName, id) {
+  showToast('info', 'Fitur edit pengguna akan segera hadir');
+  console.log('Edit user:', { role, displayName, id });
+}
+
+// Export functions
+window.report = {
+  loadSummaryReport,
+  filterKavlingByProgress,
+  downloadKavlingToExcel,
+  loadActivityLog,
+  loadUsersForAdmin,
+  handleEditUser
+};
