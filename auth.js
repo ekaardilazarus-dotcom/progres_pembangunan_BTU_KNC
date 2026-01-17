@@ -1,12 +1,12 @@
-// auth.js - Fungsi login dan session management
+// auth.js - Authentication and Session Management
 
-// Handle login
+// ========== LOGIN FUNCTIONS ==========
 async function handleLogin() {
   const passwordInput = document.getElementById('passwordInput');
   const errorMsg = document.getElementById('errorMessage');
   const submitBtn = document.getElementById('submitPassword');
   
-  if (!passwordInput || !currentRole) return;
+  if (!passwordInput || !window.appGlobals.currentRole) return;
   
   const password = passwordInput.value.trim();
   if (!password) {
@@ -21,33 +21,36 @@ async function handleLogin() {
   }
   
   try {
-    const result = await getDataFromServer(USER_APPS_SCRIPT_URL, {
+    const result = await window.appGlobals.getDataFromServer(window.appGlobals.USER_APPS_SCRIPT_URL, {
       action: 'login',
-      role: currentRole,
+      role: window.appGlobals.currentRole,
       password: password
     });
     
     if (result.success) {
-      sessionStorage.setItem('loggedRole', currentRole);
+      // Save session
+      sessionStorage.setItem('loggedRole', window.appGlobals.currentRole);
       sessionStorage.setItem('loggedDisplayName', result.displayName);
       sessionStorage.setItem('loginTime', new Date().toISOString());
       
-      document.querySelectorAll(`[data-role="${currentRole}"] h3`).forEach(el => {
+      // Update UI
+      document.querySelectorAll(`[data-role="${window.appGlobals.currentRole}"] h3`).forEach(el => {
         el.textContent = result.displayName;
       });
       
-      updateDashboardTitle(currentRole, result.displayName);
+      updateDashboardTitle(window.appGlobals.currentRole, result.displayName);
       
+      // Close modal and show page
       const modal = document.getElementById('passwordModal');
       if (modal) modal.style.display = 'none';
       
       showToast('success', `Login berhasil sebagai ${result.displayName}`);
-      showPage(currentRole);
+      window.appGlobals.showPage(window.appGlobals.currentRole);
       
-      // Load data awal setelah login pelaksana
-      if (currentRole.startsWith('user')) {
+      // Load initial data for pelaksana roles
+      if (window.appGlobals.currentRole.startsWith('user')) {
         setTimeout(async () => {
-          await loadKavlingListWithLoading();
+          await loadKavlingList();
         }, 100);
       }
       
@@ -70,7 +73,6 @@ async function handleLogin() {
   }
 }
 
-// Update dashboard title
 function updateDashboardTitle(role, name) {
   const titleIds = {
     'user1': 'user1Title',
@@ -88,8 +90,8 @@ function updateDashboardTitle(role, name) {
   }
 
   // Reset selected kavling when entering dashboard
-  selectedKavling = null;
-  currentKavlingData = null;
+  window.appGlobals.selectedKavling = null;
+  window.appGlobals.currentKavlingData = null;
   
   // Clear all kavling selections including custom search inputs
   setSelectedKavlingInDropdowns('');
@@ -143,17 +145,42 @@ function updateDashboardTitle(role, name) {
   }
 }
 
-// Clear session
 function clearSession() {
   sessionStorage.removeItem('loggedRole');
   sessionStorage.removeItem('loggedDisplayName');
   sessionStorage.removeItem('loginTime');
-  currentRole = null;
-  selectedKavling = null;
-  currentKavlingData = null;
+  window.appGlobals.currentRole = null;
+  window.appGlobals.selectedKavling = null;
+  window.appGlobals.currentKavlingData = null;
 }
 
-// Setup role buttons
+function goBack() {
+  document.querySelectorAll('.section-container').forEach(container => {
+    container.style.display = 'block';
+  });
+  
+  document.querySelectorAll('.page-content').forEach(page => {
+    page.style.display = 'none';
+    page.setAttribute('aria-hidden', 'true');
+  });
+}
+
+function setupLoginForm() {
+  const submitPasswordBtn = document.getElementById('submitPassword');
+  if (submitPasswordBtn) {
+    submitPasswordBtn.addEventListener('click', handleLogin);
+  }
+  
+  const passwordInput = document.getElementById('passwordInput');
+  if (passwordInput) {
+    passwordInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        handleLogin();
+      }
+    });
+  }
+}
+
 function setupRoleButtons() {
   const roleButtons = document.querySelectorAll('.role-btn');
   console.log(`Found ${roleButtons.length} role buttons`);
@@ -164,7 +191,7 @@ function setupRoleButtons() {
       e.stopPropagation();
       console.log('Role button clicked:', this.getAttribute('data-role'));
       
-      currentRole = this.getAttribute('data-role');
+      window.appGlobals.currentRole = this.getAttribute('data-role');
       const modal = document.getElementById('passwordModal');
       
       if (modal) {
@@ -187,19 +214,19 @@ function setupRoleButtons() {
         
         const modalTitle = document.getElementById('modalTitle');
         if (modalTitle) {
-          modalTitle.textContent = `Login sebagai ${roleNames[currentRole] || currentRole}`;
+          modalTitle.textContent = `Login sebagai ${roleNames[window.appGlobals.currentRole] || window.appGlobals.currentRole}`;
         }
       }
     });
   });
 }
 
-// Export
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    handleLogin,
-    updateDashboardTitle,
-    clearSession,
-    setupRoleButtons
-  };
-}
+// Export functions
+window.auth = {
+  handleLogin,
+  updateDashboardTitle,
+  clearSession,
+  goBack,
+  setupLoginForm,
+  setupRoleButtons
+};
