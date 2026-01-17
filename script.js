@@ -1,4 +1,4 @@
-// versi 0.4
+// versi 0.414
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4j4f2AlMMu1nZzLePeqdLzyMYj59lmlvVmnV9QywZwGwpLYhvNa7ExtrIAc3SWmDC/exec';
 
@@ -47,6 +47,31 @@ function showStatusModal(type, title, message) {
           <div class="icon-fix"></div>
         </div>
       </div>
+      <style>
+        .success-checkmark { width: 80px; height: 115px; margin: 0 auto; position: relative; }
+        .success-checkmark .check-icon { width: 80px; height: 80px; position: relative; border-radius: 50%; box-sizing: content-box; border: 4px solid #10b981; margin-bottom: 20px; }
+        .success-checkmark .check-icon.delete { border-color: #ef4444; }
+        .success-checkmark .check-icon .icon-line { height: 5px; background-color: #10b981; display: block; border-radius: 2px; position: absolute; z-index: 10; }
+        .success-checkmark .check-icon.delete .icon-line { background-color: #ef4444; }
+        .success-checkmark .check-icon .icon-line.line-tip { top: 46px; left: 14px; width: 25px; transform: rotate(45deg); animation: icon-line-tip 0.75s; }
+        .success-checkmark .check-icon .icon-line.line-long { top: 38px; right: 8px; width: 47px; transform: rotate(-45deg); animation: icon-line-long 0.75s; }
+        .success-checkmark .check-icon .icon-circle { top: -4px; left: -4px; z-index: 10; width: 80px; height: 80px; border-radius: 50%; border: 4px solid rgba(16, 185, 129, 0.5); box-sizing: content-box; position: absolute; }
+        .success-checkmark .check-icon.delete .icon-circle { border-color: rgba(239, 68, 68, 0.5); }
+        .success-checkmark .check-icon .icon-fix { top: 8px; width: 5px; left: 26px; z-index: 1; height: 85px; position: absolute; transform: rotate(-45deg); }
+        @keyframes icon-line-tip {
+            0% { width: 0; left: 1px; top: 19px; }
+            54% { width: 0; left: 1px; top: 19px; }
+            70% { width: 50px; left: -8px; top: 37px; }
+            84% { width: 17px; left: 21px; top: 48px; }
+            100% { width: 25px; left: 14px; top: 46px; }
+        }
+        @keyframes icon-line-long {
+            0% { width: 0; right: 46px; top: 54px; }
+            65% { width: 0; right: 46px; top: 54px; }
+            84% { width: 55px; right: 0px; top: 35px; }
+            100% { width: 47px; right: 8px; top: 38px; }
+        }
+      </style>
     `;
   }
 
@@ -62,11 +87,14 @@ function showStatusModal(type, title, message) {
     setTimeout(() => {
       hideGlobalLoading();
       // Restore original content for next use
-      modal.querySelector('.modal-content').innerHTML = `
-        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #38bdf8; margin-bottom: 20px;"></i>
-        <h2 style="font-size: 1.25rem;">Mohon Tunggu</h2>
-        <p id="loadingText">Sedang mengambil data...</p>
-      `;
+      const modalContentEl = modal.querySelector('.modal-content');
+      if (modalContentEl) {
+        modalContentEl.innerHTML = `
+          <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #38bdf8; margin-bottom: 20px;"></i>
+          <h2 style="font-size: 1.25rem;">Mohon Tunggu</h2>
+          <p id="loadingText">Sedang mengambil data...</p>
+        `;
+      }
     }, 2000);
   }
 }
@@ -572,8 +600,8 @@ function setupEditKavling() {
       const lt = document.getElementById('editKavlingLT').value;
       const lb = document.getElementById('editKavlingLB').value;
 
-      if (!type) {
-        showToast('warning', 'Type kavling harus diisi!');
+      if (!name) {
+        showToast('warning', 'Nama kavling harus diisi!');
         return;
       }
 
@@ -581,11 +609,11 @@ function setupEditKavling() {
 
       try {
         const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
-          action: 'editKavling', // User said they will handle backend connection
+          action: 'editKavling',
           kavling: name,
-          type: type,
-          lt: lt,
-          lb: lb,
+          type: type || '',
+          lt: lt || '',
+          lb: lb || '',
           user: currentRole
         });
 
@@ -626,14 +654,29 @@ function setupEditKavling() {
         if (result.success) {
           showStatusModal('delete-success', 'Berhasil Hapus', `Data kavling ${name} telah dihapus.`);
           modal.style.display = 'none';
+          
+          // Clear inputs
+          document.getElementById('editKavlingName').value = '';
+          document.getElementById('editKavlingType').value = '';
+          document.getElementById('editKavlingLT').value = '';
+          document.getElementById('editKavlingLB').value = '';
+          
+          // Reset selection
           selectedKavling = null;
           currentKavlingData = null;
+          
           // Refresh list and UI
           await loadKavlingList();
           updateTabsState();
+          
           // Reset displays
           const rolePage = currentRole + 'Page';
           updateKavlingInfo({kavling: '-', type: '-', lt: '-', lb: '-'}, rolePage);
+          
+          // Reload page after a short delay to ensure everything is fresh
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
         } else {
           showToast('error', 'Gagal menghapus: ' + (result.message || 'Unknown error'));
         }
@@ -671,6 +714,11 @@ async function loadKavlingList() {
       allKavlings = result.kavlings; // Store globally
       updateAllKavlingSelects(result.kavlings);
       console.log(`✅ Loaded ${result.kavlings.length} kavlings`);
+      
+      // Show success notification when data is loaded for Pelaksana/Manager roles
+      if (currentRole && currentRole !== 'admin') {
+        showStatusModal('success', 'Data Berhasil Dimuat', 'Data kavling terbaru telah berhasil dimuat dari server.');
+      }
       
       if (selectedKavling) {
         setTimeout(() => {
@@ -827,76 +875,27 @@ function updateTabsState() {
   const pelaksanaTabs = document.querySelectorAll('.pelaksana-tabs .admin-tab-btn');
   const pelaksanaContent = document.querySelector('.pelaksana-tab-content');
   
-  if (!selectedKavling) {
-    pelaksanaTabs.forEach(btn => {
-      btn.style.opacity = '0.5';
-      btn.style.pointerEvents = 'none';
-      btn.style.cursor = 'not-allowed';
-    });
-    if (pelaksanaContent) {
-      pelaksanaContent.style.opacity = '0.5';
-      pelaksanaContent.style.pointerEvents = 'auto';
-    }
-    
-    // Nonaktifkan semua checkbox dan input
-    disableAllInputs();
-  } else {
-    pelaksanaTabs.forEach(btn => {
-      btn.style.opacity = '1';
-      btn.style.pointerEvents = 'auto';
-      btn.style.cursor = 'pointer';
-    });
-    if (pelaksanaContent) {
-      pelaksanaContent.style.opacity = '1';
-      pelaksanaContent.style.pointerEvents = 'auto';
-    }
-    
-    // Aktifkan semua checkbox dan input
-    enableAllInputs();
+  // SELALU AKTIFKAN TABS (Hapus fungsi freeze)
+  pelaksanaTabs.forEach(btn => {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    btn.style.cursor = 'pointer';
+  });
+  
+  if (pelaksanaContent) {
+    pelaksanaContent.style.opacity = '1';
+    pelaksanaContent.style.pointerEvents = 'auto';
   }
-}  // <-- HANYA SATU KURUNG PENUTUP DI SINI!
+  
+  // Selalu pastikan input aktif
+  enableAllInputs();
+}
 
 // ========== FUNGSI BARU: Aktifkan/Nonaktifkan Input ==========
 function disableAllInputs() {
-  const pageId = currentRole + 'Page';
-  const page = document.getElementById(pageId);
-  if (!page) return;
-  
-  // PERBAIKAN: JANGAN disable input pencarian!
-  // Cari semua input kecuali input pencarian
-  const allInputs = page.querySelectorAll('input[type="checkbox"], input[type="text"], input[type="date"], textarea, button');
-  
-  allInputs.forEach(input => {
-    // Skip jika ini input pencarian
-    if (input.id.includes('searchKavling') || 
-        input.classList.contains('search-input-custom') ||
-        input.parentElement?.classList.contains('custom-search-container')) {
-      return;
-    }
-    
-    // Skip jika ini tombol logout/sync/tambah kavling
-    if (input.classList.contains('logout-btn') || 
-        input.classList.contains('sync-btn') ||
-        input.classList.contains('btn-add-kavling') ||
-        input.classList.contains('btn-edit-kavling')) {
-      return;
-    }
-    
-    input.disabled = true;
-    input.style.opacity = '0.5';
-    
-    if (input.tagName === 'BUTTON') {
-      input.style.pointerEvents = 'none';
-    }
-  });
-  
-  // Disable tombol state khusus (sistem pembuangan, dll)
-  const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
-  stateButtons.forEach(btn => {
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
-    btn.style.pointerEvents = 'none';
-  });
+  // Fungsi ini dikosongkan untuk menghapus fitur freeze/disable
+  console.log("Freeze disabled: All inputs remain active");
+  return;
 }
 
 function enableAllInputs() {
@@ -1064,10 +1063,23 @@ async function searchKavling(isSync = false) {
     
      console.log('📦 Full response from server:', data);
     
-   if (data.success) {
+    if (data.success) {
       selectedKavling = kavlingName;
       updateTabsState(); // Enable tabs when kavling is loaded
       
+      // Ambil data progres dari server
+      let serverProgress = data.totalAH || '0%';
+      
+      // Konversi desimal (misal 0.14) ke persen (14%) jika perlu
+      if (typeof serverProgress === 'number') {
+        serverProgress = (serverProgress <= 1 ? Math.round(serverProgress * 100) : Math.round(serverProgress)) + '%';
+      } else if (typeof serverProgress === 'string' && !serverProgress.includes('%')) {
+        const num = parseFloat(serverProgress);
+        if (!isNaN(num)) {
+          serverProgress = (num <= 1 ? Math.round(num * 100) : Math.round(num)) + '%';
+        }
+      }
+
       // ✅ Simpan SEMUA data dari server dengan struktur yang benar
       currentKavlingData = {
         kavling: data.kavling || kavlingName,
@@ -1075,12 +1087,19 @@ async function searchKavling(isSync = false) {
         lt: data.lt || '-',
         lb: data.lb || '-',
         propertyNotes: data.propertyNotes || '',
-        totalAH: data.totalAH || '0%', // Ambil dari kolom AH
+        totalAH: serverProgress, // Gunakan nilai yang sudah diformat
         data: data.data || {}
       };
      
       setSelectedKavlingInDropdowns(kavlingName);
       updateKavlingInfo(currentKavlingData, rolePage);
+      
+      // LANGSUNG UPDATE PROGRESS DARI SERVER AGAR TIDAK MUNCUL 0%
+      updateTotalProgressDisplay(currentKavlingData.totalAH, rolePage);
+      const overallPercent = document.querySelector(`#${rolePage} .total-percent`);
+      const overallBar = document.querySelector(`#${rolePage} .total-bar`);
+      if (overallPercent) overallPercent.textContent = currentKavlingData.totalAH;
+      if (overallBar) overallBar.style.width = currentKavlingData.totalAH;
            
       if (currentRole !== 'manager') {
         loadProgressData(data.data);
@@ -1186,6 +1205,73 @@ function setupCheckboxListeners(pageId) {
   console.log(`✅ Setup ${checkboxes.length} checkbox listeners for ${pageId}`);
 }
 
+// Fungsi toggle untuk tombol pilihan
+function toggleSystemButton(button, state) {
+  const parent = button.closest('.task-item');
+  const buttons = parent.querySelectorAll('.system-btn');
+  const hiddenInput = parent.querySelector('input[type="hidden"]');
+  
+  buttons.forEach(btn => {
+    btn.setAttribute('data-active', 'false');
+    btn.classList.remove('active');
+  });
+  
+  button.setAttribute('data-active', 'true');
+  button.classList.add('active');
+  
+  if (hiddenInput) {
+    hiddenInput.value = state;
+  }
+  
+  // Update progress calculation
+  const pageId = currentRole + 'Page';
+  updateProgress(pageId);
+}
+
+function toggleTilesButton(button, state) {
+  const parent = button.closest('.task-item');
+  const buttons = parent.querySelectorAll('.tiles-btn');
+  const hiddenInput = parent.querySelector('input[type="hidden"]');
+  
+  buttons.forEach(btn => {
+    btn.setAttribute('data-active', 'false');
+    btn.classList.remove('active');
+  });
+  
+  button.setAttribute('data-active', 'true');
+  button.classList.add('active');
+  
+  if (hiddenInput) {
+    hiddenInput.value = state === 'include' ? 'Dengan Keramik Dinding' : 'Tanpa Keramik Dinding';
+  }
+  
+  // Update progress calculation
+  const pageId = currentRole + 'Page';
+  updateProgress(pageId);
+}
+
+function toggleTableButton(button, state) {
+  const parent = button.closest('.task-item');
+  const buttons = parent.querySelectorAll('.table-btn');
+  const hiddenInput = parent.querySelector('input[type="hidden"]');
+  
+  buttons.forEach(btn => {
+    btn.setAttribute('data-active', 'false');
+    btn.classList.remove('active');
+  });
+  
+  button.setAttribute('data-active', 'true');
+  button.classList.add('active');
+  
+  if (hiddenInput) {
+    hiddenInput.value = state === 'include' ? 'Dengan Cor Meja Dapur' : 'Tanpa Cor Meja Dapur';
+  }
+  
+  // Update progress calculation
+  const pageId = currentRole + 'Page';
+  updateProgress(pageId);
+}
+
 function setupStateButtons(pageId) {
   const page = document.getElementById(pageId);
   if (!page) return;
@@ -1195,70 +1281,29 @@ function setupStateButtons(pageId) {
   // 1. Sistem Pembuangan
   const systemBtns = page.querySelectorAll('.system-btn');
   systemBtns.forEach(btn => {
-    console.log('Setting up system button:', btn);
-    
-    // Clone untuk hapus event listener lama
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    
-    // Setup event listener baru
-    newBtn.addEventListener('click', function(e) {
+    btn.onclick = function(e) {
       e.preventDefault();
-      e.stopPropagation();
-      console.log('System button clicked:', this.getAttribute('data-state'));
       toggleSystemButton(this, this.getAttribute('data-state'));
-    });
-    
-    // Pastikan tombol enabled
-    newBtn.disabled = false;
-    newBtn.style.opacity = '1';
-    newBtn.style.cursor = 'pointer';
-    newBtn.style.pointerEvents = 'auto';
+    };
   });
   
   // 2. Keramik Dinding
   const tilesBtns = page.querySelectorAll('.tiles-btn');
   tilesBtns.forEach(btn => {
-    console.log('Setting up tiles button:', btn);
-    
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    
-    newBtn.addEventListener('click', function(e) {
+    btn.onclick = function(e) {
       e.preventDefault();
-      e.stopPropagation();
-      console.log('Tiles button clicked:', this.getAttribute('data-state'));
       toggleTilesButton(this, this.getAttribute('data-state'));
-    });
-    
-    newBtn.disabled = false;
-    newBtn.style.opacity = '1';
-    newBtn.style.cursor = 'pointer';
-    newBtn.style.pointerEvents = 'auto';
+    };
   });
   
   // 3. Cor Meja Dapur
   const tableBtns = page.querySelectorAll('.table-btn');
   tableBtns.forEach(btn => {
-    console.log('Setting up table button:', btn);
-    
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    
-    newBtn.addEventListener('click', function(e) {
+    btn.onclick = function(e) {
       e.preventDefault();
-      e.stopPropagation();
-      console.log('Table button clicked:', this.getAttribute('data-state'));
       toggleTableButton(this, this.getAttribute('data-state'));
-    });
-    
-    newBtn.disabled = false;
-    newBtn.style.opacity = '1';
-    newBtn.style.cursor = 'pointer';
-    newBtn.style.pointerEvents = 'auto';
+    };
   });
-  
-  console.log(`✅ Setup ${systemBtns.length} system, ${tilesBtns.length} tiles, ${tableBtns.length} table buttons`);
 }
 //----------------------------------------------
 function updateManagerProgressDisplay(totalProgress) {
@@ -2996,21 +3041,16 @@ async function submitNewKavling() {
   const typeInput = document.getElementById('newKavlingType');
   const submitBtn = document.getElementById('submitNewKavling');
   
- if (!nameInput || !ltInput || !lbInput) { 
-    console.error('Missing inputs:', {
-      nameInput: !!nameInput,
-      ltInput: !!ltInput,
-      lbInput: !!lbInput,
-      typeInput: !!typeInput
-    });
-    showToast('error', 'Form tidak lengkap!');
+ if (!nameInput) { 
+    console.error('Missing name input');
+    showToast('error', 'Elemen form tidak ditemukan!');
     return;
   }
   
   const name = nameInput.value.trim();
-  const lt = ltInput.value.trim();
-  const lb = lbInput.value.trim(); 
-  const type = typeInput.value.trim();
+  const lt = ltInput ? ltInput.value.trim() : '';
+  const lb = lbInput ? lbInput.value.trim() : ''; 
+  const type = typeInput ? typeInput.value.trim() : '';
   
   console.log('Kavling data:', { name, lt, lb, type });
 
@@ -3857,8 +3897,6 @@ function initApp() {
       }
     });
   }
-  
-  setupEditKavling();
   
   // Cek session login
   const savedRole = sessionStorage.getItem('loggedRole');
