@@ -4040,16 +4040,19 @@ function initApp() {
   console.log('=== INITIALIZING APP ===');
   
   // Setup event delegation untuk checkbox
-  document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('sub-task') && e.target.type === 'checkbox') {
-      console.log('Checkbox changed via event delegation:', e.target);
-      const page = e.target.closest('.page-content');
-      if (page) {
-        const pageId = page.id;
-        updateProgress(pageId);
-      }
+document.addEventListener('change', function(e) {
+  if (e.target.classList.contains('sub-task') && e.target.type === 'checkbox') {
+    console.log('Checkbox changed via event delegation:', e.target);
+    const page = e.target.closest('.page-content');
+    if (page) {
+      const pageId = page.id;
+      updateProgress(pageId);
     }
-  }); // <-- INI YANG HILANG: TUTUP FUNGSI EVENT LISTENER
+  }
+}); // <-- TUTUP EVENT LISTENER
+
+// TAMBAHKAN KURUNG TUTUP UNTUK initApp()
+} // <-- INI YANG HILANG: TUTUP FUNGSI EVENT LISTENER
   
   // Event delegation untuk tombol state
   document.addEventListener('click', function(e) {
