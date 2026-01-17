@@ -1249,7 +1249,8 @@ function setupCheckboxListeners(pageId) {
 
 // Fungsi toggle untuk tombol pilihan
 function toggleSystemButton(button, state) {
-  const parent = button.closest('.task-item');
+  const parent = button.closest('.task-item') || button.closest('.task-item-standalone');
+  if (!parent) return;
   const buttons = parent.querySelectorAll('.system-btn');
   const hiddenInput = parent.querySelector('input[type="hidden"]');
   
@@ -1278,7 +1279,8 @@ function toggleSystemButton(button, state) {
 }
 
 function toggleTilesButton(button, state) {
-  const parent = button.closest('.task-item');
+  const parent = button.closest('.task-item') || button.closest('.task-item-standalone');
+  if (!parent) return;
   const buttons = parent.querySelectorAll('.tiles-btn');
   const hiddenInput = parent.querySelector('input[type="hidden"]');
   
@@ -1307,7 +1309,8 @@ function toggleTilesButton(button, state) {
 }
 
 function toggleTableButton(button, state) {
-  const parent = button.closest('.task-item');
+  const parent = button.closest('.task-item') || button.closest('.task-item-standalone');
+  if (!parent) return;
   const buttons = parent.querySelectorAll('.table-btn');
   const hiddenInput = parent.querySelector('input[type="hidden"]');
   
@@ -1512,11 +1515,54 @@ function updateKavlingInfo(data, pageId) {
 
 // ========== FUNGSI loadProgressData (PERBAIKAN) ==========
 function loadProgressData(progressData) {
-  if (!progressData) return;
-  
   const rolePage = currentRole + 'Page';
   const pageElement = document.getElementById(rolePage);
   if (!pageElement) return;
+
+  // Reset all choice-based fields first to ensure clean state
+  const resetFields = () => {
+    // Reset System Pembuangan
+    const systemBtns = pageElement.querySelectorAll('.system-btn');
+    const systemInput = pageElement.querySelector('#wasteSystemInput');
+    systemBtns.forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('data-active', 'false');
+    });
+    if (systemInput) systemInput.value = '';
+
+    // Reset Cor Meja Dapur
+    const tableBtns = pageElement.querySelectorAll('.table-btn');
+    const tableInput = pageElement.querySelector('#tableKitchenInput');
+    tableBtns.forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('data-active', 'false');
+    });
+    if (tableInput) tableInput.value = '';
+
+    // Reset Keramik Dinding
+    const tilesBtns = pageElement.querySelectorAll('.tiles-btn');
+    const tilesInput = pageElement.querySelector('#bathroomTilesInput');
+    tilesBtns.forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('data-active', 'false');
+    });
+    if (tilesInput) tilesInput.value = '';
+  };
+
+  resetFields();
+
+  if (!progressData) {
+    // If no data, just setup UI and exit after reset
+    setTimeout(() => {
+      setupCheckboxListeners(rolePage);
+      setupStateButtons(rolePage);
+      enableAllInputs();
+      fixFontStyles();
+      updateProgress(rolePage);
+      addVisualFeedback();
+    }, 300);
+    return;
+  }
 
   // Load data untuk field pilihan khusus
   if (progressData.tahap1) {
@@ -1533,9 +1579,10 @@ function loadProgressData(progressData) {
         btn.setAttribute('data-active', 'false');
       });
       
-      if (sistemPembuanganValue) {
+      if (sistemPembuanganValue && typeof sistemPembuanganValue === 'string' && sistemPembuanganValue.trim() !== '' && sistemPembuanganValue.toLowerCase() !== 'null' && sistemPembuanganValue.toLowerCase() !== 'undefined') {
         buttons.forEach(btn => {
-          if (btn.getAttribute('data-state') === sistemPembuanganValue.toLowerCase()) {
+          const btnState = btn.getAttribute('data-state');
+          if (btnState && btnState === sistemPembuanganValue.toLowerCase()) {
             btn.classList.add('active');
             btn.setAttribute('data-active', 'true');
           }
@@ -1562,12 +1609,13 @@ function loadProgressData(progressData) {
         btn.setAttribute('data-active', 'false');
       });
       
-      if (corMejaDapurValue) {
+      if (corMejaDapurValue && typeof corMejaDapurValue === 'string' && corMejaDapurValue.trim() !== '' && corMejaDapurValue.toLowerCase() !== 'null' && corMejaDapurValue.toLowerCase() !== 'undefined') {
         buttons.forEach(btn => {
-          if (btn.getAttribute('data-state') === 'include' && corMejaDapurValue === 'Dengan Cor Meja Dapur') {
+          const btnState = btn.getAttribute('data-state');
+          if (btnState === 'include' && corMejaDapurValue === 'Dengan Cor Meja Dapur') {
             btn.classList.add('active');
             btn.setAttribute('data-active', 'true');
-          } else if (btn.getAttribute('data-state') === 'exclude' && corMejaDapurValue === 'Tanpa Cor Meja Dapur') {
+          } else if (btnState === 'exclude' && corMejaDapurValue === 'Tanpa Cor Meja Dapur') {
             btn.classList.add('active');
             btn.setAttribute('data-active', 'true');
           }
@@ -1617,12 +1665,13 @@ function loadProgressData(progressData) {
         btn.setAttribute('data-active', 'false');
       });
       
-      if (keramikDindingValue) {
+      if (keramikDindingValue && typeof keramikDindingValue === 'string' && keramikDindingValue.trim() !== '' && keramikDindingValue.toLowerCase() !== 'null' && keramikDindingValue.toLowerCase() !== 'undefined') {
         buttons.forEach(btn => {
-          if (btn.getAttribute('data-state') === 'include' && keramikDindingValue === 'Dengan Keramik Dinding') {
+          const btnState = btn.getAttribute('data-state');
+          if (btnState === 'include' && keramikDindingValue === 'Dengan Keramik Dinding') {
             btn.classList.add('active');
             btn.setAttribute('data-active', 'true');
-          } else if (btn.getAttribute('data-state') === 'exclude' && keramikDindingValue === 'Tanpa Keramik Dinding') {
+          } else if (btnState === 'exclude' && keramikDindingValue === 'Tanpa Keramik Dinding') {
             btn.classList.add('active');
             btn.setAttribute('data-active', 'true');
           }
@@ -1741,6 +1790,11 @@ function loadProgressData(progressData) {
     if (progressData.tahap4['TOTAL']) {
       updateTotalProgressDisplay(progressData.tahap4['TOTAL'] || '0%', rolePage);
     }
+  }
+
+  // Setup Lihat Data Mutasi Button for Admin Utilitas
+  if (rolePage === 'user4Page' && typeof setupAdminUtilitasMutation === 'function') {
+    setupAdminUtilitasMutation(pageElement);
   }
   
   // ===== TAMBAHKAN INI DI AKHIR FUNGSI (HANYA SATU setTimeout) =====
@@ -1945,12 +1999,9 @@ function enableAllInputs() {
     btn.style.opacity = '1';
     btn.style.cursor = 'pointer';
     btn.style.pointerEvents = 'auto';
-    btn.style.backgroundColor = '#f3f4f6';
-    btn.style.color = '#4b5563';
-    btn.style.padding = '8px 16px';
-    btn.style.borderRadius = '6px';
-    btn.style.border = '1px solid #d1d5db';
-    btn.style.fontWeight = '500';
+    // Hapus inline styles yang memaksa warna putih/abu-abu
+    btn.style.backgroundColor = '';
+    btn.style.color = '';
     
     // Force event dengan .onclick
     btn.onclick = function(e) {
@@ -4100,7 +4151,7 @@ function handleEditUser(role, displayName, id) {
 function toggleSystemButton(button, systemType) {
   console.log('toggleSystemButton called:', systemType);
   
-  const taskItem = button.closest('.task-item');
+  const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   if (!taskItem) return;
   
   const buttons = taskItem.querySelectorAll('.system-btn');
@@ -4111,8 +4162,7 @@ function toggleSystemButton(button, systemType) {
   // Reset semua tombol
   buttons.forEach(btn => {
     btn.classList.remove('active');
-    btn.style.backgroundColor = '';
-    btn.style.color = '';
+    btn.removeAttribute('style'); // Hapus inline styles agar menggunakan CSS
     btn.setAttribute('data-active', 'false');
   });
   
@@ -4122,8 +4172,6 @@ function toggleSystemButton(button, systemType) {
   } else {
     // Aktifkan tombol yang diklik
     button.classList.add('active');
-    button.style.backgroundColor = '#3b82f6';
-    button.style.color = 'white';
     button.setAttribute('data-active', 'true');
     
     // Set nilai sesuai systemType
@@ -4146,7 +4194,7 @@ function toggleSystemButton(button, systemType) {
 function toggleTilesButton(button, option) {
   console.log('toggleTilesButton called:', option);
   
-  const taskItem = button.closest('.task-item');
+  const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   if (!taskItem) return;
   
   const buttons = taskItem.querySelectorAll('.tiles-btn');
@@ -4157,8 +4205,7 @@ function toggleTilesButton(button, option) {
   // Reset semua tombol
   buttons.forEach(btn => {
     btn.classList.remove('active');
-    btn.style.backgroundColor = '';
-    btn.style.color = '';
+    btn.removeAttribute('style'); // Hapus inline styles agar menggunakan CSS
     btn.setAttribute('data-active', 'false');
   });
   
@@ -4168,8 +4215,6 @@ function toggleTilesButton(button, option) {
   } else {
     // Aktifkan tombol yang diklik
     button.classList.add('active');
-    button.style.backgroundColor = '#3b82f6';
-    button.style.color = 'white';
     button.setAttribute('data-active', 'true');
     
     hiddenInput.value = option === 'include' ? 'Dengan Keramik Dinding' : 'Tanpa Keramik Dinding';
@@ -4183,7 +4228,7 @@ function toggleTilesButton(button, option) {
 function toggleTableButton(button, option) {
   console.log('toggleTableButton called:', option);
   
-  const taskItem = button.closest('.task-item');
+  const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   if (!taskItem) return;
   
   const buttons = taskItem.querySelectorAll('.table-btn');
@@ -4194,8 +4239,7 @@ function toggleTableButton(button, option) {
   // Reset semua tombol
   buttons.forEach(btn => {
     btn.classList.remove('active');
-    btn.style.backgroundColor = '';
-    btn.style.color = '';
+    btn.removeAttribute('style'); // Hapus inline styles agar menggunakan CSS
     btn.setAttribute('data-active', 'false');
   });
   
@@ -4205,8 +4249,6 @@ function toggleTableButton(button, option) {
   } else {
     // Aktifkan tombol yang diklik
     button.classList.add('active');
-    button.style.backgroundColor = '#3b82f6';
-    button.style.color = 'white';
     button.setAttribute('data-active', 'true');
     
     hiddenInput.value = option === 'include' ? 'Dengan Cor Meja Dapur' : 'Tanpa Cor Meja Dapur';
@@ -4306,7 +4348,7 @@ function handleEditUser(role, displayName, id) {
 
 // Fungsi untuk toggle tombol sistem pembuangan
 function toggleSystemButton(button, systemType) {
-  const taskItem = button.closest('.task-item');
+  const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   const buttons = taskItem.querySelectorAll('.system-btn');
   const hiddenInput = taskItem.querySelector('#wasteSystemInput');
   
@@ -4333,7 +4375,7 @@ function toggleSystemButton(button, systemType) {
 
 // Fungsi untuk toggle tombol keramik dinding
 function toggleTilesButton(button, option) {
-  const taskItem = button.closest('.task-item');
+  const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   const buttons = taskItem.querySelectorAll('.tiles-btn');
   const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
   
@@ -4360,7 +4402,7 @@ function toggleTilesButton(button, option) {
 
 // Fungsi untuk toggle tombol cor meja dapur
 function toggleTableButton(button, option) {
-  const taskItem = button.closest('.task-item');
+  const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   const buttons = taskItem.querySelectorAll('.table-btn');
   const hiddenInput = taskItem.querySelector('#tableKitchenInput');
   
