@@ -161,7 +161,6 @@ function loadUtilitasDataFromData(data) {
   // Utility Dates
   const listrikInput = document.getElementById('listrikInstallDate');
   const airInput = document.getElementById('airInstallDate');
-  const notesInput = document.getElementById('utilityNotes');
   const propNotesInput = document.getElementById('utilityPropertyNotes');
   
   if (listrikInput) listrikInput.value = data.utilitas?.listrikDate || '';
@@ -1068,11 +1067,26 @@ async function searchKavling(isSync = false) {
       }
     }
     
-    if (!kavlingName) {
+    if (!kavlingName && !isSync) {
       showToast('warning', 'Pilih kavling terlebih dahulu dari pencarian!');
       if (inputEl) inputEl.focus();
       else selectElement.focus();
       return;
+    }
+
+    if (isSync && !kavlingName) {
+      showGlobalLoading('Mengambil data terbaru dari spreadsheet...');
+      try {
+        // Refresh dropdown lists and clear selections
+        await initializeApp(); 
+        hideGlobalLoading();
+        showToast('success', 'Data berhasil diperbarui!');
+        return;
+      } catch (err) {
+        hideGlobalLoading();
+        showToast('error', 'Gagal memperbarui data!');
+        return;
+      }
     }
 
     // Clear all inputs/status before sync to give "refresh" feel
@@ -1147,13 +1161,19 @@ async function searchKavling(isSync = false) {
       
       if (currentRole === 'user4') {
         // Load data untuk Admin Utilitas
-       loadUtilitasDataFromData(currentKavlingData);
-    updateUtilitasProgressDisplay(currentKavlingData.totalAH);
-    
-    // ===== TAMBAHAN BARU: Load key delivery data =====
-    setTimeout(() => {
-      loadKeyDeliveryData();
-    }, 300);
+        loadUtilitasDataFromData(currentKavlingData);
+        updateUtilitasProgressDisplay(currentKavlingData.totalAH);
+        
+        // Load additional data from Admin Utilitas Apps Script
+        if (typeof loadAdminUtilitasData === 'function') {
+            loadAdminUtilitasData(kavlingName);
+        }
+
+        // TAMBAHAN: Update Property Notes khusus untuk user4
+        const propNotesInput = document.getElementById('utilityPropertyNotes');
+        if (propNotesInput) {
+          propNotesInput.value = currentKavlingData.propertyNotes || '';
+        }
       }
      
      // ⚡ Aktifkan semua input setelah data dimuat
@@ -3187,6 +3207,13 @@ async function handleLogin() {
       showToast('success', `Login berhasil sebagai ${result.displayName}`);
       showPage(currentRole);
       
+      // ===== TAMBAHAN: Load data awal setelah login pelaksana =====
+      if (currentRole.startsWith('user')) {
+        setTimeout(async () => {
+          await loadKavlingListWithLoading();
+        }, 100);
+      }
+      
     } else {
       if (errorMsg) errorMsg.textContent = result.message || 'Password salah!';
       showToast('error', 'Password salah');
@@ -4026,6 +4053,10 @@ document.addEventListener('change', function(e) {
     updateProgress(rolePage);
   }
 });
+
+function fixFontStyles() {
+    console.log('Applying font style fixes...');
+}
 
 // ========== START APPLICATION ==========
 // Tunggu DOM siap sepenuhnya
