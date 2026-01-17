@@ -4570,8 +4570,45 @@ function debugTahap4Structure() {
     }
   });
 }
+// ========== INTEGRATION WITH ADMIN UTILITAS ==========
+// Tambahkan di akhir script.js, sebelum penutup
 
+// Fungsi untuk memanggil scriptadmin.js jika user4
+function loadAdminUtilitasScript() {
+    if (currentRole === 'user4') {
+        // Cek apakah script sudah dimuat
+        if (!document.getElementById('admin-utilitas-script')) {
+            const script = document.createElement('script');
+            script.id = 'admin-utilitas-script';
+            script.src = 'scriptadmin.js';
+            script.onload = function() {
+                console.log('Admin Utilitas script loaded');
+                if (window.adminUtilitas && window.adminUtilitas.init) {
+                    window.adminUtilitas.init();
+                }
+            };
+            document.head.appendChild(script);
+        }
+    }
+}
+
+// Modifikasi fungsi showPage untuk load script admin
+const originalShowPage = showPage;
+showPage = function(role) {
+    originalShowPage(role);
+    
+    // Load admin utilitas script jika role user4
+    if (role === 'user4') {
+        setTimeout(loadAdminUtilitasScript, 300);
+    }
+};
+
+// Juga load jika sudah di halaman user4 saat refresh
+if (window.currentRole === 'user4') {
+    setTimeout(loadAdminUtilitasScript, 1000);
+}
 // Panggil setelah DOM siap
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(debugTahap4Structure, 1000);
 });
+
