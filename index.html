@@ -9,7 +9,7 @@
   <script>
     // Fungsi toggle untuk tombol pilihan
     function toggleSystemButton(button, state) {
-      const parent = button.closest('.task-item');
+      const parent = button.closest('.task-item') || button.closest('.task-item-standalone');
       const buttons = parent.querySelectorAll('.system-btn');
       const hiddenInput = parent.querySelector('input[type="hidden"]');
       
@@ -24,7 +24,7 @@
     }
     
     function toggleTilesButton(button, state) {
-      const parent = button.closest('.task-item');
+      const parent = button.closest('.task-item') || button.closest('.task-item-standalone');
       const buttons = parent.querySelectorAll('.tiles-btn');
       const hiddenInput = parent.querySelector('input[type="hidden"]');
       
@@ -38,7 +38,7 @@
     }
     
     function toggleTableButton(button, state) {
-      const parent = button.closest('.task-item');
+      const parent = button.closest('.task-item') || button.closest('.task-item-standalone');
       const buttons = parent.querySelectorAll('.table-btn');
       const hiddenInput = parent.querySelector('input[type="hidden"]');
       
@@ -568,7 +568,7 @@
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PIPA AIR BERSIH"> Pipa Air Bersih</label>
                   
                   <!-- SISTEM PEMBUANGAN - TAHAP 1 (PERBAIKAN: DIPINDAH DARI TAHAP 2) -->
-                  <label class="task-item waste-system">
+                  <div class="task-item-standalone">
                     <span class="item-title">Sistem Pembuangan =</span>
                     <div class="dual-state-buttons">
                       <button type="button" class="state-btn system-btn" data-state="biotank" data-active="false" onclick="toggleSystemButton(this, 'biotank')">Biotank</button>
@@ -578,13 +578,13 @@
                       <button type="button" class="state-btn system-btn" data-state="septictank" data-active="false" onclick="toggleSystemButton(this, 'septictank')">Septictank</button>
                     </div>
                     <input type="hidden" name="waste-system" value="" class="sub-task" data-weight="1" data-task="SISTEM PEMBUANGAN" id="wasteSystemInput">
-                  </label>
+                  </div>
                   
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PLESTER"> Plester</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="ACIAN & BENANGAN"> Acian & Benangan</label>
                   
                   <!-- COR MEJA DAPUR - TAHAP 1 -->
-                  <label class="task-item table-kitchen">
+                  <div class="task-item-standalone">
                     <span class="item-title">Cor Meja Dapur =</span>
                     <div class="dual-state-buttons">
                       <button type="button" class="state-btn table-btn" data-state="include" data-active="false" onclick="toggleTableButton(this, 'include')">Dengan Cor Meja Dapur</button>
@@ -592,7 +592,7 @@
                       <button type="button" class="state-btn table-btn" data-state="exclude" data-active="false" onclick="toggleTableButton(this, 'exclude')">Tanpa Cor Meja Dapur</button>
                     </div>
                     <input type="hidden" name="table-kitchen" value="" class="sub-task" data-weight="1" data-task="COR MEJA DAPUR" id="tableKitchenInput">
-                  </label>
+                  </div>
                 </div>
                         
                 <button class="btn-save-section" type="button" data-tahap="1"><i class="fas fa-save"></i> Simpan Tahap 1</button>
@@ -613,7 +613,7 @@
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PLAFOND"> Plafond</label>
                   
                   <!-- KERAMIK DINDING TOILET & DAPUR - TAHAP 2 (PERBAIKAN: DIPINDAH DARI TAHAP 1) -->
-                  <label class="task-item bathroom-tiles">
+                  <div class="task-item-standalone">
                     <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
                     <div class="dual-state-buttons">
                       <button type="button" class="state-btn tiles-btn" data-state="include" data-active="false" onclick="toggleTilesButton(this, 'include')">Dengan Keramik Dinding</button>
@@ -621,7 +621,7 @@
                       <button type="button" class="state-btn tiles-btn" data-state="exclude" data-active="false" onclick="toggleTilesButton(this, 'exclude')">Tanpa Keramik Dinding</button>
                     </div>
                     <input type="hidden" name="bathroom-tiles" value="" class="sub-task" data-weight="1" data-task="KERAMIK DINDING TOILET & DAPUR" id="bathroomTilesInput">
-                  </label>
+                  </div>
                   
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="INSTALASI LISTRIK"> Instalasi Listrik</label>
                   <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="KERAMIK LANTAI"> Keramik Lantai</label>
@@ -788,7 +788,7 @@
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PIPA AIR BERSIH"> Pipa Air Bersih</label>
               
               <!-- SISTEM PEMBUANGAN - TAHAP 1 -->
-              <label class="task-item waste-system">
+              <div class="task-item-standalone">
                 <span class="item-title">Sistem Pembuangan =</span>
                 <div class="dual-state-buttons">
                   <button type="button" class="state-btn system-btn" data-state="biotank" data-active="false" onclick="toggleSystemButton(this, 'biotank')">Biotank</button>
@@ -798,13 +798,13 @@
                   <button type="button" class="state-btn system-btn" data-state="septictank" data-active="false" onclick="toggleSystemButton(this, 'septictank')">Septictank</button>
                 </div>
                 <input type="hidden" name="waste-system" value="" class="sub-task" data-weight="1" data-task="SISTEM PEMBUANGAN" id="wasteSystemInput">
-              </label>
+              </div>
               
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PLESTER"> Plester</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="ACIAN & BENANGAN"> Acian & Benangan</label>
               
               <!-- COR MEJA DAPUR - TAHAP 1 -->
-              <label class="task-item table-kitchen">
+              <div class="task-item-standalone">
                 <span class="item-title">Cor Meja Dapur =</span>
                 <div class="dual-state-buttons">
                   <button type="button" class="state-btn table-btn" data-state="include" data-active="false" onclick="toggleTableButton(this, 'include')">Dengan Cor Meja Dapur</button>
@@ -812,7 +812,7 @@
                   <button type="button" class="state-btn table-btn" data-state="exclude" data-active="false" onclick="toggleTableButton(this, 'exclude')">Tanpa Cor Meja Dapur</button>
                 </div>
                 <input type="hidden" name="table-kitchen" value="" class="sub-task" data-weight="1" data-task="COR MEJA DAPUR" id="tableKitchenInput">
-              </label>
+              </div>
             </div>
             <button class="btn-save-section" type="button" data-tahap="1"><i class="fas fa-save"></i> Simpan Tahap 1</button>
           </div>
@@ -830,7 +830,7 @@
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PLAFOND"> Plafond</label>
               
               <!-- KERAMIK DINDING TOILET & DAPUR - TAHAP 2 -->
-              <label class="task-item bathroom-tiles">
+              <div class="task-item-standalone">
                 <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
                 <div class="dual-state-buttons">
                   <button type="button" class="state-btn tiles-btn" data-state="include" data-active="false" onclick="toggleTilesButton(this, 'include')">Dengan Keramik Dinding</button>
@@ -838,7 +838,7 @@
                   <button type="button" class="state-btn tiles-btn" data-state="exclude" data-active="false" onclick="toggleTilesButton(this, 'exclude')">Tanpa Keramik Dinding</button>
                 </div>
                 <input type="hidden" name="bathroom-tiles" value="" class="sub-task" data-weight="1" data-task="KERAMIK DINDING TOILET & DAPUR" id="bathroomTilesInput">
-              </label>
+              </div>
               
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="INSTALASI LISTRIK"> Instalasi Listrik</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="KERAMIK LANTAI"> Keramik Lantai</label>
@@ -1404,7 +1404,7 @@
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PIPA AIR BERSIH"> Pipa Air Bersih</label>
               
               <!-- SISTEM PEMBUANGAN - TAHAP 1 -->
-              <label class="task-item waste-system">
+              <div class="task-item-standalone">
                 <span class="item-title">Sistem Pembuangan =</span>
                 <div class="dual-state-buttons">
                   <button type="button" class="state-btn system-btn" data-state="biotank" data-active="false" onclick="toggleSystemButton(this, 'biotank')">Biotank</button>
@@ -1414,13 +1414,13 @@
                   <button type="button" class="state-btn system-btn" data-state="septictank" data-active="false" onclick="toggleSystemButton(this, 'septictank')">Septictank</button>
                 </div>
                 <input type="hidden" name="waste-system" value="" class="sub-task" data-weight="1" data-task="SISTEM PEMBUANGAN" id="wasteSystemInput">
-              </label>
+              </div>
               
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PLESTER"> Plester</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="ACIAN & BENANGAN"> Acian & Benangan</label>
               
               <!-- COR MEJA DAPUR - TAHAP 1 -->
-              <label class="task-item table-kitchen">
+              <div class="task-item-standalone">
                 <span class="item-title">Cor Meja Dapur =</span>
                 <div class="dual-state-buttons">
                   <button type="button" class="state-btn table-btn" data-state="include" data-active="false" onclick="toggleTableButton(this, 'include')">Dengan Cor Meja Dapur</button>
@@ -1428,7 +1428,7 @@
                   <button type="button" class="state-btn table-btn" data-state="exclude" data-active="false" onclick="toggleTableButton(this, 'exclude')">Tanpa Cor Meja Dapur</button>
                 </div>
                 <input type="hidden" name="table-kitchen" value="" class="sub-task" data-weight="1" data-task="COR MEJA DAPUR" id="tableKitchenInput">
-              </label>
+              </div>
             </div>
          
             <button class="btn-save-section" type="button" data-tahap="1"><i class="fas fa-save"></i> Simpan Tahap 1</button>
@@ -1447,7 +1447,7 @@
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="PLAFOND"> Plafond</label>
               
               <!-- KERAMIK DINDING TOILET & DAPUR - TAHAP 2 -->
-              <label class="task-item bathroom-tiles">
+              <div class="task-item-standalone">
                 <span class="item-title">Keramik Dinding Toilet & Dapur =</span>
                 <div class="dual-state-buttons">
                   <button type="button" class="state-btn tiles-btn" data-state="include" data-active="false" onclick="toggleTilesButton(this, 'include')">Dengan Keramik Dinding</button>
@@ -1455,7 +1455,7 @@
                   <button type="button" class="state-btn tiles-btn" data-state="exclude" data-active="false" onclick="toggleTilesButton(this, 'exclude')">Tanpa Keramik Dinding</button>
                 </div>
                 <input type="hidden" name="bathroom-tiles" value="" class="sub-task" data-weight="1" data-task="KERAMIK DINDING TOILET & DAPUR" id="bathroomTilesInput">
-              </label>
+              </div>
               
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="INSTALASI LISTRIK"> Instalasi Listrik</label>
               <label class="task-item"><input type="checkbox" class="sub-task" data-weight="1" data-task="KERAMIK LANTAI"> Keramik Lantai</label>
@@ -1544,16 +1544,17 @@
                 <span class="info-value val-lb">-</span>
               </div>
             </div>
-
-            <div class="notes-section" style="margin-top: 20px; padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 12px;">
-              <h3 style="margin-bottom: 10px; color: #38bdf8; font-size: 1.1rem;"><i class="fas fa-sticky-note"></i> Catatan Kondisi Property</h3>
-              <textarea id="utilityPropertyNotes" style="width: 100%; height: 120px; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 0.95rem; resize: none;" placeholder="Masukkan catatan kondisi property di sini..."></textarea>
-              <button class="btn-save-section" id="btnSaveUtilityNotes" type="button" style="margin-top: 10px; width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 8px; font-weight: 600;"><i class="fas fa-save"></i> Simpan Catatan</button>
-            </div>
           </div>
         </div>
 
         <div class="page-body">
+          <!-- Tombol Lihat Data Mutasi Baru -->
+          <div style="margin-bottom: 20px;">
+            <button id="btnViewMutationHistory" class="btn-primary" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #38bdf8, #1d4ed8); border-radius: 12px; font-weight: 700; font-size: 1rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: all 0.3s ease;">
+              <i class="fas fa-history"></i> Lihat Data Mutasi
+            </button>
+          </div>
+
           <!-- Admin Utilitas Tabs -->
           <div class="admin-tabs">
             <button class="admin-tab-btn active" data-tab="kunci-masuk">
@@ -1645,10 +1646,6 @@
                 <h3 style="color: #f59e0b; margin-bottom: 15px;"><i class="fas fa-bolt"></i> Pemasangan Utilitas</h3>
                 
                 <div class="notes-section" style="margin-top: 10px; margin-bottom: 20px;">
-                  <label style="display: block; margin-bottom: 8px; color: #38bdf8; font-weight: 600;">
-                    <i class="fas fa-comment-dots"></i> Catatan Kondisi Property
-                  </label>
-                  <textarea id="utilityPropertyNotes" class="tahap-comments" data-task="KETERANGAN" style="width: 100%; height: 120px; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 0.95rem; resize: none;" placeholder="Masukkan catatan kondisi property di sini..."></textarea>
                   <button class="btn-save-section" id="btnFetchMutasiData" type="button" style="margin-top: 10px; width: 100%; padding: 10px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; display: block !important; visibility: visible !important; opacity: 1 !important;">
                     <i class="fas fa-download"></i> Ambil Data Mutasi
                   </button>
