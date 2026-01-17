@@ -1,6 +1,7 @@
 // versi 0.4
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4j4f2AlMMu1nZzLePeqdLzyMYj59lmlvVmnV9QywZwGwpLYhvNa7ExtrIAc3SWmDC/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsAzZ8bUgp-jyWN09CNQ7_qLCOn7qfzqhoXOMjNKQ3GduLH5e7ySD_qdgQSO1wXeZTtQ/exec';
+//const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4j4f2AlMMu1nZzLePeqdLzyMYj59lmlvVmnV9QywZwGwpLYhvNa7ExtrIAc3SWmDC/exec';
 
 let currentRole = null;
 let selectedKavling = null;
