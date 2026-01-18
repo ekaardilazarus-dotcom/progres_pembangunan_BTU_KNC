@@ -1719,6 +1719,37 @@ function applyStateButton(parentSelector, value, buttonType) {
   }
 }
 
+function renderExclusiveStateButtons(container, value, matchFn) {
+  if (!container || !value) return;
+
+  const buttons = container.querySelectorAll('button');
+  const hiddenInput = container.querySelector('input[type="hidden"]');
+  const normalizedValue = value.toLowerCase().trim();
+  let matched = false;
+
+  buttons.forEach(btn => {
+    const btnState = (btn.getAttribute('data-state') || '').toLowerCase();
+    const btnText = btn.textContent.toLowerCase().trim();
+
+    const isMatch = matchFn
+      ? matchFn(btn, normalizedValue)
+      : btnState === normalizedValue ||
+        normalizedValue.includes(btnState) ||
+        btnText.includes(normalizedValue);
+
+    if (!matched && isMatch) {
+      btn.classList.add('active');
+      btn.setAttribute('data-active', 'true');
+      if (hiddenInput) hiddenInput.value = value;
+      matched = true;
+    } else {
+      btn.classList.remove('active');
+      btn.setAttribute('data-active', 'false');
+    }
+  });
+}
+
+
 function loadProgressData(progressData) {
   const rolePage = currentRole + 'Page';
   const page = document.getElementById(rolePage);
