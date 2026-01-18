@@ -1072,34 +1072,6 @@ function enableAllInputs() {
   debugInputStatus();
 }
 
-function debugDatabaseData(progressData) {
-    console.log('=== DATABASE DATA DEBUG ===');
-    
-    if (progressData.tahap1) {
-        console.log('TAHAP 1 DATA:');
-        console.log('SISTEM PEMBUANGAN:', {
-            value: progressData.tahap1['SISTEM PEMBUANGAN'],
-            type: typeof progressData.tahap1['SISTEM PEMBUANGAN'],
-            isString: typeof progressData.tahap1['SISTEM PEMBUANGAN'] === 'string',
-            length: progressData.tahap1['SISTEM PEMBUANGAN'] ? progressData.tahap1['SISTEM PEMBUANGAN'].length : 0
-        });
-        console.log('COR MEJA DAPUR:', {
-            value: progressData.tahap1['COR MEJA DAPUR'],
-            type: typeof progressData.tahap1['COR MEJA DAPUR']
-        });
-    }
-    
-    if (progressData.tahap2) {
-        console.log('TAHAP 2 DATA:');
-        console.log('KERAMIK DINDING:', {
-            value: progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'],
-            type: typeof progressData.tahap2['KERAMIK DINDING TOILET & DAPUR']
-        });
-    }
-    
-    console.log('=== END DEBUG ===');
-}
-
 async function searchKavling(isSync = false) {
   console.log('=== FUNGSI searchKavling DIPANGGIL ===');
   
@@ -1171,7 +1143,8 @@ async function searchKavling(isSync = false) {
       updateTabsState(); // Enable tabs when kavling is loaded
       
       // Ambil data progres dari server
-        debugDatabaseData(data.data);
+      let serverProgress = data.totalAH || '0%';
+      
       // Konversi desimal (misal 0.14) ke persen (14%) jika perlu
       if (typeof serverProgress === 'number') {
         serverProgress = (serverProgress <= 1 ? Math.round(serverProgress * 100) : Math.round(serverProgress)) + '%';
@@ -1718,113 +1691,72 @@ function loadProgressData(progressData) {
   }
 
   // Load data untuk field pilihan khusus
- if (progressData.tahap1) {
-    // Handle Sistem Pembuangan - PERBAIKAN LAGI
+  if (progressData.tahap1) {
+    // Handle Sistem Pembuangan - PERBAIKAN DI SINI
     const sistemPembuanganValue = progressData.tahap1['SISTEM PEMBUANGAN'];
-    console.log('DEBUG - Sistem Pembuangan from DB:', sistemPembuanganValue);
-    
     const wasteSystemItem = pageElement.querySelector('.waste-system');
     if (wasteSystemItem && sistemPembuanganValue) {
-        const buttons = wasteSystemItem.querySelectorAll('.system-btn');
-        const hiddenInput = wasteSystemItem.querySelector('#wasteSystemInput');
+      const buttons = wasteSystemItem.querySelectorAll('.system-btn');
+      const hiddenInput = wasteSystemItem.querySelector('#wasteSystemInput');
+      
+      // Normalize the value from database
+      const normalizedValue = sistemPembuanganValue.toString().toLowerCase().trim();
+      console.log('Sistem Pembuangan from DB:', normalizedValue);
+      
+      buttons.forEach(btn => {
+        const btnState = btn.getAttribute('data-state');
+        const btnText = btn.textContent.toLowerCase().trim();
         
-        // Debug lebih detail
-        console.log('DEBUG - Available buttons:', Array.from(buttons).map(b => ({
-            text: b.textContent.trim(),
-            dataState: b.getAttribute('data-state')
-        })));
+        // Multiple matching conditions
+        const isMatch = 
+          normalizedValue === btnState ||
+          normalizedValue.includes(btnState) ||
+          btnText.includes(normalizedValue) ||
+          (normalizedValue === 'septictank' && btnState === 'septictank') ||
+          (normalizedValue === 'biotank' && btnState === 'biotank') ||
+          (normalizedValue === 'ipal' && btnState === 'ipal');
         
-        // PERBAIKAN: Cek semua kemungkinan format
-        if (sistemPembuanganValue && sistemPembuanganValue !== '' && 
-            sistemPembuanganValue !== 'null' && sistemPembuanganValue !== 'undefined') {
-            
-            const normalizedValue = sistemPembuanganValue.toString().toLowerCase().trim();
-            
-            buttons.forEach(btn => {
-                const btnState = btn.getAttribute('data-state');
-                const btnText = btn.textContent.toLowerCase().trim();
-                
-                // Lebih banyak kondisi pencocokan
-                const isMatch = 
-                    // Kondisi 1: Exact match dengan data-state
-                    normalizedValue === btnState ||
-                    // Kondisi 2: Contains match
-                    (normalizedValue.includes(btnState) && btnState.length > 2) ||
-                    (btnText.includes(normalizedValue) && normalizedValue.length > 2) ||
-                    // Kondisi 3: Pencocokan alternatif
-                    (normalizedValue === 'biotank' && btnState === 'biotank') ||
-                    (normalizedValue === 'septictank' && btnState === 'septictank') ||
-                    (normalizedValue === 'ipal' && btnState === 'ipal') ||
-                    (normalizedValue.includes('bio') && btnState === 'biotank') ||
-                    (normalizedValue.includes('septic') && btnState === 'septictank') ||
-                    (normalizedValue.includes('ipal') && btnState === 'ipal');
-                
-                if (isMatch) {
-                    btn.classList.add('active');
-                    btn.setAttribute('data-active', 'true');
-                    if (hiddenInput) {
-                        // Simpan nilai asli dari database
-                        hiddenInput.value = sistemPembuanganValue;
-                    }
-                    console.log(`✅ Activated Sistem Pembuangan: ${btnState} for DB value: "${sistemPembuanganValue}"`);
-                }
-            });
-            
-            // Jika tidak ada yang match, coba pencocokan partial
-            const activeCount = Array.from(buttons).filter(b => b.classList.contains('active')).length;
-            if (activeCount === 0 && hiddenInput) {
-                console.log('⚠️ No exact match found, trying partial match...');
-                
-                buttons.forEach(btn => {
-                    const btnState = btn.getAttribute('data-state');
-                    if (normalizedValue.includes(btnState) || btnState.includes(normalizedValue)) {
-                        btn.classList.add('active');
-                        btn.setAttribute('data-active', 'true');
-                        hiddenInput.value = sistemPembuanganValue;
-                        console.log(`✅ Partial match: ${btnState} for "${sistemPembuanganValue}"`);
-                    }
-                });
-            }
+        if (isMatch) {
+          btn.classList.add('active');
+          btn.setAttribute('data-active', 'true');
+          if (hiddenInput) {
+            hiddenInput.value = sistemPembuanganValue;
+          }
+          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
         }
+      });
     }
     
-    // Handle Cor Meja Dapur - PERBAIKAN
+    // Handle Cor Meja Dapur - PERBAIKAN DI SINI
     const corMejaDapurValue = progressData.tahap1['COR MEJA DAPUR'];
-    console.log('DEBUG - Cor Meja Dapur from DB:', corMejaDapurValue);
-    
     const tableKitchenItem = pageElement.querySelector('.table-kitchen');
     if (tableKitchenItem && corMejaDapurValue) {
-        const buttons = tableKitchenItem.querySelectorAll('.table-btn');
-        const hiddenInput = tableKitchenItem.querySelector('#tableKitchenInput');
+      const buttons = tableKitchenItem.querySelectorAll('.table-btn');
+      const hiddenInput = tableKitchenItem.querySelector('#tableKitchenInput');
+      
+      const normalizedValue = corMejaDapurValue.toString().toLowerCase().trim();
+      console.log('Cor Meja Dapur from DB:', normalizedValue);
+      
+      buttons.forEach(btn => {
+        const btnState = btn.getAttribute('data-state');
+        const btnText = btn.textContent.toLowerCase().trim();
         
-        if (corMejaDapurValue && corMejaDapurValue !== '' && 
-            corMejaDapurValue !== 'null' && corMejaDapurValue !== 'undefined') {
-            
-            const normalizedValue = corMejaDapurValue.toString().toLowerCase().trim();
-            
-            buttons.forEach(btn => {
-                const btnState = btn.getAttribute('data-state');
-                const btnText = btn.textContent.toLowerCase().trim();
-                
-                const isMatch = 
-                    (btnState === 'include' && normalizedValue.includes('dengan')) ||
-                    (btnState === 'exclude' && normalizedValue.includes('tanpa')) ||
-                    (btnText.includes(normalizedValue)) ||
-                    (normalizedValue.includes(btnText));
-                
-                if (isMatch) {
-                    btn.classList.add('active');
-                    btn.setAttribute('data-active', 'true');
-                    if (hiddenInput) {
-                        hiddenInput.value = corMejaDapurValue;
-                    }
-                    console.log(`✅ Activated Cor Meja Dapur: ${btnState} for DB value: "${corMejaDapurValue}"`);
-                }
-            });
+        const isMatch = 
+          (btnState === 'include' && (normalizedValue.includes('dengan') || normalizedValue.includes('with'))) ||
+          (btnState === 'exclude' && (normalizedValue.includes('tanpa') || normalizedValue.includes('without'))) ||
+          (btnText.includes(normalizedValue) || normalizedValue.includes(btnText));
+        
+        if (isMatch) {
+          btn.classList.add('active');
+          btn.setAttribute('data-active', 'true');
+          if (hiddenInput) {
+            hiddenInput.value = corMejaDapurValue;
+          }
+          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
         }
+      });
     }
-}
-  
+    
     // Load checkbox biasa untuk tahap 1
     const checkboxTasks1 = ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 
                            'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 
@@ -2234,84 +2166,79 @@ function forceTestButtons() {
   console.log('✅ Force testing complete. Check console for results.');
 }
 
+// Perbaiki fungsi enableAllInputs untuk lebih agresif
 function enableAllInputs() {
-    const pageId = currentRole + 'Page';
-    const page = document.getElementById(pageId);
-    if (!page) return;
+  const pageId = currentRole + 'Page';
+  const page = document.getElementById(pageId);
+  if (!page) {
+    console.error(`❌ Page ${pageId} not found for enableAllInputs`);
+    return;
+  }
+  
+  console.log(`🔓 FORCE ENABLING ALL INPUTS for ${pageId}`);
+  
+  // 1. Enable semua checkbox dengan cara paksa
+  const checkboxes = page.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach((cb, index) => {
+    // Hapus semua atribut disabled
+    cb.removeAttribute('disabled');
+    cb.disabled = false;
+    cb.readOnly = false;
     
-    console.log(`🔓 ENABLING INPUTS for ${pageId}`);
+    // Force styling
+    cb.style.opacity = '1';
+    cb.style.cursor = 'pointer';
+    cb.style.pointerEvents = 'auto';
     
-    // State buttons - PERBAIKAN
-    const stateButtons = page.querySelectorAll('.system-btn, .tiles-btn, .table-btn');
-    console.log(`Found ${stateButtons.length} state buttons to enable`);
+    // Force event listener
+    const newCb = cb.cloneNode(true);
+    cb.parentNode.replaceChild(newCb, cb);
     
-    stateButtons.forEach((btn, index) => {
-        // Force remove old listeners
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        
-        // Setup fresh click listener
-        newBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log(`🖱️ State button ${index} clicked: ${this.textContent.trim()}`);
-            
-            if (this.classList.contains('system-btn')) {
-                toggleSystemButton(this, this.getAttribute('data-state'));
-            } else if (this.classList.contains('tiles-btn')) {
-                toggleTilesButton(this, this.getAttribute('data-state'));
-            } else if (this.classList.contains('table-btn')) {
-                toggleTableButton(this, this.getAttribute('data-state'));
-            }
-        });
-        
-        // Visual styling
-        newBtn.style.opacity = '1';
-        newBtn.style.cursor = 'pointer';
-        newBtn.style.pointerEvents = 'auto';
-        
-        // Debug info
-        const isActive = newBtn.classList.contains('active');
-        console.log(`Button ${index} (${newBtn.textContent.trim()}): active=${isActive}`);
+    newCb.addEventListener('change', function() {
+      console.log(`📝 Checkbox ${index} changed:`, this.checked);
+      const label = this.closest('label');
+      if (label) {
+        if (this.checked) {
+          label.classList.add('task-completed');
+        } else {
+          label.classList.remove('task-completed');
+        }
+      }
+      updateProgress(pageId);
     });
-}
-
-// Test function untuk melihat nilai database
-function testDatabaseValues() {
-    if (!currentKavlingData || !currentKavlingData.data) {
-        console.log('No kavling data loaded');
-        return;
-    }
+  });
+  
+  // 2. Enable tombol state dengan cara paksa
+  const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
+  stateButtons.forEach((btn, index) => {
+    // Force enable
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.style.pointerEvents = 'auto';
+    // Hapus inline styles yang memaksa warna putih/abu-abu
+    btn.style.backgroundColor = '';
+    btn.style.color = '';
     
-    console.log('=== TEST DATABASE VALUES ===');
-    console.log('Kavling:', selectedKavling);
-    
-    if (currentKavlingData.data.tahap1) {
-        console.log('SISTEM PEMBUANGAN:', currentKavlingData.data.tahap1['SISTEM PEMBUANGAN']);
-        console.log('COR MEJA DAPUR:', currentKavlingData.data.tahap1['COR MEJA DAPUR']);
-    }
-    
-    if (currentKavlingData.data.tahap2) {
-        console.log('KERAMIK DINDING:', currentKavlingData.data.tahap2['KERAMIK DINDING TOILET & DAPUR']);
-    }
-    
-    // Test tombol yang tersedia
-    const pageId = currentRole + 'Page';
-    const page = document.getElementById(pageId);
-    
-    if (page) {
-        const allStateBtns = page.querySelectorAll('.system-btn, .tiles-btn, .table-btn');
-        console.log(`Total state buttons: ${allStateBtns.length}`);
-        
-        allStateBtns.forEach((btn, i) => {
-            console.log(`Button ${i}:`, {
-                class: btn.className,
-                text: btn.textContent.trim(),
-                dataState: btn.getAttribute('data-state'),
-                isActive: btn.classList.contains('active')
-            });
-        });
-    }
+    // Force event dengan .onclick
+    btn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`🖱️ Button ${index} clicked via .onclick:`, this.textContent);
+      
+      if (this.classList.contains('system-btn')) {
+        toggleSystemButton(this, this.getAttribute('data-state'));
+      } else if (this.classList.contains('tiles-btn')) {
+        toggleTilesButton(this, this.getAttribute('data-state'));
+      } else if (this.classList.contains('table-btn')) {
+        toggleTableButton(this, this.getAttribute('data-state'));
+      }
+      
+      return false;
+    };
+  });
+  
+  console.log(`✅ Force enabled: ${checkboxes.length} checkboxes, ${stateButtons.length} state buttons`);
 }
 
 // ===== FUNGSI TAMBAHAN UNTUK FORMAT TANGGAL =====
