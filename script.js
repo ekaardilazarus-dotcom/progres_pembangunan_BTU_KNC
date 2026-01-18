@@ -4412,11 +4412,11 @@ function fixFontStyles() {
 }
 
 // ========== START APPLICATION ==========
-// Tunggu DOM siap sepenuhnya
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initApp);
 } else {
   // DOM sudah siap
+  console.log('DOM already ready, initializing immediately');
   initApp();
 }
 
@@ -4845,6 +4845,7 @@ async function saveKeyDelivery() {
     hideGlobalLoading();
   }
 }
+
 function updateProgress(rolePage) {
   const pageElement = document.getElementById(rolePage);
   if (!pageElement) return;
