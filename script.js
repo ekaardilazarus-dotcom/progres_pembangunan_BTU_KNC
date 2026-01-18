@@ -511,26 +511,13 @@ function clearInputsForNewLoad() {
     if (label) label.classList.remove('task-completed');
   });
 
-  // 2. Reset Text, Hidden, and Date Inputs
-  const textInputs = document.querySelectorAll('.sub-task-text, .tahap-comments, .key-delivery-input, .key-delivery-date, input[type="hidden"].sub-task, .search-input-custom');
+  // 2. Reset Text, Hidden, dan Date Inputs
+  const textInputs = document.querySelectorAll('.sub-task-text, .tahap-comments, .key-delivery-input, .key-delivery-date, input[type="text"]:not(.search-input-custom)');
   textInputs.forEach(input => {
-    // Don't clear the active search input that was just used
-    if (!input.id.includes('Input') || input.value === '') {
-       // if it's not an input field or it's already empty, we can skip or clear others
-    }
-    if (!input.classList.contains('search-input-custom')) {
-      input.value = '';
-    }
+    input.value = '';
   });
 
-  // 3. Reset Dual-State Buttons
-  const stateButtons = document.querySelectorAll('.state-btn');
-  stateButtons.forEach(btn => {
-    btn.setAttribute('data-active', 'false');
-    btn.classList.remove('active');
-  });
-
-  // 4. Reset ALL Progress Bars and Percentage Texts
+  // 3. Reset Progress Bars dan Percentage Texts
   const progressFills = document.querySelectorAll('.progress-fill');
   progressFills.forEach(fill => {
     fill.style.width = '0%';
@@ -541,13 +528,17 @@ function clearInputsForNewLoad() {
     text.textContent = '0%';
   });
 
-  // 5. Reset Info Display values
+  // 4. Reset Info Display values
   const valDisplays = document.querySelectorAll('.info-value');
   valDisplays.forEach(display => {
     if (!display.classList.contains('val-name')) {
       display.textContent = '-';
     }
   });
+
+  // ⚠️ JANGAN reset state buttons di sini!
+  // Biarkan loadProgressData yang mengatur berdasarkan data server
+  console.log('✅ Inputs cleared (state buttons preserved for server data)');
 }
 
 function renderSearchList(items, listEl, inputEl, selectEl) {
@@ -1383,30 +1374,55 @@ function setupStateButtons(pageId) {
   // 1. Sistem Pembuangan
   const systemBtns = page.querySelectorAll('.system-btn');
   systemBtns.forEach(btn => {
-    btn.onclick = function(e) {
+    // Cegah event listener ganda
+    if (btn.hasAttribute('data-listener-added')) {
+      console.log('⚠️ Skipping duplicate listener for system button');
+      return;
+    }
+    
+    btn.addEventListener('click', function(e) {
       e.preventDefault();
+      e.stopPropagation();
+      console.log(`🖱️ System button clicked manually: ${this.textContent.trim()}`);
       toggleSystemButton(this, this.getAttribute('data-state'));
-    };
+    });
+    
+    btn.setAttribute('data-listener-added', 'true');
   });
 
   // 2. Keramik Dinding
   const tilesBtns = page.querySelectorAll('.tiles-btn');
   tilesBtns.forEach(btn => {
-    btn.onclick = function(e) {
+    if (btn.hasAttribute('data-listener-added')) return;
+    
+    btn.addEventListener('click', function(e) {
       e.preventDefault();
+      e.stopPropagation();
+      console.log(`🖱️ Tiles button clicked manually: ${this.textContent.trim()}`);
       toggleTilesButton(this, this.getAttribute('data-state'));
-    };
+    });
+    
+    btn.setAttribute('data-listener-added', 'true');
   });
 
   // 3. Cor Meja Dapur
   const tableBtns = page.querySelectorAll('.table-btn');
   tableBtns.forEach(btn => {
-    btn.onclick = function(e) {
+    if (btn.hasAttribute('data-listener-added')) return;
+    
+    btn.addEventListener('click', function(e) {
       e.preventDefault();
+      e.stopPropagation();
+      console.log(`🖱️ Table button clicked manually: ${this.textContent.trim()}`);
       toggleTableButton(this, this.getAttribute('data-state'));
-    };
+    });
+    
+    btn.setAttribute('data-listener-added', 'true');
   });
+
+  console.log(`✅ Setup ${systemBtns.length + tilesBtns.length + tableBtns.length} state button listeners`);
 }
+
 //----------------------------------------------
 function updateManagerProgressDisplay(totalProgress) {
   const progressDisplay = document.getElementById('managerProgressDisplay');
@@ -1641,326 +1657,261 @@ function updateKavlingInfo(data, pageId) {
   }
 }
 
-// ========== FUNGSI loadProgressData (PERBAIKAN) ==========
+// ========== FUNGSI BARU: APPLY STATE BUTTON ==========
+function applyStateButton(parentSelector, value, buttonType) {
+  if (!value || value === '' || value === '-') return;
+  
+  console.log(`Applying state: ${value} to ${parentSelector}`);
+  
+  const parentEl = document.querySelector(parentSelector);
+  if (!parentEl) {
+    console.error(`Parent element not found: ${parentSelector}`);
+    return;
+  }
+  
+  const buttons = parentEl.querySelectorAll(`.${buttonType}-btn`);
+  const hiddenInput = parentEl.querySelector('input[type="hidden"]');
+  
+  if (!buttons.length) {
+    console.error(`No ${buttonType} buttons found in ${parentSelector}`);
+    return;
+  }
+  
+  // Reset semua tombol
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('data-active', 'false');
+    // Pastikan styling reset
+    btn.style.backgroundColor = '';
+    btn.style.color = '';
+  });
+  
+  // Cari tombol yang sesuai dengan value
+  let matched = false;
+  buttons.forEach(btn => {
+    const state = btn.getAttribute('data-state');
+    const btnText = btn.textContent.toLowerCase().trim();
+    const searchValue = value.toString().toLowerCase().trim();
+    
+    const isMatch = 
+      state === searchValue ||
+      btnText.includes(searchValue) ||
+      searchValue.includes(btnText) ||
+      (searchValue === 'septictank' && state === 'septictank') ||
+      (searchValue === 'biotank' && state === 'biotank') ||
+      (searchValue === 'ipal' && state === 'ipal') ||
+      (searchValue.includes('dengan') && state === 'include') ||
+      (searchValue.includes('tanpa') && state === 'exclude');
+    
+    if (isMatch && !matched) {
+      btn.classList.add('active');
+      btn.setAttribute('data-active', 'true');
+      if (hiddenInput) {
+        hiddenInput.value = value;
+      }
+      matched = true;
+      console.log(`✅ State button matched: ${btnText} = ${value}`);
+    }
+  });
+  
+  if (!matched) {
+    console.warn(`⚠️ No button matched for value: ${value}`);
+  }
+}
+
 function loadProgressData(progressData) {
   const rolePage = currentRole + 'Page';
-  const pageElement = document.getElementById(rolePage);
-  if (!pageElement) return;
+  const page = document.getElementById(rolePage);
+  if (!page) return;
 
-  // Reset all choice-based fields first to ensure clean state
-  const resetFields = () => {
-    console.log('Resetting all state buttons...');
-    // Reset System Pembuangan
-    const systemBtns = pageElement.querySelectorAll('.system-btn');
-    const systemInput = pageElement.querySelector('#wasteSystemInput');
-    systemBtns.forEach(btn => {
+  console.log('=== loadProgressData START ===');
+
+  /* ===============================
+     HELPER: APPLY STATE BUTTON
+     =============================== */
+  function applyStateButton(container, value) {
+    if (!container) return;
+
+    const buttons = container.querySelectorAll('.system-btn, .tiles-btn, .table-btn');
+    const hiddenInput = container.querySelector('input[type="hidden"]');
+
+    buttons.forEach(btn => {
+      const state = btn.getAttribute('data-state');
       btn.classList.remove('active');
       btn.setAttribute('data-active', 'false');
-    });
-    if (systemInput) systemInput.value = '';
 
-    // Reset Cor Meja Dapur
-    const tableBtns = pageElement.querySelectorAll('.table-btn');
-    const tableInput = pageElement.querySelector('#tableKitchenInput');
-    tableBtns.forEach(btn => {
-      btn.classList.remove('active');
-      btn.setAttribute('data-active', 'false');
+      if (
+        value &&
+        (
+          state === value ||
+          value.toLowerCase().includes(state) ||
+          btn.textContent.toLowerCase().includes(value.toLowerCase())
+        )
+      ) {
+        btn.classList.add('active');
+        btn.setAttribute('data-active', 'true');
+      }
     });
-    if (tableInput) tableInput.value = '';
 
-    // Reset Keramik Dinding
-    const tilesBtns = pageElement.querySelectorAll('.tiles-btn');
-    const tilesInput = pageElement.querySelector('#bathroomTilesInput');
-    tilesBtns.forEach(btn => {
-      btn.classList.remove('active');
-      btn.setAttribute('data-active', 'false');
-    });
-    if (tilesInput) tilesInput.value = '';
-  };
+    if (hiddenInput) {
+      hiddenInput.value = value || '';
+    }
+  }
 
-  resetFields();
+  /* ===============================
+     RESET UI STATE (SAFE)
+     =============================== */
+  page.querySelectorAll('.system-btn, .tiles-btn, .table-btn').forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('data-active', 'false');
+  });
+
+  page.querySelectorAll('input[type="hidden"].sub-task').forEach(input => {
+    input.value = '';
+  });
+
+  page.querySelectorAll('.sub-task[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    const label = cb.closest('label');
+    if (label) label.classList.remove('task-completed');
+  });
 
   if (!progressData) {
-    setTimeout(() => {
-      setupCheckboxListeners(rolePage);
-      setupStateButtons(rolePage);
-      enableAllInputs();
-      updateProgress(rolePage);
-    }, 300);
+    console.warn('No progress data, UI reset only');
+    updateProgress(rolePage);
     return;
   }
 
-  // Load data untuk field pilihan khusus
+  /* ===============================
+     TAHAP 1
+     =============================== */
   if (progressData.tahap1) {
-    // Handle Sistem Pembuangan - PERBAIKAN DI SINI
-    const sistemPembuanganValue = progressData.tahap1['SISTEM PEMBUANGAN'];
-    const wasteSystemItem = pageElement.querySelector('.waste-system');
-    if (wasteSystemItem && sistemPembuanganValue) {
-      const buttons = wasteSystemItem.querySelectorAll('.system-btn');
-      const hiddenInput = wasteSystemItem.querySelector('#wasteSystemInput');
 
-      // Normalize the value from database
-      const normalizedValue = sistemPembuanganValue.toString().toLowerCase().trim();
-      console.log('Sistem Pembuangan from DB:', normalizedValue);
+    // Sistem Pembuangan
+    applyStateButton(
+      page.querySelector('.waste-system'),
+      progressData.tahap1['SISTEM PEMBUANGAN']
+    );
 
-      buttons.forEach(btn => {
-        const btnState = btn.getAttribute('data-state');
-        const btnText = btn.textContent.toLowerCase().trim();
+    // Cor Meja Dapur
+    applyStateButton(
+      page.querySelector('.table-kitchen'),
+      progressData.tahap1['COR MEJA DAPUR']
+    );
 
-        // Multiple matching conditions
-        const isMatch = 
-          normalizedValue === btnState ||
-          normalizedValue.includes(btnState) ||
-          btnText.includes(normalizedValue) ||
-          (normalizedValue === 'septictank' && btnState === 'septictank') ||
-          (normalizedValue === 'biotank' && btnState === 'biotank') ||
-          (normalizedValue === 'ipal' && btnState === 'ipal');
-
-        if (isMatch) {
-          btn.classList.add('active');
-          btn.setAttribute('data-active', 'true');
-          if (hiddenInput) {
-            hiddenInput.value = sistemPembuanganValue;
-          }
-          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
-        }
-      });
-    }
-
-    // Handle Cor Meja Dapur - PERBAIKAN DI SINI
-    const corMejaDapurValue = progressData.tahap1['COR MEJA DAPUR'];
-    const tableKitchenItem = pageElement.querySelector('.table-kitchen');
-    if (tableKitchenItem && corMejaDapurValue) {
-      const buttons = tableKitchenItem.querySelectorAll('.table-btn');
-      const hiddenInput = tableKitchenItem.querySelector('#tableKitchenInput');
-
-      const normalizedValue = corMejaDapurValue.toString().toLowerCase().trim();
-      console.log('Cor Meja Dapur from DB:', normalizedValue);
-
-      buttons.forEach(btn => {
-        const btnState = btn.getAttribute('data-state');
-        const btnText = btn.textContent.toLowerCase().trim();
-
-        const isMatch = 
-          (btnState === 'include' && (normalizedValue.includes('dengan') || normalizedValue.includes('with'))) ||
-          (btnState === 'exclude' && (normalizedValue.includes('tanpa') || normalizedValue.includes('without'))) ||
-          (btnText.includes(normalizedValue) || normalizedValue.includes(btnText));
-
-        if (isMatch) {
-          btn.classList.add('active');
-          btn.setAttribute('data-active', 'true');
-          if (hiddenInput) {
-            hiddenInput.value = corMejaDapurValue;
-          }
-          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
-        }
-      });
-    }
-
-    // Load checkbox biasa untuk tahap 1
-    const checkboxTasks1 = ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 
-                           'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 
-                           'PIPA AIR BERSIH', 'PLESTER', 'ACIAN & BENANGAN'];
-
-    checkboxTasks1.forEach(taskName => {
-      const isChecked = progressData.tahap1[taskName];
-      const checkbox = findCheckboxByTaskName(taskName, 1, rolePage);
-      if (checkbox) {
-        checkbox.checked = isChecked;
-        const label = checkbox.closest('label');
-        if (label) {
-          if (isChecked) {
-            label.classList.add('task-completed');
-          } else {
-            label.classList.remove('task-completed');
-          }
-        }
+    // Checkbox Tahap 1
+    [
+      'LAND CLEARING', 'PONDASI', 'SLOOF',
+      'PAS.DDG S/D2 CANOPY', 'PAS.DDG S/D RING BLK',
+      'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR',
+      'PIPA AIR BERSIH', 'PLESTER', 'ACIAN & BENANGAN'
+    ].forEach(task => {
+      const checked = !!progressData.tahap1[task];
+      const cb = findCheckboxByTaskName(task, 1, rolePage);
+      if (cb) {
+        cb.checked = checked;
+        const label = cb.closest('label');
+        if (label && checked) label.classList.add('task-completed');
       }
     });
   }
 
+  /* ===============================
+     TAHAP 2
+     =============================== */
   if (progressData.tahap2) {
-    // Handle Keramik Dinding Toilet & Dapur - PERBAIKAN DI SINI
-    const keramikDindingValue = progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'];
-    const bathroomTilesItem = pageElement.querySelector('.bathroom-tiles');
-    if (bathroomTilesItem && keramikDindingValue) {
-      const buttons = bathroomTilesItem.querySelectorAll('.tiles-btn');
-      const hiddenInput = bathroomTilesItem.querySelector('#bathroomTilesInput');
 
-      const normalizedValue = keramikDindingValue.toString().toLowerCase().trim();
-      console.log('Keramik Dinding from DB:', normalizedValue);
+    // Keramik Dinding
+    applyStateButton(
+      page.querySelector('.bathroom-tiles'),
+      progressData.tahap2['KERAMIK DINDING TOILET & DAPUR']
+    );
 
-      buttons.forEach(btn => {
-        const btnState = btn.getAttribute('data-state');
-        const btnText = btn.textContent.toLowerCase().trim();
-
-        const isMatch = 
-          (btnState === 'include' && (normalizedValue.includes('dengan') || normalizedValue.includes('with'))) ||
-          (btnState === 'exclude' && (normalizedValue.includes('tanpa') || normalizedValue.includes('without'))) ||
-          (btnText.includes(normalizedValue) || normalizedValue.includes(btnText));
-
-        if (isMatch) {
-          btn.classList.add('active');
-          btn.setAttribute('data-active', 'true');
-          if (hiddenInput) {
-            hiddenInput.value = keramikDindingValue;
-          }
-          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
-        }
-      });
-    }
-
-    // Load checkbox biasa untuk tahap 2
-    const checkboxTasks2 = ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'INSTALASI LISTRIK', 'KERAMIK LANTAI'];
-
-    checkboxTasks2.forEach(taskName => {
-      const isChecked = progressData.tahap2[taskName];
-      const checkbox = findCheckboxByTaskName(taskName, 2, rolePage);
-      if (checkbox) {
-        checkbox.checked = isChecked;
-        const label = checkbox.closest('label');
-        if (label) {
-          if (isChecked) {
-            label.classList.add('task-completed');
-          } else {
-            label.classList.remove('task-completed');
-          }
-        }
+    // Checkbox Tahap 2
+    [
+      'RANGKA ATAP', 'GENTENG',
+      'PLAFOND', 'INSTALASI LISTRIK',
+      'KERAMIK LANTAI'
+    ].forEach(task => {
+      const checked = !!progressData.tahap2[task];
+      const cb = findCheckboxByTaskName(task, 2, rolePage);
+      if (cb) {
+        cb.checked = checked;
+        const label = cb.closest('label');
+        if (label && checked) label.classList.add('task-completed');
       }
     });
   }
 
+  /* ===============================
+     TAHAP 3 (CHECKBOX ONLY)
+     =============================== */
   if (progressData.tahap3) {
-    Object.keys(progressData.tahap3).forEach(taskName => {
-      const isChecked = progressData.tahap3[taskName];
-      const checkbox = findCheckboxByTaskName(taskName, 3, rolePage);
-      if (checkbox) {
-        checkbox.checked = isChecked;
-        const label = checkbox.closest('label');
-        if (label) {
-          if (isChecked) {
-            label.classList.add('task-completed');
-          } else {
-            label.classList.remove('task-completed');
-          }
-        }
+    Object.keys(progressData.tahap3).forEach(task => {
+      const checked = !!progressData.tahap3[task];
+      const cb = findCheckboxByTaskName(task, 3, rolePage);
+      if (cb) {
+        cb.checked = checked;
+        const label = cb.closest('label');
+        if (label && checked) label.classList.add('task-completed');
       }
     });
   }
 
+  /* ===============================
+     TAHAP 4
+     =============================== */
   if (progressData.tahap4) {
-    // Load Keterangan
-    if (progressData.tahap4['KETERANGAN']) {
-      const commentEl = pageElement.querySelector('.tahap-comments');
-      if (commentEl) {
-        commentEl.value = progressData.tahap4['KETERANGAN'];
-      }
+
+    // Keterangan
+    const note = page.querySelector('.tahap-comments');
+    if (note) note.value = progressData.tahap4['KETERANGAN'] || '';
+
+    // Penyerahan Kunci
+    const delivery = page.querySelector('.key-delivery-input');
+    if (delivery) delivery.value = progressData.tahap4['PENYERAHAN KUNCI'] || '';
+
+    // Tanggal Penyerahan
+    const dateInput = page.querySelector('.key-delivery-date');
+    if (dateInput && progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']) {
+      dateInput.value = formatDateForInput(
+        progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']
+      );
     }
 
-    // Load Penyerahan Kunci
-    if (progressData.tahap4['PENYERAHAN KUNCI']) {
-      const deliveryEl = pageElement.querySelector('.key-delivery-input');
-      if (deliveryEl) {
-        deliveryEl.value = progressData.tahap4['PENYERAHAN KUNCI'];
-      }
-    }
-
-    // ===== PERBAIKAN: LOAD TANGGAL PENYERAHAN KUNCI =====
-    if (progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']) {
-      const dateEl = pageElement.querySelector('.key-delivery-date');
-      if (dateEl) {
-        // Format tanggal untuk input type="date" (yyyy-MM-dd)
-        const rawDate = progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'];
-        let formattedDate = '';
-
-        if (rawDate instanceof Date || (typeof rawDate === 'string' && rawDate.includes('-'))) {
-          // Jika sudah format Date atau yyyy-MM-dd
-          formattedDate = formatDateForInput(rawDate);
-        } else if (rawDate) {
-          // Coba parse tanggal lain
-          formattedDate = formatDateForInput(new Date(rawDate));
-        }
-
-        dateEl.value = formattedDate;
-        console.log(`Loaded date for ${selectedKavling}: ${rawDate} → ${formattedDate}`);
-      }
-    }
-
-
-    // Load Completion - PERBAIKAN: CARI CHECKBOX DI TAHAP 4
+    // Completion
     if (progressData.tahap4['COMPLETION / Penyelesaian akhir']) {
-      const completionCheckbox = findCheckboxByTaskName('COMPLETION / Penyelesaian akhir', 4, rolePage);
-      if (!completionCheckbox) {
-        // Coba cari dengan nama yang lebih sederhana
-        const allCheckboxes = pageElement.querySelectorAll(`[data-tahap="4"] .sub-task[type="checkbox"]`);
-        for (const checkbox of allCheckboxes) {
-          const label = checkbox.closest('label');
-          if (label && label.textContent.toLowerCase().includes('completion')) {
-            completionCheckbox = checkbox;
-            break;
-          }
-        }
-      }
-
-      if (completionCheckbox) {
-        completionCheckbox.checked = true;
-        const label = completionCheckbox.closest('label');
-        if (label) {
-          label.classList.add('task-completed');
-        }
+      const cb = findCheckboxByTaskName(
+        'COMPLETION / Penyelesaian akhir',
+        4,
+        rolePage
+      );
+      if (cb) {
+        cb.checked = true;
+        const label = cb.closest('label');
+        if (label) label.classList.add('task-completed');
       }
     }
 
-    // Update total progress
+    // Total Progress
     if (progressData.tahap4['TOTAL']) {
-      updateTotalProgressDisplay(progressData.tahap4['TOTAL'] || '0%', rolePage);
+      updateTotalProgressDisplay(
+        progressData.tahap4['TOTAL'],
+        rolePage
+      );
     }
   }
 
-  // Setup Lihat Data Mutasi Button for Admin Utilitas
-  if (rolePage === 'user4Page' && typeof setupAdminUtilitasMutation === 'function') {
-    setupAdminUtilitasMutation(pageElement);
-  }
-
-  // ===== TAMBAHKAN INI DI AKHIR FUNGSI (HANYA SATU setTimeout) =====
-  console.log(`🔄 Starting UI setup for ${rolePage}...`);
-
+  /* ===============================
+     FINAL UI SYNC
+     =============================== */
   setTimeout(() => {
-    console.log(`✅ Data loaded for ${rolePage}, setting up UI...`);
-
-    // 1. Setup checkbox listeners
-    const checkboxCount = pageElement.querySelectorAll('input[type="checkbox"]').length;
-    console.log(`📋 Found ${checkboxCount} checkboxes`);
     setupCheckboxListeners(rolePage);
-
-    // 2. Setup state buttons (PENTING!)
-    const stateBtnCount = pageElement.querySelectorAll('.system-btn, .tiles-btn, .table-btn').length;
-    console.log(`🎯 Found ${stateBtnCount} state buttons`);
     setupStateButtons(rolePage);
-
-    // 3. Aktifkan semua input
-    console.log(`🔓 Enabling all inputs...`);
     enableAllInputs();
-
-    // 4. Perbaiki font styles
-    console.log(`🎨 Fixing font styles...`);
-    fixFontStyles();
-
-    // 5. Update progress calculation
-    console.log(`📊 Updating progress...`);
     updateProgress(rolePage);
-
-    // 6. Tambahkan visual feedback
-    addVisualFeedback();
-
-    console.log(`✅ UI setup complete for ${rolePage}! Inputs should be editable now.`);
-
-    // 7. Debug final status
-    console.log('=== FINAL STATE BUTTONS STATUS ===');
-    debugStateButtonsStatus();
-    debugFinalStatus();
-
-  }, 300);
+    console.log('=== loadProgressData DONE ===');
+  }, 50);
 }
 
 function debugStateButtonsStatus() {
@@ -4465,57 +4416,59 @@ function handleEditUser(role, displayName, id) {
 }
 
 function toggleSystemButton(button, systemType) {
-    console.log('toggleSystemButton called:', systemType);
+  console.log('🔄 toggleSystemButton called:', systemType);
 
-    const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
-    if (!taskItem) return;
+  const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
+  if (!taskItem) {
+    console.error('❌ Task item not found for button:', button);
+    return;
+  }
 
-    const buttons = taskItem.querySelectorAll('.system-btn');
-    const hiddenInput = taskItem.querySelector('#wasteSystemInput');
+  const buttons = taskItem.querySelectorAll('.system-btn');
+  const hiddenInput = taskItem.querySelector('#wasteSystemInput');
 
-    // PERBAIKAN: Cek apakah tombol sudah aktif
-    const isAlreadyActive = button.classList.contains('active');
+  const wasActive = button.classList.contains('active');
 
-    console.log(`Tombol ${systemType} sebelumnya aktif: ${isAlreadyActive}`);
-    console.log(`Nilai hidden input sebelum: "${hiddenInput ? hiddenInput.value : 'tidak ditemukan'}"`);
+  console.log(`Button ${systemType} was active: ${wasActive}`);
 
-    // Reset semua tombol
-    buttons.forEach(btn => {
-        btn.classList.remove('active');
-        btn.removeAttribute('style');
-        btn.setAttribute('data-active', 'false');
-    });
+  // Reset semua tombol dalam grup ini
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('data-active', 'false');
+  });
 
-    // Jika tombol sudah aktif, reset ke kosong
-    if (isAlreadyActive) {
-        console.log('Mereset sistem pembuangan ke kosong');
-        if (hiddenInput) {
-            hiddenInput.value = '';
-        }
-    } else {
-        // Aktifkan tombol yang diklik
-        button.classList.add('active');
-        button.setAttribute('data-active', 'true');
-
-        // Set nilai sesuai systemType
-        let displayValue = '';
-        switch(systemType) {
-            case 'septictank': displayValue = 'Septictank'; break;
-            case 'biotank': displayValue = 'Biotank'; break;
-            case 'ipal': displayValue = 'Ipal'; break;
-            default: displayValue = systemType;
-        }
-
-        if (hiddenInput) {
-            hiddenInput.value = displayValue;
-            console.log(`Sistem Pembuangan diatur ke: "${displayValue}"`);
-        }
+  if (!wasActive) {
+    // Aktifkan tombol yang diklik
+    button.classList.add('active');
+    button.setAttribute('data-active', 'true');
+    
+    // Set nilai berdasarkan systemType
+    let displayValue = '';
+    switch(systemType) {
+      case 'septictank': displayValue = 'Septictank'; break;
+      case 'biotank': displayValue = 'Biotank'; break;
+      case 'ipal': displayValue = 'Ipal'; break;
+      default: displayValue = systemType;
     }
+    
+    if (hiddenInput) {
+      hiddenInput.value = displayValue;
+      console.log(`✅ Sistem Pembuangan set to: "${displayValue}"`);
+    }
+  } else {
+    // Jika sudah aktif, matikan (reset)
+    if (hiddenInput) {
+      hiddenInput.value = '';
+      console.log('✅ Sistem Pembuangan reset to empty');
+    }
+  }
 
-    // Update progress
-    const rolePage = currentRole + 'Page';
-    updateProgress(rolePage);
+  // Update progress
+  const rolePage = currentRole + 'Page';
+  updateProgress(rolePage);
 }
+
+
 
 function toggleTilesButton(button, option) {
   console.log('toggleTilesButton called:', option);
@@ -4994,6 +4947,47 @@ function updateNotesCounter(length) {
   console.log('updateNotesCounter:', length);
   // Implementasi Anda di sini
 }
+
+// ========== DEBUG FUNCTIONS ==========
+function debugStateAfterLoad() {
+  console.log('=== DEBUG STATE AFTER LOAD ===');
+  
+  if (!currentRole) return;
+  
+  const pageId = currentRole + 'Page';
+  const page = document.getElementById(pageId);
+  if (!page) return;
+  
+  // Check semua state buttons
+  console.log('1. Sistem Pembuangan:');
+  const systemBtns = page.querySelectorAll('.system-btn');
+  systemBtns.forEach((btn, i) => {
+    console.log(`   Button ${i}: ${btn.textContent.trim()} - Active: ${btn.classList.contains('active')}`);
+  });
+  const wasteInput = page.querySelector('#wasteSystemInput');
+  console.log(`   Hidden Input: "${wasteInput ? wasteInput.value : 'N/A'}"`);
+  
+  console.log('2. Cor Meja Dapur:');
+  const tableBtns = page.querySelectorAll('.table-btn');
+  tableBtns.forEach((btn, i) => {
+    console.log(`   Button ${i}: ${btn.textContent.trim()} - Active: ${btn.classList.contains('active')}`);
+  });
+  const tableInput = page.querySelector('#tableKitchenInput');
+  console.log(`   Hidden Input: "${tableInput ? tableInput.value : 'N/A'}"`);
+  
+  console.log('3. Keramik Dinding:');
+  const tilesBtns = page.querySelectorAll('.tiles-btn');
+  tilesBtns.forEach((btn, i) => {
+    console.log(`   Button ${i}: ${btn.textContent.trim()} - Active: ${btn.classList.contains('active')}`);
+  });
+  const tilesInput = page.querySelector('#bathroomTilesInput');
+  console.log(`   Hidden Input: "${tilesInput ? tilesInput.value : 'N/A'}"`);
+  
+  console.log('=== END DEBUG ===');
+}
+
+// Panggil setelah load data
+setTimeout(debugStateAfterLoad, 1000);
 
 // ========== FUNGSI DEBUG UNTUK MEMERIKSA STRUKTUR ==========
 function debugTahap4Structure() {
