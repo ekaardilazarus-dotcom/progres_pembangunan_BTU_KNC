@@ -610,7 +610,7 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
 
           updateKavlingInfo(currentKavlingData, currentRole + 'Page');
           loadProgressData(data.data);
-
+          applyStateButtonsFromData(rolePage, data.data);
           // Tampilkan sukses dan auto close
           showStatusModal('success', 'Data Dimuat', `Data ${item} berhasil dimuat!`);
 
@@ -1071,6 +1071,42 @@ function enableAllInputs() {
   // Debug output
   debugInputStatus();
 }
+
+function applyStateButtonsFromData(pageId, serverData) {
+  const page = document.getElementById(pageId);
+  if (!page || !serverData) return;
+
+  Object.entries(serverData).forEach(([tahapKey, tasks]) => {
+    Object.entries(tasks).forEach(([taskName, taskValue]) => {
+      if (!taskValue) return;
+
+      const hiddenInput = page.querySelector(
+        `input[type="hidden"][data-task="${taskName}"]`
+      );
+
+      if (!hiddenInput) return;
+
+      hiddenInput.value = taskValue;
+
+      const parent = hiddenInput.closest('.task-item');
+      if (!parent) return;
+
+      const buttons = parent.querySelectorAll('.state-btn');
+
+      buttons.forEach(btn => {
+        const btnState = btn.getAttribute('data-state');
+        if (btnState === taskValue) {
+          btn.classList.add('active');
+          btn.setAttribute('data-active', 'true');
+        } else {
+          btn.classList.remove('active');
+          btn.setAttribute('data-active', 'false');
+        }
+      });
+    });
+  });
+}
+
 
 async function searchKavling(isSync = false) {
   console.log('=== FUNGSI searchKavling DIPANGGIL ===');
