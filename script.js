@@ -1494,6 +1494,98 @@ function getKavlingInfoIdByRole(role) {
   };
   return infoIds[role] || `kavlingInfo${role.charAt(0).toUpperCase() + role.slice(1)}`;
 }
+function setupRoleButtons() {
+  console.log("=== DEBUG SETUP ROLE BUTTONS ===");
+  
+  const roleButtons = document.querySelectorAll('.role-btn');
+  console.log(`Found ${roleButtons.length} role buttons`);
+  
+  if (roleButtons.length === 0) {
+    console.error("❌ No role buttons found! Check HTML structure.");
+    
+    // Coba cari dengan cara lain
+    const allButtons = document.querySelectorAll('button');
+    console.log(`Total buttons on page: ${allButtons.length}`);
+    allButtons.forEach((btn, i) => {
+      console.log(`Button ${i}:`, {
+        text: btn.textContent,
+        classes: btn.className,
+        dataRole: btn.getAttribute('data-role')
+      });
+    });
+    
+    return;
+  }
+  
+  roleButtons.forEach((btn, index) => {
+    console.log(`Role button ${index + 1}:`, {
+      role: btn.getAttribute('data-role'),
+      text: btn.querySelector('h3')?.textContent || btn.textContent,
+      id: btn.id || 'no-id'
+    });
+    
+    // Hapus event listener lama
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    // Tambah event listener baru dengan logging
+    newBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
+      console.log('✅ Role button clicked successfully!');
+      console.log('Button data-role:', this.getAttribute('data-role'));
+      console.log('Button text:', this.textContent);
+      
+      currentRole = this.getAttribute('data-role');
+      console.log('Current role set to:', currentRole);
+      
+      // Reset modal
+      const errorMsg = document.getElementById('errorMessage');
+      const passwordInput = document.getElementById('passwordInput');
+      
+      if (errorMsg) errorMsg.textContent = '';
+      if (passwordInput) passwordInput.value = '';
+      
+      // Show modal
+      const modal = document.getElementById('passwordModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        console.log('✅ Password modal shown');
+        
+        // Update modal title
+        const roleNames = {
+          'user1': 'Pelaksana 1',
+          'user2': 'Pelaksana 2', 
+          'user3': 'Pelaksana 3',
+          'user4': 'Admin Utilitas',
+          'manager': 'Supervisor',
+          'admin': 'Admin System'
+        };
+        
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) {
+          modalTitle.textContent = `Login sebagai ${roleNames[currentRole] || currentRole}`;
+        }
+        
+        // Focus on password input
+        setTimeout(() => {
+          if (passwordInput) {
+            passwordInput.focus();
+            console.log('✅ Password input focused');
+          }
+        }, 100);
+      } else {
+        console.error('❌ Password modal not found!');
+      }
+    });
+    
+    console.log(`✅ Event listener added to role button ${index + 1}`);
+  });
+  
+  console.log("=== ROLE BUTTONS SETUP COMPLETE ===");
+}
 
 // ========== FUNGSI updateKavlingInfo (PERBAIKAN) ==========
 function updateKavlingInfo(data, pageId) {
@@ -3381,6 +3473,8 @@ async function submitNewKavling() {
 
 // ========== LOGIN & SESSION ==========
 async function handleLogin() {
+  console.log('=== HANDLE LOGIN CALLED ===');
+  console.log('Current role:', currentRole);
   const passwordInput = document.getElementById('passwordInput');
   const errorMsg = document.getElementById('errorMessage');
   const submitBtn = document.getElementById('submitPassword');
@@ -4122,6 +4216,12 @@ function setupDynamicEventListeners() {
 // ========== INITIALIZE ON DOM READY ==========
 function initApp() {
   console.log('=== INITIALIZING APP ===');
+  console.log('DOM ready state:', document.readyState);
+
+    setTimeout(() => {
+    console.log('Setting up role buttons...');
+    setupRoleButtons();
+  }, 100);
   
   // Setup event delegation untuk checkbox
   document.addEventListener('change', function(e) {
