@@ -1705,24 +1705,24 @@ function loadProgressData(progressData) {
     return;
   }
 
-  // Load data untuk field pilihan khusus
+  // ===== PERBAIKAN 1: SISTEM PEMBUANGAN =====
   if (progressData.tahap1) {
     const sistemPembuanganValue = progressData.tahap1['SISTEM PEMBUANGAN'];
-     console.log('SISTEM PEMBUANGAN from DB:', sistemPembuanganValue);
+    console.log('SISTEM PEMBUANGAN from DB:', sistemPembuanganValue);
     
     const wasteSystemItem = pageElement.querySelector('.waste-system');
     if (wasteSystemItem && sistemPembuanganValue) {
       const buttons = wasteSystemItem.querySelectorAll('.system-btn');
       const hiddenInput = wasteSystemItem.querySelector('#wasteSystemInput');
-
-      // Normalize the value from database
-      const normalizedValue = sistemPembuanganValue.toString().toLowerCase().trim();
-      console.log('Sistem Pembuangan from DB:', normalizedValue);
-
+      
+      // Normalize the value untuk matching yang lebih akurat
+      const normalizedValue = sistemPembuanganValue.toString().toUpperCase().trim();
+      console.log('Normalized system value:', normalizedValue);
+      
       buttons.forEach(btn => {
         const btnState = btn.getAttribute('data-state');
-        const btnText = btn.textContent.toLowerCase().trim();
-
+        const btnText = btn.textContent.toUpperCase().trim();
+        
         // PERBAIKAN: Logika matching yang lebih sederhana dan akurat
         let isMatch = false;
         
@@ -1755,23 +1755,24 @@ function loadProgressData(progressData) {
     }
   }
 
-    // Handle Cor Meja Dapur - PERBAIKAN DI SINI
+  // ===== PERBAIKAN 2: COR MEJA DAPUR =====
+  if (progressData.tahap1) {
     const corMejaDapurValue = progressData.tahap1['COR MEJA DAPUR'];
-  console.log('COR MEJA DAPUR from DB:', corMejaDapurValue);
-  
+    console.log('COR MEJA DAPUR from DB:', corMejaDapurValue);
+    
     const tableKitchenItem = pageElement.querySelector('.table-kitchen');
     if (tableKitchenItem && corMejaDapurValue) {
       const buttons = tableKitchenItem.querySelectorAll('.table-btn');
       const hiddenInput = tableKitchenItem.querySelector('#tableKitchenInput');
-
-      const normalizedValue = corMejaDapurValue.toString().toLowerCase().trim();
-      console.log('Cor Meja Dapur from DB:', normalizedValue);
-
+      
+      const normalizedValue = corMejaDapurValue.toString().toUpperCase().trim();
+      console.log('Normalized cor meja dapur value:', normalizedValue);
+      
       buttons.forEach(btn => {
         const btnState = btn.getAttribute('data-state');
-        const btnText = btn.textContent.toLowerCase().trim();
-
-          let isMatch = false;
+        const btnText = btn.textContent.toUpperCase().trim();
+        
+        let isMatch = false;
         
         // PERBAIKAN: Logika khusus untuk "Dengan/Tanpa Cor Meja Dapur"
         if (normalizedValue.includes('DENGAN') || normalizedValue.includes('WITH')) {
@@ -1805,47 +1806,24 @@ function loadProgressData(progressData) {
     }
   }
 
-
-    // Load checkbox biasa untuk tahap 1
-    const checkboxTasks1 = ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 
-                           'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 
-                           'PIPA AIR BERSIH', 'PLESTER', 'ACIAN & BENANGAN'];
-
-    checkboxTasks1.forEach(taskName => {
-      const isChecked = progressData.tahap1[taskName];
-      const checkbox = findCheckboxByTaskName(taskName, 1, rolePage);
-      if (checkbox) {
-        checkbox.checked = isChecked;
-        const label = checkbox.closest('label');
-        if (label) {
-          if (isChecked) {
-            label.classList.add('task-completed');
-          } else {
-            label.classList.remove('task-completed');
-          }
-        }
-      }
-    });
-  }
-
+  // ===== PERBAIKAN 3: KERAMIK DINDING =====
   if (progressData.tahap2) {
-    // Handle Keramik Dinding Toilet & Dapur - PERBAIKAN DI SINI
     const keramikDindingValue = progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'];
-     console.log('KERAMIK DINDING from DB:', keramikDindingValue);
+    console.log('KERAMIK DINDING from DB:', keramikDindingValue);
     
     const bathroomTilesItem = pageElement.querySelector('.bathroom-tiles');
     if (bathroomTilesItem && keramikDindingValue) {
       const buttons = bathroomTilesItem.querySelectorAll('.tiles-btn');
       const hiddenInput = bathroomTilesItem.querySelector('#bathroomTilesInput');
-
-      const normalizedValue = keramikDindingValue.toString().toLowerCase().trim();
+      
+      const normalizedValue = keramikDindingValue.toString().toUpperCase().trim();
       console.log('Normalized keramik dinding value:', normalizedValue);
-
+      
       buttons.forEach(btn => {
         const btnState = btn.getAttribute('data-state');
-        const btnText = btn.textContent.toLowerCase().trim();
-
-         let isMatch = false;
+        const btnText = btn.textContent.toUpperCase().trim();
+        
+        let isMatch = false;
         
         // PERBAIKAN: Logika khusus untuk "Dengan/Tanpa Keramik Dinding"
         if (normalizedValue.includes('DENGAN') || normalizedValue.includes('WITH')) {
@@ -1879,7 +1857,31 @@ function loadProgressData(progressData) {
     }
   }
 
-    // Load checkbox biasa untuk tahap 2
+  // ===== LOAD CHECKBOX TAHAP 1 =====
+  if (progressData.tahap1) {
+    const checkboxTasks1 = ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 
+                           'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 
+                           'PIPA AIR BERSIH', 'PLESTER', 'ACIAN & BENANGAN'];
+
+    checkboxTasks1.forEach(taskName => {
+      const isChecked = progressData.tahap1[taskName];
+      const checkbox = findCheckboxByTaskName(taskName, 1, rolePage);
+      if (checkbox) {
+        checkbox.checked = isChecked;
+        const label = checkbox.closest('label');
+        if (label) {
+          if (isChecked) {
+            label.classList.add('task-completed');
+          } else {
+            label.classList.remove('task-completed');
+          }
+        }
+      }
+    });
+  }
+
+  // ===== LOAD CHECKBOX TAHAP 2 =====
+  if (progressData.tahap2) {
     const checkboxTasks2 = ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'INSTALASI LISTRIK', 'KERAMIK LANTAI'];
 
     checkboxTasks2.forEach(taskName => {
@@ -1899,10 +1901,96 @@ function loadProgressData(progressData) {
     });
   }
 
- console.log('=== DEBUG AFTER LOAD ===');
+  // ===== LOAD CHECKBOX TAHAP 3 =====
+  if (progressData.tahap3) {
+    Object.keys(progressData.tahap3).forEach(taskName => {
+      const isChecked = progressData.tahap3[taskName];
+      const checkbox = findCheckboxByTaskName(taskName, 3, rolePage);
+      if (checkbox) {
+        checkbox.checked = isChecked;
+        const label = checkbox.closest('label');
+        if (label) {
+          if (isChecked) {
+            label.classList.add('task-completed');
+          } else {
+            label.classList.remove('task-completed');
+          }
+        }
+      }
+    });
+  }
+
+  // ===== LOAD TAHAP 4 DATA =====
+  if (progressData.tahap4) {
+    // Load Keterangan
+    if (progressData.tahap4['KETERANGAN']) {
+      const commentEl = pageElement.querySelector('.tahap-comments');
+      if (commentEl) {
+        commentEl.value = progressData.tahap4['KETERANGAN'];
+      }
+    }
+
+    // Load Penyerahan Kunci
+    if (progressData.tahap4['PENYERAHAN KUNCI']) {
+      const deliveryEl = pageElement.querySelector('.key-delivery-input');
+      if (deliveryEl) {
+        deliveryEl.value = progressData.tahap4['PENYERAHAN KUNCI'];
+      }
+    }
+
+    // Load Tanggal Penyerahan Kunci
+    if (progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']) {
+      const dateEl = pageElement.querySelector('.key-delivery-date');
+      if (dateEl) {
+        const rawDate = progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'];
+        let formattedDate = '';
+
+        if (rawDate instanceof Date || (typeof rawDate === 'string' && rawDate.includes('-'))) {
+          formattedDate = formatDateForInput(rawDate);
+        } else if (rawDate) {
+          formattedDate = formatDateForInput(new Date(rawDate));
+        }
+
+        dateEl.value = formattedDate;
+        console.log(`Loaded date for ${selectedKavling}: ${rawDate} → ${formattedDate}`);
+      }
+    }
+
+    // Load Completion
+    if (progressData.tahap4['COMPLETION / Penyelesaian akhir']) {
+      const completionCheckbox = findCheckboxByTaskName('COMPLETION / Penyelesaian akhir', 4, rolePage);
+      if (!completionCheckbox) {
+        // Cari dengan cara lain jika data-task tidak ada
+        const allCheckboxes = pageElement.querySelectorAll(`[data-tahap="4"] .sub-task[type="checkbox"]`);
+        for (const checkbox of allCheckboxes) {
+          const label = checkbox.closest('label');
+          if (label && label.textContent.toLowerCase().includes('completion')) {
+            completionCheckbox = checkbox;
+            break;
+          }
+        }
+      }
+
+      if (completionCheckbox) {
+        completionCheckbox.checked = true;
+        const label = completionCheckbox.closest('label');
+        if (label) {
+          label.classList.add('task-completed');
+        }
+      }
+    }
+
+    // Update total progress
+    if (progressData.tahap4['TOTAL']) {
+      updateTotalProgressDisplay(progressData.tahap4['TOTAL'] || '0%', rolePage);
+    }
+  }
+
+  // ===== DEBUG SETELAH LOAD =====
+  console.log('=== DEBUG AFTER LOAD ===');
   debugAllStateButtons();
 
-  // ===== PERBAIKAN 5: SETUP LISTENERS =====
+  // ===== SETUP LISTENERS =====
   setTimeout(() => {
     console.log(`🔄 Setting up UI for ${rolePage}...`);
     
@@ -1920,6 +2008,7 @@ function loadProgressData(progressData) {
     
     console.log(`✅ UI setup complete for ${rolePage}`);
   }, 300);
+}
 
   if (progressData.tahap3) {
     Object.keys(progressData.tahap3).forEach(taskName => {
