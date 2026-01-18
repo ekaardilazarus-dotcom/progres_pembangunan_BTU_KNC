@@ -1225,7 +1225,6 @@ async function searchKavling(isSync = false) {
 
      setTimeout(() => {
         hideGlobalLoading();
-        testDataMatching();
         showToast('success', `Data ${kavlingName} berhasil dimuat!`);
       }, 1500);
 
@@ -1381,50 +1380,33 @@ function setupStateButtons(pageId) {
 
   console.log(`Setting up state buttons for ${pageId}`);
 
- // 1. Sistem Pembuangan
+  // 1. Sistem Pembuangan
   const systemBtns = page.querySelectorAll('.system-btn');
-  systemBtns.forEach((btn, index) => {
-    // Hapus event listener lama
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    
-    newBtn.addEventListener('click', function(e) {
+  systemBtns.forEach(btn => {
+    btn.onclick = function(e) {
       e.preventDefault();
-      e.stopPropagation();
-      console.log(`System button ${index} clicked:`, this.textContent.trim());
       toggleSystemButton(this, this.getAttribute('data-state'));
-    });
+    };
   });
 
   // 2. Keramik Dinding
   const tilesBtns = page.querySelectorAll('.tiles-btn');
-  tilesBtns.forEach((btn, index) => {
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    
-    newBtn.addEventListener('click', function(e) {
+  tilesBtns.forEach(btn => {
+    btn.onclick = function(e) {
       e.preventDefault();
-      e.stopPropagation();
-      console.log(`Tiles button ${index} clicked:`, this.textContent.trim());
       toggleTilesButton(this, this.getAttribute('data-state'));
-    });
+    };
   });
 
   // 3. Cor Meja Dapur
   const tableBtns = page.querySelectorAll('.table-btn');
-  tableBtns.forEach((btn, index) => {
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    
-    newBtn.addEventListener('click', function(e) {
+  tableBtns.forEach(btn => {
+    btn.onclick = function(e) {
       e.preventDefault();
-      e.stopPropagation();
-      console.log(`Table button ${index} clicked:`, this.textContent.trim());
       toggleTableButton(this, this.getAttribute('data-state'));
-    });
+    };
   });
 }
-
 //----------------------------------------------
 function updateManagerProgressDisplay(totalProgress) {
   const progressDisplay = document.getElementById('managerProgressDisplay');
@@ -1664,10 +1646,8 @@ function loadProgressData(progressData) {
   const rolePage = currentRole + 'Page';
   const pageElement = document.getElementById(rolePage);
   if (!pageElement) return;
-  
-  console.log('=== LOADING PROGRESS DATA ===');
-  console.log('Progress data from server:', progressData);
-  
+
+  // Reset all choice-based fields first to ensure clean state
   const resetFields = () => {
     console.log('Resetting all state buttons...');
     // Reset System Pembuangan
@@ -1701,164 +1681,83 @@ function loadProgressData(progressData) {
   resetFields();
 
   if (!progressData) {
-    console.log('No progress data available');
+    setTimeout(() => {
+      setupCheckboxListeners(rolePage);
+      setupStateButtons(rolePage);
+      enableAllInputs();
+      updateProgress(rolePage);
+    }, 300);
     return;
   }
 
-  // ===== PERBAIKAN 1: SISTEM PEMBUANGAN =====
+  // Load data untuk field pilihan khusus
   if (progressData.tahap1) {
+    // Handle Sistem Pembuangan - PERBAIKAN DI SINI
     const sistemPembuanganValue = progressData.tahap1['SISTEM PEMBUANGAN'];
-    console.log('SISTEM PEMBUANGAN from DB:', sistemPembuanganValue);
-    
     const wasteSystemItem = pageElement.querySelector('.waste-system');
     if (wasteSystemItem && sistemPembuanganValue) {
       const buttons = wasteSystemItem.querySelectorAll('.system-btn');
       const hiddenInput = wasteSystemItem.querySelector('#wasteSystemInput');
-      
-      // Normalize the value untuk matching yang lebih akurat
-      const normalizedValue = sistemPembuanganValue.toString().toUpperCase().trim();
-      console.log('Normalized system value:', normalizedValue);
-      
+
+      // Normalize the value from database
+      const normalizedValue = sistemPembuanganValue.toString().toLowerCase().trim();
+      console.log('Sistem Pembuangan from DB:', normalizedValue);
+
       buttons.forEach(btn => {
         const btnState = btn.getAttribute('data-state');
-        const btnText = btn.textContent.toUpperCase().trim();
-        
-        // PERBAIKAN: Logika matching yang lebih sederhana dan akurat
-        let isMatch = false;
-        
-        if (normalizedValue === btnState.toUpperCase()) {
-          isMatch = true;
-        } else if (normalizedValue.includes(btnState.toUpperCase())) {
-          isMatch = true;
-        } else if (btnText.includes(normalizedValue)) {
-          isMatch = true;
-        }
-        
-        // MATCHING KHUSUS UNTUK SISTEM PEMBUANGAN
-        if (normalizedValue === 'BIOTANK' && btnState === 'biotank') {
-          isMatch = true;
-        } else if (normalizedValue === 'SEPTICTANK' && btnState === 'septictank') {
-          isMatch = true;
-        } else if (normalizedValue === 'IPAL' && btnState === 'ipal') {
-          isMatch = true;
-        }
-        
+        const btnText = btn.textContent.toLowerCase().trim();
+
+        // Multiple matching conditions
+        const isMatch = 
+          normalizedValue === btnState ||
+          normalizedValue.includes(btnState) ||
+          btnText.includes(normalizedValue) ||
+          (normalizedValue === 'septictank' && btnState === 'septictank') ||
+          (normalizedValue === 'biotank' && btnState === 'biotank') ||
+          (normalizedValue === 'ipal' && btnState === 'ipal');
+
         if (isMatch) {
-          console.log(`✅ MATCH FOUND for Sistem Pembuangan: ${normalizedValue} → ${btnState}`);
           btn.classList.add('active');
           btn.setAttribute('data-active', 'true');
           if (hiddenInput) {
-            hiddenInput.value = sistemPembuanganValue; // Simpan nilai asli dari DB
+            hiddenInput.value = sistemPembuanganValue;
           }
+          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
         }
       });
     }
-  }
 
-  // ===== PERBAIKAN 2: COR MEJA DAPUR =====
-  if (progressData.tahap1) {
+    // Handle Cor Meja Dapur - PERBAIKAN DI SINI
     const corMejaDapurValue = progressData.tahap1['COR MEJA DAPUR'];
-    console.log('COR MEJA DAPUR from DB:', corMejaDapurValue);
-    
     const tableKitchenItem = pageElement.querySelector('.table-kitchen');
     if (tableKitchenItem && corMejaDapurValue) {
       const buttons = tableKitchenItem.querySelectorAll('.table-btn');
       const hiddenInput = tableKitchenItem.querySelector('#tableKitchenInput');
-      
-      const normalizedValue = corMejaDapurValue.toString().toUpperCase().trim();
-      console.log('Normalized cor meja dapur value:', normalizedValue);
-      
+
+      const normalizedValue = corMejaDapurValue.toString().toLowerCase().trim();
+      console.log('Cor Meja Dapur from DB:', normalizedValue);
+
       buttons.forEach(btn => {
         const btnState = btn.getAttribute('data-state');
-        const btnText = btn.textContent.toUpperCase().trim();
-        
-        let isMatch = false;
-        
-        // PERBAIKAN: Logika khusus untuk "Dengan/Tanpa Cor Meja Dapur"
-        if (normalizedValue.includes('DENGAN') || normalizedValue.includes('WITH')) {
-          // Jika database punya "Dengan Cor Meja Dapur", aktifkan tombol "include"
-          if (btnState === 'include') {
-            isMatch = true;
-          }
-        } else if (normalizedValue.includes('TANPA') || normalizedValue.includes('WITHOUT')) {
-          // Jika database punya "Tanpa Cor Meja Dapur", aktifkan tombol "exclude"
-          if (btnState === 'exclude') {
-            isMatch = true;
-          }
-        }
-        
-        // Fallback matching
-        if (!isMatch) {
-          if (btnText.includes(normalizedValue) || normalizedValue.includes(btnText)) {
-            isMatch = true;
-          }
-        }
-        
+        const btnText = btn.textContent.toLowerCase().trim();
+
+        const isMatch = 
+          (btnState === 'include' && (normalizedValue.includes('dengan') || normalizedValue.includes('with'))) ||
+          (btnState === 'exclude' && (normalizedValue.includes('tanpa') || normalizedValue.includes('without'))) ||
+          (btnText.includes(normalizedValue) || normalizedValue.includes(btnText));
+
         if (isMatch) {
-          console.log(`✅ MATCH FOUND for Cor Meja Dapur: ${normalizedValue} → ${btnState}`);
           btn.classList.add('active');
           btn.setAttribute('data-active', 'true');
           if (hiddenInput) {
-            hiddenInput.value = corMejaDapurValue; // Simpan nilai asli dari DB
+            hiddenInput.value = corMejaDapurValue;
           }
+          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
         }
       });
     }
-  }
 
-  // ===== PERBAIKAN 3: KERAMIK DINDING =====
-  if (progressData.tahap2) {
-    const keramikDindingValue = progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'];
-    console.log('KERAMIK DINDING from DB:', keramikDindingValue);
-    
-    const bathroomTilesItem = pageElement.querySelector('.bathroom-tiles');
-    if (bathroomTilesItem && keramikDindingValue) {
-      const buttons = bathroomTilesItem.querySelectorAll('.tiles-btn');
-      const hiddenInput = bathroomTilesItem.querySelector('#bathroomTilesInput');
-      
-      const normalizedValue = keramikDindingValue.toString().toUpperCase().trim();
-      console.log('Normalized keramik dinding value:', normalizedValue);
-      
-      buttons.forEach(btn => {
-        const btnState = btn.getAttribute('data-state');
-        const btnText = btn.textContent.toUpperCase().trim();
-        
-        let isMatch = false;
-        
-        // PERBAIKAN: Logika khusus untuk "Dengan/Tanpa Keramik Dinding"
-        if (normalizedValue.includes('DENGAN') || normalizedValue.includes('WITH')) {
-          // Jika database punya "Dengan Keramik Dinding", aktifkan tombol "include"
-          if (btnState === 'include') {
-            isMatch = true;
-          }
-        } else if (normalizedValue.includes('TANPA') || normalizedValue.includes('WITHOUT')) {
-          // Jika database punya "Tanpa Keramik Dinding", aktifkan tombol "exclude"
-          if (btnState === 'exclude') {
-            isMatch = true;
-          }
-        }
-        
-        // Fallback matching
-        if (!isMatch) {
-          if (btnText.includes(normalizedValue) || normalizedValue.includes(btnText)) {
-            isMatch = true;
-          }
-        }
-        
-        if (isMatch) {
-          console.log(`✅ MATCH FOUND for Keramik Dinding: ${normalizedValue} → ${btnState}`);
-          btn.classList.add('active');
-          btn.setAttribute('data-active', 'true');
-          if (hiddenInput) {
-            hiddenInput.value = keramikDindingValue; // Simpan nilai asli dari DB
-          }
-        }
-      });
-    }
-  }
-
-  // ===== LOAD CHECKBOX TAHAP 1 =====
-  if (progressData.tahap1) {
+    // Load checkbox biasa untuk tahap 1
     const checkboxTasks1 = ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 
                            'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 
                            'PIPA AIR BERSIH', 'PLESTER', 'ACIAN & BENANGAN'];
@@ -1880,8 +1779,38 @@ function loadProgressData(progressData) {
     });
   }
 
-  // ===== LOAD CHECKBOX TAHAP 2 =====
   if (progressData.tahap2) {
+    // Handle Keramik Dinding Toilet & Dapur - PERBAIKAN DI SINI
+    const keramikDindingValue = progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'];
+    const bathroomTilesItem = pageElement.querySelector('.bathroom-tiles');
+    if (bathroomTilesItem && keramikDindingValue) {
+      const buttons = bathroomTilesItem.querySelectorAll('.tiles-btn');
+      const hiddenInput = bathroomTilesItem.querySelector('#bathroomTilesInput');
+
+      const normalizedValue = keramikDindingValue.toString().toLowerCase().trim();
+      console.log('Keramik Dinding from DB:', normalizedValue);
+
+      buttons.forEach(btn => {
+        const btnState = btn.getAttribute('data-state');
+        const btnText = btn.textContent.toLowerCase().trim();
+
+        const isMatch = 
+          (btnState === 'include' && (normalizedValue.includes('dengan') || normalizedValue.includes('with'))) ||
+          (btnState === 'exclude' && (normalizedValue.includes('tanpa') || normalizedValue.includes('without'))) ||
+          (btnText.includes(normalizedValue) || normalizedValue.includes(btnText));
+
+        if (isMatch) {
+          btn.classList.add('active');
+          btn.setAttribute('data-active', 'true');
+          if (hiddenInput) {
+            hiddenInput.value = keramikDindingValue;
+          }
+          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
+        }
+      });
+    }
+
+    // Load checkbox biasa untuk tahap 2
     const checkboxTasks2 = ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'INSTALASI LISTRIK', 'KERAMIK LANTAI'];
 
     checkboxTasks2.forEach(taskName => {
@@ -1900,115 +1829,6 @@ function loadProgressData(progressData) {
       }
     });
   }
-
-  // ===== LOAD CHECKBOX TAHAP 3 =====
-  if (progressData.tahap3) {
-    Object.keys(progressData.tahap3).forEach(taskName => {
-      const isChecked = progressData.tahap3[taskName];
-      const checkbox = findCheckboxByTaskName(taskName, 3, rolePage);
-      if (checkbox) {
-        checkbox.checked = isChecked;
-        const label = checkbox.closest('label');
-        if (label) {
-          if (isChecked) {
-            label.classList.add('task-completed');
-          } else {
-            label.classList.remove('task-completed');
-          }
-        }
-      }
-    });
-  }
-
-  // ===== LOAD TAHAP 4 DATA =====
-  if (progressData.tahap4) {
-    // Load Keterangan
-    if (progressData.tahap4['KETERANGAN']) {
-      const commentEl = pageElement.querySelector('.tahap-comments');
-      if (commentEl) {
-        commentEl.value = progressData.tahap4['KETERANGAN'];
-      }
-    }
-
-    // Load Penyerahan Kunci
-    if (progressData.tahap4['PENYERAHAN KUNCI']) {
-      const deliveryEl = pageElement.querySelector('.key-delivery-input');
-      if (deliveryEl) {
-        deliveryEl.value = progressData.tahap4['PENYERAHAN KUNCI'];
-      }
-    }
-
-    // Load Tanggal Penyerahan Kunci
-    if (progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']) {
-      const dateEl = pageElement.querySelector('.key-delivery-date');
-      if (dateEl) {
-        const rawDate = progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'];
-        let formattedDate = '';
-
-        if (rawDate instanceof Date || (typeof rawDate === 'string' && rawDate.includes('-'))) {
-          formattedDate = formatDateForInput(rawDate);
-        } else if (rawDate) {
-          formattedDate = formatDateForInput(new Date(rawDate));
-        }
-
-        dateEl.value = formattedDate;
-        console.log(`Loaded date for ${selectedKavling}: ${rawDate} → ${formattedDate}`);
-      }
-    }
-
-    // Load Completion
-    if (progressData.tahap4['COMPLETION / Penyelesaian akhir']) {
-      const completionCheckbox = findCheckboxByTaskName('COMPLETION / Penyelesaian akhir', 4, rolePage);
-      if (!completionCheckbox) {
-        // Cari dengan cara lain jika data-task tidak ada
-        const allCheckboxes = pageElement.querySelectorAll(`[data-tahap="4"] .sub-task[type="checkbox"]`);
-        for (const checkbox of allCheckboxes) {
-          const label = checkbox.closest('label');
-          if (label && label.textContent.toLowerCase().includes('completion')) {
-            completionCheckbox = checkbox;
-            break;
-          }
-        }
-      }
-
-      if (completionCheckbox) {
-        completionCheckbox.checked = true;
-        const label = completionCheckbox.closest('label');
-        if (label) {
-          label.classList.add('task-completed');
-        }
-      }
-    }
-
-    // Update total progress
-    if (progressData.tahap4['TOTAL']) {
-      updateTotalProgressDisplay(progressData.tahap4['TOTAL'] || '0%', rolePage);
-    }
-  }
-
-  // ===== DEBUG SETELAH LOAD =====
-  console.log('=== DEBUG AFTER LOAD ===');
-  debugAllStateButtons();
-
-  // ===== SETUP LISTENERS =====
-  setTimeout(() => {
-    console.log(`🔄 Setting up UI for ${rolePage}...`);
-    
-    // Setup checkbox listeners
-    setupCheckboxListeners(rolePage);
-    
-    // Setup state buttons
-    setupStateButtons(rolePage);
-    
-    // Aktifkan semua input
-    enableAllInputs();
-    
-    // Update progress
-    updateProgress(rolePage);
-    
-    console.log(`✅ UI setup complete for ${rolePage}`);
-  }, 300);
-}
 
   if (progressData.tahap3) {
     Object.keys(progressData.tahap3).forEach(taskName => {
@@ -4647,11 +4467,8 @@ function handleEditUser(role, displayName, id) {
 function toggleSystemButton(button, systemType) {
     console.log('toggleSystemButton called:', systemType);
 
-   const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
-  if (!taskItem) {
-    console.error('Task item not found for system button');
-    return;
-  };
+    const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
+    if (!taskItem) return;
 
     const buttons = taskItem.querySelectorAll('.system-btn');
     const hiddenInput = taskItem.querySelector('#wasteSystemInput');
@@ -4698,25 +4515,6 @@ function toggleSystemButton(button, systemType) {
     // Update progress
     const rolePage = currentRole + 'Page';
     updateProgress(rolePage);
-}
-
-function testDataMatching() {
-  console.log('=== TEST DATA MATCHING ===');
-  
-  if (!currentKavlingData || !currentKavlingData.data) {
-    console.log('No current kavling data');
-    return;
-  }
-  
-  const data = currentKavlingData.data;
-  
-  console.log('Data from currentKavlingData:');
-  console.log('1. Sistem Pembuangan:', data.tahap1?.['SISTEM PEMBUANGAN']);
-  console.log('2. Cor Meja Dapur:', data.tahap1?.['COR MEJA DAPUR']);
-  console.log('3. Keramik Dinding:', data.tahap2?.['KERAMIK DINDING TOILET & DAPUR']);
-  
-  // Panggil debug
-  debugAllStateButtons();
 }
 
 function toggleTilesButton(button, option) {
@@ -4876,52 +4674,38 @@ function debugAllStateButtons() {
         return;
     }
 
-  // Sistem Pembuangan
-  const wasteSystem = page.querySelector('#wasteSystemInput');
-  const wasteButtons = page.querySelectorAll('.system-btn');
-  console.log('1. SISTEM PEMBUANGAN:', {
-    inputValue: wasteSystem ? `"${wasteSystem.value}"` : 'tidak ditemukan',
-    aktif: wasteSystem && wasteSystem.value !== '' ? 'Ya' : 'Tidak',
-    tombolAktif: Array.from(wasteButtons)
-      .filter(btn => btn.classList.contains('active'))
-      .map(btn => ({
-        text: btn.textContent.trim(),
-        dataState: btn.getAttribute('data-state')
-      }))
-  });
-  
-   // Cor Meja Dapur
-  const tableKitchen = page.querySelector('#tableKitchenInput');
-  const tableButtons = page.querySelectorAll('.table-btn');
-  console.log('2. COR MEJA DAPUR:', {
-    inputValue: tableKitchen ? `"${tableKitchen.value}"` : 'tidak ditemukan',
-    aktif: tableKitchen && tableKitchen.value !== '' ? 'Ya' : 'Tidak',
-    tombolAktif: Array.from(tableButtons)
-      .filter(btn => btn.classList.contains('active'))
-      .map(btn => ({
-        text: btn.textContent.trim(),
-        dataState: btn.getAttribute('data-state')
-      }))
-  });
-  
+    // Sistem Pembuangan
+    const wasteSystem = page.querySelector('#wasteSystemInput');
+    const wasteButtons = page.querySelectorAll('.system-btn');
+    console.log('1. SISTEM PEMBUANGAN:', {
+        inputValue: wasteSystem ? `"${wasteSystem.value}"` : 'tidak ditemukan',
+        aktif: wasteSystem && wasteSystem.value !== '' ? 'Ya' : 'Tidak',
+        tombolAktif: Array.from(wasteButtons).filter(btn => btn.classList.contains('active')).map(btn => btn.textContent.trim())
+    });
+
+    // Cor Meja Dapur
+    const tableKitchen = page.querySelector('#tableKitchenInput');
+    const tableButtons = page.querySelectorAll('.table-btn');
+    console.log('2. COR MEJA DAPUR:', {
+        inputValue: tableKitchen ? `"${tableKitchen.value}"` : 'tidak ditemukan',
+        aktif: tableKitchen && tableKitchen.value !== '' ? 'Ya' : 'Tidak',
+        tombolAktif: Array.from(tableButtons).filter(btn => btn.classList.contains('active')).map(btn => btn.textContent.trim())
+    });
 
     // Keramik Dinding
-  const bathroomTiles = page.querySelector('#bathroomTilesInput');
-  const tilesButtons = page.querySelectorAll('.tiles-btn');
-  console.log('3. KERAMIK DINDING:', {
-    inputValue: bathroomTiles ? `"${bathroomTiles.value}"` : 'tidak ditemukan',
-    aktif: bathroomTiles && bathroomTiles.value !== '' ? 'Ya' : 'Tidak',
-    tombolAktif: Array.from(tilesButtons)
-      .filter(btn => btn.classList.contains('active'))
-      .map(btn => ({
-        text: btn.textContent.trim(),
-        dataState: btn.getAttribute('data-state')
-      }))
-  });
+    const bathroomTiles = page.querySelector('#bathroomTilesInput');
+    const tilesButtons = page.querySelectorAll('.tiles-btn');
+    console.log('3. KERAMIK DINDING:', {
+        inputValue: bathroomTiles ? `"${bathroomTiles.value}"` : 'tidak ditemukan',
+        aktif: bathroomTiles && bathroomTiles.value !== '' ? 'Ya' : 'Tidak',
+        tombolAktif: Array.from(tilesButtons).filter(btn => btn.classList.contains('active')).map(btn => btn.textContent.trim())
+    });
 
-
-  console.log('=== SELESAI DEBUG ===');
+    console.log('=== SELESAI DEBUG ===');
 }
+
+// Panggil setelah memuat data kavling
+setTimeout(debugAllStateButtons, 1000);
 
 // ========== START APPLICATION ==========
 // Tambahkan event listener untuk DOMContentLoaded
