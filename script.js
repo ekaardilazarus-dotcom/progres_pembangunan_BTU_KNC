@@ -1862,7 +1862,7 @@ if (progressData.tahap2) {
             if (hiddenInput) hiddenInput.value = '';
         }
     }
-}
+
     
     // Load checkbox biasa untuk tahap 2
     const checkboxTasks2 = ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'INSTALASI LISTRIK', 'KERAMIK LANTAI'];
