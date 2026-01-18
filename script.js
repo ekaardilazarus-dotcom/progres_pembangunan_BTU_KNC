@@ -1727,7 +1727,8 @@ if (progressData.tahap1) {
                              sistemPembuanganValue.trim() !== '' && 
                              sistemPembuanganValue.toLowerCase() !== 'null' && 
                              sistemPembuanganValue.toLowerCase() !== 'undefined' &&
-                             !sistemPembuanganValue.startsWith('=,');
+                             !sistemPembuanganValue.startsWith('=,') &&
+                             !sistemPembuanganValue.toLowerCase().includes('sistem pembuangan =');
         
         if (hasValidValue) {
             // Log untuk debugging
@@ -1737,7 +1738,8 @@ if (progressData.tahap1) {
                 const btnText = btn.textContent.trim().toLowerCase();
                 const serverValue = sistemPembuanganValue.trim().toLowerCase();
                 
-                if (btnState && (btnState === serverValue || btnText.includes(serverValue))) {
+                // Perbaikan pencocokan yang lebih ketat
+                if (btnState && (btnState === serverValue || (serverValue.length > 3 && btnText === serverValue))) {
                     btn.classList.add('active');
                     btn.setAttribute('data-active', 'true');
                     console.log(`Tombol ${btnState} diaktifkan`);
@@ -1753,7 +1755,6 @@ if (progressData.tahap1) {
             if (hiddenInput) hiddenInput.value = '';
         }
     }
-}
     
     // Handle Cor Meja Dapur
     const corMejaDapurValue = progressData.tahap1['COR MEJA DAPUR'];
@@ -1768,7 +1769,15 @@ if (progressData.tahap1) {
         btn.setAttribute('data-active', 'false');
       });
       
-      if (corMejaDapurValue && typeof corMejaDapurValue === 'string' && corMejaDapurValue.trim() !== '' && corMejaDapurValue.toLowerCase() !== 'null' && corMejaDapurValue.toLowerCase() !== 'undefined') {
+      // PERBAIKAN: Periksa lebih ketat untuk nilai kosong
+      const hasValidValue = corMejaDapurValue && 
+                           typeof corMejaDapurValue === 'string' && 
+                           corMejaDapurValue.trim() !== '' && 
+                           corMejaDapurValue.toLowerCase() !== 'null' && 
+                           corMejaDapurValue.toLowerCase() !== 'undefined' &&
+                           !corMejaDapurValue.toLowerCase().includes('cor meja dapur =');
+      
+      if (hasValidValue) {
         buttons.forEach(btn => {
           const btnState = btn.getAttribute('data-state');
           if (btnState === 'include' && corMejaDapurValue === 'Dengan Cor Meja Dapur') {
@@ -1809,8 +1818,8 @@ if (progressData.tahap1) {
       }
     });
   }
-  
-if (progressData.tahap2) {
+
+  if (progressData.tahap2) {
     // Handle Keramik Dinding Toilet & Dapur
     const keramikDindingValue = progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'];
     const bathroomTilesItem = pageElement.querySelector('.bathroom-tiles');
@@ -1862,7 +1871,6 @@ if (progressData.tahap2) {
             if (hiddenInput) hiddenInput.value = '';
         }
     }
-
     
     // Load checkbox biasa untuk tahap 2
     const checkboxTasks2 = ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'INSTALASI LISTRIK', 'KERAMIK LANTAI'];
