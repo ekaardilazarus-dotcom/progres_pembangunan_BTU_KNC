@@ -333,36 +333,66 @@ function setupUser4EventListeners() {
 }
 //--------
 function setupUser4Tabs() {
-  const user4Page = document.getElementById('user4Page');
-  if (!user4Page) return;
+  const page = document.getElementById('user4Page');
+  if (!page) return;
   
-  // Gunakan event delegation untuk tab yang mungkin dinamis
-  user4Page.addEventListener('click', function(e) {
-    const tabBtn = e.target.closest('.admin-tab-btn');
-    if (!tabBtn) return;
+  const tabBtns = page.querySelectorAll('.admin-tab-btn');
+  const tabContents = page.querySelectorAll('.tab-content-item');
+  
+  console.log('Setting up User4 tabs, count:', tabBtns.length);
+
+  // Set active tab pertama kali jika belum ada
+  if (tabBtns.length > 0 && !page.querySelector('.admin-tab-btn.active')) {
+    tabBtns[0].classList.add('active');
+    const firstTabId = tabBtns[0].getAttribute('data-tab');
+    const firstTab = page.querySelector('#tab-' + firstTabId);
+    if (firstTab) firstTab.classList.add('active');
+  }
+
+  tabBtns.forEach(btn => {
+    // Hapus listener lama jika ada
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
     
-    e.preventDefault();
-    const tabId = tabBtn.getAttribute('data-tab');
-    
-    // Update UI tabs
-    const tabBtns = user4Page.querySelectorAll('.admin-tab-btn');
-    const tabContents = user4Page.querySelectorAll('.tab-content-item');
-    
-    tabBtns.forEach(b => b.classList.remove('active'));
-    tabContents.forEach(c => c.classList.remove('active'));
-    
-    tabBtn.classList.add('active');
-    const targetTab = user4Page.querySelector(`#tab-${tabId}`);
-    if (targetTab) {
-      targetTab.classList.add('active');
+    newBtn.addEventListener('click', function() {
+      const tabId = this.getAttribute('data-tab');
+      console.log('User4 Tab clicked:', tabId);
       
-      // Load data spesifik tab jika diperlukan
-      if (tabId === 'utility-install') {
-        loadUtilitasData();
+      // Hapus active dari semua tombol dan konten di halaman ini
+      const allBtns = page.querySelectorAll('.admin-tab-btn');
+      const allContents = page.querySelectorAll('.tab-content-item');
+      
+      allBtns.forEach(b => b.classList.remove('active'));
+      allContents.forEach(c => c.classList.remove('active'));
+      
+      // Tambah active ke yang dipilih
+      this.classList.add('active');
+      const targetTab = page.querySelector('#tab-' + tabId);
+      if (targetTab) {
+        targetTab.classList.add('active');
+        
+        // Load data sesuai tab
+        if (tabId === 'utility-install' && selectedKavling) {
+          setTimeout(() => {
+            loadUtilitasData();
+          }, 200);
+        } else if (tabId === 'delivery' && selectedKavling) {
+          setTimeout(() => {
+            loadKeyDeliveryData();
+          }, 200);
+        }
       }
-    }
+    });
   });
 }
+
+function loadPropertyNotesFromData(data) {
+  const notesEl = document.getElementById('propertyNotesManager');
+  if (notesEl && data) {
+    notesEl.value = data.propertyNotes || '';
+  }
+}
+
 // ========== DEBUG: CHECK KEY DELIVERY HTML STRUCTURE ==========
 function debugKeyDeliveryStructure() {
   console.log('=== DEBUG KEY DELIVERY STRUCTURE ===');
@@ -2887,41 +2917,95 @@ async function saveUtilitasData() {
 }
 
 function setupUser4Page() {
-  console.log('Setting up User4 page...');
-  
-  // Setup tabs
-  setupUser4Tabs();
-  
-  // Setup save button untuk utilitas
-  const btnSaveUtility = document.getElementById('btnSaveUtility');
-  if (btnSaveUtility) {
-    // Hapus listener lama jika ada
-    const newBtn = btnSaveUtility.cloneNode(true);
-    btnSaveUtility.parentNode.replaceChild(newBtn, btnSaveUtility);
+    console.log('Setting up User4 page...');
     
-    newBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      saveUtilitasData();
-      setupKeyDeliveryButton();
+    // Load script admin
+    loadAdminUtilitasScript().then(() => {
+        // Setup tabs
+        setupUser4Tabs();
+        
+        // Setup event listeners
+        setupUser4EventListeners();
+        
+        // Setup mutasi buttons
+        setupMutasiButtons();
+        
+        // Setup dropdown search
+        const searchSelect = document.getElementById('searchKavlingUser4');
+        if (searchSelect) {
+            searchSelect.addEventListener('change', function() {
+                if (this.value) {
+                    searchKavling();
+                }
+            });
+        }
+        
+        console.log('User4 page setup complete with Admin Utilitas');
+    }).catch(error => {
+        console.error('Failed to load Admin Utilitas, using fallback:', error);
+        // Fallback setup tanpa admin utilities
+        setupUser4Tabs();
+        setupUser4EventListeners();
+        setupMutasiButtons();
     });
-   
-  }
-  
-  // Setup save buttons untuk mutasi kunci
-  setupMutasiButtons();
-  
-  // Setup dropdown search
-  const searchSelect = document.getElementById('searchKavlingUser4');
-  if (searchSelect) {
-    searchSelect.addEventListener('change', function() {
-      if (this.value) {
-        searchKavling();
-      }
-    });
-  }
-  
-  console.log('User4 page setup complete');
 }
+// ========== FUNGSI YANG DIBUTUHKAN OLEH SCRIPTADMIN.JS ==========
+
+// Fungsi ini akan di-override oleh scriptadmin.js
+function setupAdminUtilitasMutation(pageElement) {
+    console.log('setupAdminUtilitasMutation called (from script.js)');
+    // Placeholder - akan di-override oleh scriptadmin.js
+}
+
+// Fungsi ini akan di-override
+function loadAdminUtilitasData(kavlingName) {
+    console.log('loadAdminUtilitasData called (from script.js):', kavlingName);
+    // Placeholder - akan di-override oleh scriptadmin.js
+}
+
+// Pastikan fungsi ini ada untuk dipanggil dari scriptadmin.js
+function debugKeyDeliveryStructure() {
+    console.log('=== DEBUG KEY DELIVERY STRUCTURE ===');
+    const user4Page = document.getElementById('user4Page');
+    if (!user4Page) {
+        console.log('❌ user4Page not found');
+        return;
+    }
+    
+    const deliveryTab = user4Page.querySelector('#tab-delivery');
+    if (!deliveryTab) {
+        console.log('❌ tab-delivery not found in HTML');
+        return;
+    }
+    
+    console.log('✅ tab-delivery found');
+}
+
+// Modifikasi fungsi loadUtilitasDataFromData
+function loadUtilitasDataFromData(data) {
+    // Key delivery
+    const keyInput = document.getElementById('keyDeliveryInputUser4');
+    if (keyInput) {
+        keyInput.value = data.data?.tahap4?.['PENYERAHAN KUNCI'] || '';
+    }
+    
+    // Utility Dates
+    const listrikInput = document.getElementById('listrikInstallDate');
+    const airInput = document.getElementById('airInstallDate');
+    const propNotesInput = document.getElementById('utilityPropertyNotes');
+    
+    if (listrikInput) listrikInput.value = data.utilitas?.listrikDate || '';
+    if (airInput) airInput.value = data.utilitas?.airDate || '';
+    if (propNotesInput) propNotesInput.value = data.propertyNotes || '';
+    
+    // Panggil admin utilitas jika tersedia
+    if (currentRole === 'user4' && window.adminUtilitas && window.adminUtilitas.loadData) {
+        setTimeout(() => {
+            window.adminUtilitas.loadData(selectedKavling);
+        }, 300);
+    }
+}
+
 // ========== FUNGSI SETUP KEY DELIVERY BUTTON ==========
 function setupKeyDeliveryButton() {
   const btnSaveKeyDelivery = document.querySelector('#tab-delivery .btn-save-section');
@@ -4040,20 +4124,17 @@ function initApp() {
   console.log('=== INITIALIZING APP ===');
   
   // Setup event delegation untuk checkbox
-document.addEventListener('change', function(e) {
-  if (e.target.classList.contains('sub-task') && e.target.type === 'checkbox') {
-    console.log('Checkbox changed via event delegation:', e.target);
-    const page = e.target.closest('.page-content');
-    if (page) {
-      const pageId = page.id;
-      updateProgress(pageId);
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('sub-task') && e.target.type === 'checkbox') {
+      console.log('Checkbox changed via event delegation:', e.target);
+      const page = e.target.closest('.page-content');
+      if (page) {
+        const pageId = page.id;
+        updateProgress(pageId);
+      }
     }
-  }
-}); // <-- TUTUP EVENT LISTENER
+  });
 
-// TAMBAHKAN KURUNG TUTUP UNTUK initApp()
-} // <-- INI YANG HILANG: TUTUP FUNGSI EVENT LISTENER
-  
   // Event delegation untuk tombol state
   document.addEventListener('click', function(e) {
     if (e.target && (e.target.classList.contains('system-btn') || 
@@ -4104,6 +4185,43 @@ document.addEventListener('change', function(e) {
   }
   
   console.log('=== APP INITIALIZED ===');
+}
+
+// ========== FUNGSI LOAD UTILITAS DATA ==========
+async function loadUtilitasData() {
+  if (!selectedKavling) return;
+  
+  try {
+    showGlobalLoading('Memuat data utilitas...');
+    
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getUtilitasData',
+      kavling: selectedKavling
+    });
+    
+    if (result.success) {
+      // Update input fields
+      const listrikDateInput = document.getElementById('listrikInstallDate');
+      const airDateInput = document.getElementById('airInstallDate');
+      const propertyNotesInput = document.getElementById('utilityPropertyNotes');
+      
+      if (listrikDateInput) listrikDateInput.value = result.listrikDate || '';
+      if (airDateInput) airDateInput.value = result.airDate || '';
+      if (propertyNotesInput) propertyNotesInput.value = result.propertyNotes || '';
+      
+      // Update total progress jika ada
+      if (result.totalProgress) {
+        updateUtilitasProgressDisplay(result.totalProgress);
+      }
+    } else {
+      showToast('warning', 'Belum ada data utilitas untuk kavling ini');
+    }
+  } catch (error) {
+    console.error('Error loading utilitas data:', error);
+    showToast('error', 'Gagal memuat data utilitas');
+  } finally {
+    hideGlobalLoading();
+  }
 }
 
 function debugInputStatus() {
@@ -4797,25 +4915,40 @@ function debugTahap4Structure() {
   });
 }
 // ========== INTEGRATION WITH ADMIN UTILITAS ==========
-// Tambahkan di akhir script.js, sebelum penutup
+let adminUtilitasModule = null;
+let isAdminUtilitasLoaded = false;
 
-// Fungsi untuk memanggil scriptadmin.js jika user4
+// Fungsi untuk memuat script admin utilitas
 function loadAdminUtilitasScript() {
-    if (currentRole === 'user4') {
-        // Cek apakah script sudah dimuat
-        if (!document.getElementById('admin-utilitas-script')) {
-            const script = document.createElement('script');
-            script.id = 'admin-utilitas-script';
-            script.src = 'scriptadmin.js';
-            script.onload = function() {
-                console.log('Admin Utilitas script loaded');
-                if (window.adminUtilitas && window.adminUtilitas.init) {
-                    window.adminUtilitas.init();
-                }
-            };
-            document.head.appendChild(script);
+    return new Promise((resolve, reject) => {
+        if (isAdminUtilitasLoaded && window.adminUtilitas) {
+            resolve(window.adminUtilitas);
+            return;
         }
-    }
+        
+        const script = document.createElement('script');
+        script.id = 'admin-utilitas-script';
+        script.src = 'scriptadmin.js';
+        
+        script.onload = function() {
+            console.log('Admin Utilitas script loaded successfully');
+            isAdminUtilitasLoaded = true;
+            adminUtilitasModule = window.adminUtilitas;
+            
+            // Inisialisasi jika di halaman user4
+            if (currentRole === 'user4' && adminUtilitasModule && adminUtilitasModule.init) {
+                adminUtilitasModule.init();
+            }
+            resolve(window.adminUtilitas);
+        };
+        
+        script.onerror = function(error) {
+            console.error('Failed to load Admin Utilitas script:', error);
+            reject(error);
+        };
+        
+        document.head.appendChild(script);
+    });
 }
 
 // Modifikasi fungsi showPage untuk load script admin
