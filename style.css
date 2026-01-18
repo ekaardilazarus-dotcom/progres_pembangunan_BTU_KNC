@@ -94,19 +94,31 @@ h1 {
 }
 
 /* ===== BUTTONS ===== */
-.btn-search, .sync-btn, .back-btn, .btn-save-section, .logout-btn, .admin-tab-btn, .submit-btn, .kavling-item {
+.btn-search, .sync-btn, .back-btn, .btn-save-section, .logout-btn, .admin-tab-btn, .submit-btn, .kavling-item, .btn-edit-kavling, .btn-add-kavling, .btn-edit-submit, .btn-edit-cancel, .btn-edit-delete, .combined-btn {
   cursor: pointer;
   transition: all 0.2s ease;
+  border-radius: 16px !important;
 }
 
-.btn-search:hover, .sync-btn:hover, .back-btn:hover, .btn-save-section:hover, .logout-btn:hover, .submit-btn:hover {
+.btn-search:hover, .sync-btn:hover, .back-btn:hover, .btn-save-section:hover, .logout-btn:hover, .submit-btn:hover, .btn-edit-kavling:hover, .btn-add-kavling:hover, .btn-edit-submit:hover, .btn-edit-cancel:hover, .btn-edit-delete:hover {
   transform: translateY(-2px);
   filter: brightness(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.btn-search:active, .sync-btn:active, .back-btn:active, .btn-save-section:active, .logout-btn:active, .submit-btn:active {
+.btn-search:active, .sync-btn:active, .back-btn:active, .btn-save-section:active, .logout-btn:active, .submit-btn:active, .btn-edit-kavling:active, .btn-add-kavling:active, .btn-edit-submit:active, .btn-edit-cancel:active, .btn-edit-delete:active {
   transform: translateY(0);
+}
+
+.btn-edit-kavling, .btn-add-kavling {
+  padding: 12px 20px;
+  border: none;
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn-edit-kavling {
@@ -116,6 +128,49 @@ h1 {
 .btn-add-kavling {
   background: linear-gradient(135deg, #10b981, #059669);
 }
+
+.btn-edit-submit {
+  background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+}
+
+.btn-edit-cancel {
+  background: linear-gradient(135deg, #64748b, #475569) !important;
+}
+
+.btn-edit-delete {
+  background: linear-gradient(135deg, #f43f5e, #e11d48) !important;
+}
+
+.logout-btn {
+  background: linear-gradient(135deg, #0ea5e9, #2563eb) !important;
+  color: white !important;
+}
+
+.dashboard-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.dashboard-buttons-grid button {
+  width: 100%;
+  padding: 12px 10px;
+  font-size: 0.9rem;
+}
+
+
+.combined-btn {
+  padding: 12px 20px;
+  border: none;
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 
 #btnDeleteKavling {
   background: linear-gradient(135deg, #f43f5e, #e11d48);
