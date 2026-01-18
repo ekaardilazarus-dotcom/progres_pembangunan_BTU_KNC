@@ -1648,7 +1648,7 @@ function loadProgressData(progressData) {
   if (!pageElement) return;
 
   // Reset all choice-based fields first to ensure clean state
- const resetFields = () => {
+  const resetFields = () => {
     console.log('Resetting all state buttons...');
     // Reset System Pembuangan
     const systemBtns = pageElement.querySelectorAll('.system-btn');
@@ -1656,12 +1656,8 @@ function loadProgressData(progressData) {
     systemBtns.forEach(btn => {
       btn.classList.remove('active');
       btn.setAttribute('data-active', 'false');
-      btn.style.backgroundColor = '';
     });
-    if (systemInput) {
-            systemInput.value = '';
-            console.log('Reset wasteSystemInput');
-        }
+    if (systemInput) systemInput.value = '';
 
     // Reset Cor Meja Dapur
     const tableBtns = pageElement.querySelectorAll('.table-btn');
@@ -1669,12 +1665,8 @@ function loadProgressData(progressData) {
     tableBtns.forEach(btn => {
       btn.classList.remove('active');
       btn.setAttribute('data-active', 'false');
-       btn.style.backgroundColor = '';
     });
-   if (tableInput) {
-            tableInput.value = '';
-            console.log('Reset tableKitchenInput');
-        }
+    if (tableInput) tableInput.value = '';
 
     // Reset Keramik Dinding
     const tilesBtns = pageElement.querySelectorAll('.tiles-btn');
@@ -1682,119 +1674,87 @@ function loadProgressData(progressData) {
     tilesBtns.forEach(btn => {
       btn.classList.remove('active');
       btn.setAttribute('data-active', 'false');
-       btn.style.backgroundColor = '';
     });
-    if (tilesInput) {
-            tilesInput.value = '';
-            console.log('Reset bathroomTilesInput');
-        }
+    if (tilesInput) tilesInput.value = '';
   };
 
   resetFields();
 
   if (!progressData) {
-    // If no data, just setup UI and exit after reset
     setTimeout(() => {
       setupCheckboxListeners(rolePage);
       setupStateButtons(rolePage);
       enableAllInputs();
-      fixFontStyles();
       updateProgress(rolePage);
-      addVisualFeedback();
     }, 300);
     return;
   }
 
   // Load data untuk field pilihan khusus
-// Di dalam fungsi loadProgressData, perbaiki bagian untuk Sistem Pembuangan:
-if (progressData.tahap1) {
-    // Handle Sistem Pembuangan
+  if (progressData.tahap1) {
+    // Handle Sistem Pembuangan - PERBAIKAN DI SINI
     const sistemPembuanganValue = progressData.tahap1['SISTEM PEMBUANGAN'];
     const wasteSystemItem = pageElement.querySelector('.waste-system');
-    if (wasteSystemItem) {
-        const buttons = wasteSystemItem.querySelectorAll('.system-btn');
-        const hiddenInput = wasteSystemItem.querySelector('#wasteSystemInput');
+    if (wasteSystemItem && sistemPembuanganValue) {
+      const buttons = wasteSystemItem.querySelectorAll('.system-btn');
+      const hiddenInput = wasteSystemItem.querySelector('#wasteSystemInput');
+      
+      // Normalize the value from database
+      const normalizedValue = sistemPembuanganValue.toString().toLowerCase().trim();
+      console.log('Sistem Pembuangan from DB:', normalizedValue);
+      
+      buttons.forEach(btn => {
+        const btnState = btn.getAttribute('data-state');
+        const btnText = btn.textContent.toLowerCase().trim();
         
-        // Reset active state first
-        buttons.forEach(btn => {
-            btn.classList.remove('active');
-            btn.setAttribute('data-active', 'false');
-        });
+        // Multiple matching conditions
+        const isMatch = 
+          normalizedValue === btnState ||
+          normalizedValue.includes(btnState) ||
+          btnText.includes(normalizedValue) ||
+          (normalizedValue === 'septictank' && btnState === 'septictank') ||
+          (normalizedValue === 'biotank' && btnState === 'biotank') ||
+          (normalizedValue === 'ipal' && btnState === 'ipal');
         
-        // PERBAIKAN: Periksa lebih ketat untuk nilai kosong
-        const hasValidValue = sistemPembuanganValue && 
-                             typeof sistemPembuanganValue === 'string' && 
-                             sistemPembuanganValue.trim() !== '' && 
-                             sistemPembuanganValue.toLowerCase() !== 'null' && 
-                             sistemPembuanganValue.toLowerCase() !== 'undefined' &&
-                             !sistemPembuanganValue.startsWith('=,') &&
-                             !sistemPembuanganValue.toLowerCase().includes('sistem pembuangan =');
-        
-        if (hasValidValue) {
-            // Log untuk debugging
-            console.log(`Sistem Pembuangan valid: "${sistemPembuanganValue}"`);
-            buttons.forEach(btn => {
-                const btnState = btn.getAttribute('data-state');
-                const btnText = btn.textContent.trim().toLowerCase();
-                const serverValue = sistemPembuanganValue.trim().toLowerCase();
-                
-                // Perbaikan pencocokan yang lebih ketat
-                if (btnState && (btnState === serverValue || (serverValue.length > 3 && btnText === serverValue))) {
-                    btn.classList.add('active');
-                    btn.setAttribute('data-active', 'true');
-                    console.log(`Tombol ${btnState} diaktifkan`);
-                }
-            });
-            
-            if (hiddenInput) {
-                hiddenInput.value = sistemPembuanganValue.trim();
-            }
-        } else {
-            // Reset ke kosong jika nilai tidak valid
-            console.log('Sistem Pembuangan kosong atau tidak valid, mereset...');
-            if (hiddenInput) hiddenInput.value = '';
+        if (isMatch) {
+          btn.classList.add('active');
+          btn.setAttribute('data-active', 'true');
+          if (hiddenInput) {
+            hiddenInput.value = sistemPembuanganValue;
+          }
+          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
         }
+      });
     }
     
-    // Handle Cor Meja Dapur
+    // Handle Cor Meja Dapur - PERBAIKAN DI SINI
     const corMejaDapurValue = progressData.tahap1['COR MEJA DAPUR'];
     const tableKitchenItem = pageElement.querySelector('.table-kitchen');
-    if (tableKitchenItem) {
+    if (tableKitchenItem && corMejaDapurValue) {
       const buttons = tableKitchenItem.querySelectorAll('.table-btn');
       const hiddenInput = tableKitchenItem.querySelector('#tableKitchenInput');
       
-      // Reset active state first
+      const normalizedValue = corMejaDapurValue.toString().toLowerCase().trim();
+      console.log('Cor Meja Dapur from DB:', normalizedValue);
+      
       buttons.forEach(btn => {
-        btn.classList.remove('active');
-        btn.setAttribute('data-active', 'false');
-      });
-      
-      // PERBAIKAN: Periksa lebih ketat untuk nilai kosong
-      const hasValidValue = corMejaDapurValue && 
-                           typeof corMejaDapurValue === 'string' && 
-                           corMejaDapurValue.trim() !== '' && 
-                           corMejaDapurValue.toLowerCase() !== 'null' && 
-                           corMejaDapurValue.toLowerCase() !== 'undefined' &&
-                           !corMejaDapurValue.toLowerCase().includes('cor meja dapur =');
-      
-      if (hasValidValue) {
-        buttons.forEach(btn => {
-          const btnState = btn.getAttribute('data-state');
-          if (btnState === 'include' && corMejaDapurValue === 'Dengan Cor Meja Dapur') {
-            btn.classList.add('active');
-            btn.setAttribute('data-active', 'true');
-          } else if (btnState === 'exclude' && corMejaDapurValue === 'Tanpa Cor Meja Dapur') {
-            btn.classList.add('active');
-            btn.setAttribute('data-active', 'true');
-          }
-        });
+        const btnState = btn.getAttribute('data-state');
+        const btnText = btn.textContent.toLowerCase().trim();
         
-        if (hiddenInput) {
-          hiddenInput.value = corMejaDapurValue;
+        const isMatch = 
+          (btnState === 'include' && (normalizedValue.includes('dengan') || normalizedValue.includes('with'))) ||
+          (btnState === 'exclude' && (normalizedValue.includes('tanpa') || normalizedValue.includes('without'))) ||
+          (btnText.includes(normalizedValue) || normalizedValue.includes(btnText));
+        
+        if (isMatch) {
+          btn.classList.add('active');
+          btn.setAttribute('data-active', 'true');
+          if (hiddenInput) {
+            hiddenInput.value = corMejaDapurValue;
+          }
+          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
         }
-      } else {
-        if (hiddenInput) hiddenInput.value = '';
-      }
+      });
     }
     
     // Load checkbox biasa untuk tahap 1
@@ -1820,56 +1780,34 @@ if (progressData.tahap1) {
   }
 
   if (progressData.tahap2) {
-    // Handle Keramik Dinding Toilet & Dapur
+    // Handle Keramik Dinding Toilet & Dapur - PERBAIKAN DI SINI
     const keramikDindingValue = progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'];
     const bathroomTilesItem = pageElement.querySelector('.bathroom-tiles');
-    if (bathroomTilesItem) {
-        const buttons = bathroomTilesItem.querySelectorAll('.tiles-btn');
-        const hiddenInput = bathroomTilesItem.querySelector('#bathroomTilesInput');
+    if (bathroomTilesItem && keramikDindingValue) {
+      const buttons = bathroomTilesItem.querySelectorAll('.tiles-btn');
+      const hiddenInput = bathroomTilesItem.querySelector('#bathroomTilesInput');
+      
+      const normalizedValue = keramikDindingValue.toString().toLowerCase().trim();
+      console.log('Keramik Dinding from DB:', normalizedValue);
+      
+      buttons.forEach(btn => {
+        const btnState = btn.getAttribute('data-state');
+        const btnText = btn.textContent.toLowerCase().trim();
         
-        // Reset active state first
-        buttons.forEach(btn => {
-            btn.classList.remove('active');
-            btn.setAttribute('data-active', 'false');
-        });
+        const isMatch = 
+          (btnState === 'include' && (normalizedValue.includes('dengan') || normalizedValue.includes('with'))) ||
+          (btnState === 'exclude' && (normalizedValue.includes('tanpa') || normalizedValue.includes('without'))) ||
+          (btnText.includes(normalizedValue) || normalizedValue.includes(btnText));
         
-        // PERBAIKAN: Periksa lebih ketat untuk nilai kosong
-        const hasValidValue = keramikDindingValue && 
-                             typeof keramikDindingValue === 'string' && 
-                             keramikDindingValue.trim() !== '' && 
-                             keramikDindingValue.toLowerCase() !== 'null' && 
-                             keramikDindingValue.toLowerCase() !== 'undefined' &&
-                             !keramikDindingValue.startsWith('=,') &&
-                             keramikDindingValue !== 'Keramik Dinding Toilet & Dapur =';
-        
-        if (hasValidValue) {
-            console.log(`Keramik Dinding valid: "${keramikDindingValue}"`);
-            
-            buttons.forEach(btn => {
-                const btnState = btn.getAttribute('data-state');
-                const btnText = btn.textContent.trim().toLowerCase();
-                const serverValue = keramikDindingValue.trim().toLowerCase();
-                
-                // Cek apakah nilai server cocok dengan opsi tombol
-                if (btnState === 'include' && serverValue.includes('dengan keramik')) {
-                    btn.classList.add('active');
-                    btn.setAttribute('data-active', 'true');
-                    console.log(`Tombol "Dengan Keramik Dinding" diaktifkan`);
-                } else if (btnState === 'exclude' && serverValue.includes('tanpa keramik')) {
-                    btn.classList.add('active');
-                    btn.setAttribute('data-active', 'true');
-                    console.log(`Tombol "Tanpa Keramik Dinding" diaktifkan`);
-                }
-            });
-            
-            if (hiddenInput) {
-                hiddenInput.value = keramikDindingValue.trim();
-            }
-        } else {
-            // Reset ke kosong jika nilai tidak valid
-            console.log('Keramik Dinding kosong atau tidak valid, mereset...');
-            if (hiddenInput) hiddenInput.value = '';
+        if (isMatch) {
+          btn.classList.add('active');
+          btn.setAttribute('data-active', 'true');
+          if (hiddenInput) {
+            hiddenInput.value = keramikDindingValue;
+          }
+          console.log(`Activated button: ${btnState} for value: ${normalizedValue}`);
         }
+      });
     }
     
     // Load checkbox biasa untuk tahap 2
@@ -2018,9 +1956,47 @@ if (progressData.tahap1) {
     console.log(`✅ UI setup complete for ${rolePage}! Inputs should be editable now.`);
     
     // 7. Debug final status
+    console.log('=== FINAL STATE BUTTONS STATUS ===');
+    debugStateButtonsStatus();
     debugFinalStatus();
     
   }, 300);
+}
+
+function debugStateButtonsStatus() {
+  if (!currentRole) return;
+  
+  const pageId = currentRole + 'Page';
+  const page = document.getElementById(pageId);
+  if (!page) return;
+  
+  // Sistem Pembuangan
+  const wasteSystemInput = page.querySelector('#wasteSystemInput');
+  const wasteButtons = page.querySelectorAll('.system-btn');
+  
+  // Cor Meja Dapur
+  const tableKitchenInput = page.querySelector('#tableKitchenInput');
+  const tableButtons = page.querySelectorAll('.table-btn');
+  
+  // Keramik Dinding
+  const bathroomTilesInput = page.querySelector('#bathroomTilesInput');
+  const tilesButtons = page.querySelectorAll('.tiles-btn');
+  
+  console.log('State Buttons Status:');
+  console.log('1. Sistem Pembuangan:', {
+    inputValue: wasteSystemInput ? wasteSystemInput.value : 'null',
+    activeButtons: Array.from(wasteButtons).filter(btn => btn.classList.contains('active')).length
+  });
+  
+  console.log('2. Cor Meja Dapur:', {
+    inputValue: tableKitchenInput ? tableKitchenInput.value : 'null',
+    activeButtons: Array.from(tableButtons).filter(btn => btn.classList.contains('active')).length
+  });
+  
+  console.log('3. Keramik Dinding:', {
+    inputValue: bathroomTilesInput ? bathroomTilesInput.value : 'null',
+    activeButtons: Array.from(tilesButtons).filter(btn => btn.classList.contains('active')).length
+  });
 }
 
 // ===== FUNGSI TAMBAHAN =====
@@ -2108,6 +2084,60 @@ function debugFinalStatus() {
     console.log('2. document.querySelectorAll(".system-btn")[0].click()');
     console.log('3. forceTestButtons()');
   }
+}
+
+// Fungsi untuk test tombol secara manual
+function testStateButtonsManually() {
+  console.log('=== MANUAL STATE BUTTONS TEST ===');
+  
+  if (!currentRole) {
+    console.log('No current role selected');
+    return;
+  }
+  
+  const pageId = currentRole + 'Page';
+  const page = document.getElementById(pageId);
+  
+  if (!page) {
+    console.log(`Page ${pageId} not found`);
+    return;
+  }
+  
+  // Test Sistem Pembuangan
+  const wasteButtons = page.querySelectorAll('.system-btn');
+  console.log(`Found ${wasteButtons.length} system buttons`);
+  
+  wasteButtons.forEach((btn, index) => {
+    console.log(`System button ${index}:`, {
+      text: btn.textContent.trim(),
+      dataState: btn.getAttribute('data-state'),
+      isActive: btn.classList.contains('active')
+    });
+  });
+  
+  // Test Cor Meja Dapur
+  const tableButtons = page.querySelectorAll('.table-btn');
+  console.log(`Found ${tableButtons.length} table buttons`);
+  
+  tableButtons.forEach((btn, index) => {
+    console.log(`Table button ${index}:`, {
+      text: btn.textContent.trim(),
+      dataState: btn.getAttribute('data-state'),
+      isActive: btn.classList.contains('active')
+    });
+  });
+  
+  // Test Keramik Dinding
+  const tilesButtons = page.querySelectorAll('.tiles-btn');
+  console.log(`Found ${tilesButtons.length} tiles buttons`);
+  
+  tilesButtons.forEach((btn, index) => {
+    console.log(`Tiles button ${index}:`, {
+      text: btn.textContent.trim(),
+      dataState: btn.getAttribute('data-state'),
+      isActive: btn.classList.contains('active')
+    });
+  });
 }
 
 // Fungsi untuk testing manual dari console
