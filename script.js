@@ -4884,42 +4884,41 @@ async function saveKeyDelivery() {
   }
 }
 
+// Ganti semua versi updateProgress dengan ini:
 function updateProgress(rolePage) {
   const pageElement = document.getElementById(rolePage);
   if (!pageElement) return;
 
   const progressSections = pageElement.querySelectorAll('.progress-section[data-tahap]');
   let totalWeightedProgress = 0;
-  let totalPossibleWeight = 0;
+  
+  // Bobot per tahap
+  const tahapWeights = { 
+    '1': 0.40,  // 40%
+    '2': 0.30,  // 30%
+    '3': 0.20,  // 20%
+    '4': 0.10   // 10%
+  };
 
   progressSections.forEach(section => {
     const tahap = section.getAttribute('data-tahap');
-    const tasks = section.querySelectorAll('.sub-task');
-    let completedTasksWeight = 0;
-    let totalSectionWeight = 0;
+    const tasks = section.querySelectorAll('.sub-task, [data-task]');
+    let completedCount = 0;
+    let totalTasks = 0;
 
     tasks.forEach(task => {
-      const weight = parseFloat(task.getAttribute('data-weight')) || 1;
-      totalSectionWeight += weight;
-
+      totalTasks++;
+      
       if (task.type === 'checkbox') {
-        if (task.checked) {
-          completedTasksWeight += weight;
-        }
-      } else if (task.type === 'hidden') {
-        if (task.value && task.value.trim() !== '') {
-          completedTasksWeight += weight;
-        }
-      }
-   else if (task.type === 'text' || task.type === 'textarea' || task.type === 'date') {
-        // Untuk field text/textarea/date di tahap 4, hitung jika ada isi
-        if (tahap === '4' && task.value && task.value.trim() !== '') {
-          completedTasksWeight += weight;
-        }
+        if (task.checked) completedCount++;
+      } else if (task.type === 'hidden' || task.type === 'text') {
+        if (task.value && task.value.trim() !== '') completedCount++;
       }
     });
 
-    const sectionPercent = totalSectionWeight > 0 ? (completedTasksWeight / totalSectionWeight) * 100 : 0;
+    const sectionPercent = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0;
+    
+    // Update tampilan per tahap
     const subPercentEl = section.querySelector('.sub-percent');
     if (subPercentEl) {
       subPercentEl.textContent = Math.round(sectionPercent) + '%';
@@ -4930,33 +4929,14 @@ function updateProgress(rolePage) {
       progressFill.style.width = sectionPercent + '%';
     }
 
-    // PERBAIKAN: Weight yang lebih realistis
-    // Tahap 1: 40%, Tahap 2: 30%, Tahap 3: 20%, Tahap 4: 10%
-    const tahapWeights = { 
-      '1': 0.40,  // 40%
-      '2': 0.30,  // 30%
-      '3': 0.20,  // 20%
-      '4': 0.10   // 10%
-    };
-
-    const weightFactor = tahapWeights[tahap] || 0.25;
-    totalWeightedProgress += sectionPercent * weightFactor;
+    // Tambah ke total dengan bobot
+    totalWeightedProgress += sectionPercent * (tahapWeights[tahap] || 0.25);
   });
-  // PERBAIKAN: Update dengan persentase yang benar
+
   const roundedProgress = Math.round(totalWeightedProgress);
-  updateTotalProgressDisplay(Math.round(totalWeightedProgress) + '%', rolePage);
- // Juga update langsung di overall rekap
-  const overallPercent = pageElement.querySelector('.total-percent');
-  const overallBar = pageElement.querySelector('.total-bar');
-
-  if (overallPercent) {
-    overallPercent.textContent = roundedProgress + '%';
-  }
-  if (overallBar) {
-    overallBar.style.width = roundedProgress + '%';
-  }
-
-  console.log(`Updated progress for ${rolePage}: ${roundedProgress}%`);
+  updateTotalProgressDisplay(roundedProgress + '%', rolePage);
+  
+  return roundedProgress;
 }
 
 //--------------
