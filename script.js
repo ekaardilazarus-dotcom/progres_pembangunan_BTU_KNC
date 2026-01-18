@@ -33,7 +33,7 @@ function showStatusModal(type, title, message) {
   const isDelete = type === 'delete-success';
   const isSuccess = type === 'success' || isDelete;
   const isError = type === 'error';
-  
+
   let iconHtml = '';
   if (type === 'loading') {
     iconHtml = '<i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #38bdf8; margin-bottom: 20px;"></i>';
@@ -80,7 +80,7 @@ function showStatusModal(type, title, message) {
     <h2 style="font-size: 1.25rem; margin-top: 10px;">${title}</h2>
     <p style="color: #94a3b8; margin-top: 5px;">${message}</p>
   `;
-  
+
   modal.style.display = 'flex';
 
   if (isSuccess) {
@@ -113,27 +113,27 @@ function showToast(type, message) {
   // Hapus toast sebelumnya
   const existingToast = document.getElementById('globalToast');
   if (existingToast) existingToast.remove();
-  
+
   const template = document.getElementById('toastTemplate');
   if (!template) return;
-  
+
   const toast = template.content.cloneNode(true).querySelector('.toast');
   toast.id = 'globalToast';
   toast.classList.add(`toast-${type}`);
-  
+
   const icon = toast.querySelector('i');
   icon.classList.add(type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle');
-  
+
   const messageSpan = toast.querySelector('.toast-message');
   messageSpan.textContent = message;
-  
+
   document.body.appendChild(toast);
-  
+
   // Tampilkan toast
   setTimeout(() => {
     toast.classList.add('show');
   }, 10);
-  
+
   // Hapus setelah 2.5 detik
   setTimeout(() => {
     toast.classList.remove('show');
@@ -157,12 +157,12 @@ function loadUtilitasDataFromData(data) {
   if (keyInput) {
     keyInput.value = data.data?.tahap4?.['PENYERAHAN KUNCI'] || '';
   }
-  
+
   // Utility Dates
   const listrikInput = document.getElementById('listrikInstallDate');
   const airInput = document.getElementById('airInstallDate');
   const propNotesInput = document.getElementById('utilityPropertyNotes');
-  
+
   if (listrikInput) listrikInput.value = data.utilitas?.listrikDate || '';
   if (airInput) airInput.value = data.utilitas?.airDate || '';
   if (propNotesInput) propNotesInput.value = data.propertyNotes || '';
@@ -171,13 +171,13 @@ function loadUtilitasDataFromData(data) {
 // ========== FUNGSI LOAD KEY DELIVERY DATA ==========
 async function loadKeyDeliveryData() {
   if (!selectedKavling) return;
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'getKeyDeliveryData',
       kavling: selectedKavling
     });
-    
+
     if (result.success && result.hasData) {
       updateKeyDeliveryDisplay(result);
     } else if (result.success && !result.hasData) {
@@ -192,14 +192,14 @@ async function loadKeyDeliveryData() {
 function updateKeyDeliveryDisplay(data) {
   const deliverySection = document.getElementById('tab-delivery');
   if (!deliverySection) return;
-  
+
   const deliveryToInput = deliverySection.querySelector('.delivery-section');
   const deliveryDateInput = deliverySection.querySelector('.key-delivery-date');
-  
+
   if (deliveryToInput) {
     deliveryToInput.value = data.deliveryTo || '';
   }
-  
+
   if (deliveryDateInput) {
     deliveryDateInput.value = data.deliveryDate || '';
   }
@@ -208,10 +208,10 @@ function updateKeyDeliveryDisplay(data) {
 function resetKeyDeliveryForm() {
   const deliverySection = document.getElementById('tab-delivery');
   if (!deliverySection) return;
-  
+
   const deliveryToInput = deliverySection.querySelector('.delivery-section');
   const deliveryDateInput = deliverySection.querySelector('.key-delivery-date');
-  
+
   if (deliveryToInput) deliveryToInput.value = '';
   if (deliveryDateInput) deliveryDateInput.value = '';
 }
@@ -221,12 +221,12 @@ function resetKeyDeliveryForm() {
 function updateUtilitasProgressDisplay(totalProgress) {
   const percentEl = document.getElementById('utilityOverallPercent');
   const barEl = document.getElementById('utilityOverallBar');
-  
+
   if (!percentEl || !barEl) return;
-  
+
   let displayProgress = totalProgress;
   let percentValue = 0;
-  
+
   if (typeof totalProgress === 'string') {
     if (totalProgress.includes('%')) {
       percentValue = parseInt(totalProgress);
@@ -241,10 +241,10 @@ function updateUtilitasProgressDisplay(totalProgress) {
     percentValue = totalProgress <= 1 ? Math.round(totalProgress * 100) : Math.round(totalProgress);
     displayProgress = percentValue + '%';
   }
-  
+
   percentEl.textContent = displayProgress;
   barEl.style.width = percentValue + '%';
-  
+
   // Color classes
   barEl.className = 'total-bar';
   if (percentValue >= 89) barEl.classList.add('bar-high');
@@ -262,12 +262,12 @@ function setupUser4EventListeners() {
         showToast('warning', 'Pilih kavling terlebih dahulu!');
         return;
       }
-      
+
       const listrikDate = document.getElementById('listrikInstallDate').value;
       const airDate = document.getElementById('airInstallDate').value;
-      
+
       showGlobalLoading('Menyimpan data utilitas...');
-      
+
       try {
         const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
           action: 'saveUtilitasData',
@@ -276,7 +276,7 @@ function setupUser4EventListeners() {
           airDate: airDate,
           user: 'user4'
         });
-        
+
         if (result.success) {
           showToast('success', 'Data utilitas berhasil disimpan!');
         } else {
@@ -304,11 +304,11 @@ function setupUser4EventListeners() {
         showToast('warning', 'Pilih kavling terlebih dahulu!');
         return;
       }
-      
+
       const notes = document.getElementById('utilityPropertyNotes').value;
-      
+
       showGlobalLoading('Menyimpan catatan property...');
-      
+
       try {
         const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
           action: 'savePropertyNotes',
@@ -316,7 +316,7 @@ function setupUser4EventListeners() {
           notes: notes,
           user: 'user4'
         });
-        
+
         if (result.success) {
           showToast('success', 'Catatan property berhasil disimpan!');
           if (currentKavlingData) currentKavlingData.propertyNotes = notes;
@@ -335,10 +335,10 @@ function setupUser4EventListeners() {
 function setupUser4Tabs() {
   const page = document.getElementById('user4Page');
   if (!page) return;
-  
+
   const tabBtns = page.querySelectorAll('.admin-tab-btn');
   const tabContents = page.querySelectorAll('.tab-content-item');
-  
+
   console.log('Setting up User4 tabs, count:', tabBtns.length);
 
   // Set active tab pertama kali jika belum ada
@@ -353,24 +353,24 @@ function setupUser4Tabs() {
     // Hapus listener lama jika ada
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
-    
+
     newBtn.addEventListener('click', function() {
       const tabId = this.getAttribute('data-tab');
       console.log('User4 Tab clicked:', tabId);
-      
+
       // Hapus active dari semua tombol dan konten di halaman ini
       const allBtns = page.querySelectorAll('.admin-tab-btn');
       const allContents = page.querySelectorAll('.tab-content-item');
-      
+
       allBtns.forEach(b => b.classList.remove('active'));
       allContents.forEach(c => c.classList.remove('active'));
-      
+
       // Tambah active ke yang dipilih
       this.classList.add('active');
       const targetTab = page.querySelector('#tab-' + tabId);
       if (targetTab) {
         targetTab.classList.add('active');
-        
+
         // Load data sesuai tab
         if (tabId === 'utility-install' && selectedKavling) {
           setTimeout(() => {
@@ -396,37 +396,37 @@ function loadPropertyNotesFromData(data) {
 // ========== DEBUG: CHECK KEY DELIVERY HTML STRUCTURE ==========
 function debugKeyDeliveryStructure() {
   console.log('=== DEBUG KEY DELIVERY STRUCTURE ===');
-  
+
   const user4Page = document.getElementById('user4Page');
   if (!user4Page) {
     console.log('❌ user4Page not found');
     return;
   }
-  
+
   // Cari tab delivery
   const deliveryTab = user4Page.querySelector('#tab-delivery');
   if (!deliveryTab) {
     console.log('❌ tab-delivery not found');
     return;
   }
-  
+
   console.log('✅ tab-delivery found');
-  
+
   // Cari elemen input
   const deliveryToInput = deliveryTab.querySelector('.delivery-section');
   const deliveryDateInput = deliveryTab.querySelector('.key-delivery-date');
   const saveButton = deliveryTab.querySelector('.btn-save-section');
-  
+
   console.log('Elements found:', {
     deliveryToInput: deliveryToInput ? '✅' : '❌',
     deliveryDateInput: deliveryDateInput ? '✅' : '❌',
     saveButton: saveButton ? '✅' : '❌'
   });
-  
+
   if (deliveryToInput) {
     console.log('delivery-section type:', deliveryToInput.type || deliveryToInput.tagName);
   }
-  
+
   if (deliveryDateInput) {
     console.log('key-delivery-date type:', deliveryDateInput.type || deliveryDateInput.tagName);
   }
@@ -453,11 +453,11 @@ function setupCustomSearch(inputId, listId, selectId) {
   input.disabled = false;
   input.style.pointerEvents = 'auto';
   input.style.cursor = 'text';
-  
+
   // Hapus event listener lama jika ada
   const newInput = input.cloneNode(true);
   input.parentNode.replaceChild(newInput, input);
-  
+
   // Setup event listeners baru
   newInput.addEventListener('focus', () => {
     console.log(`Input ${inputId} focused`);
@@ -496,13 +496,13 @@ function setupCustomSearch(inputId, listId, selectId) {
   list.addEventListener('click', (e) => {
     e.stopPropagation();
   });
-  
+
   console.log(`Custom search setup complete for ${inputId}`);
 }
 
 function clearInputsForNewLoad() {
   console.log('Clearing all inputs and progress displays...');
-  
+
   // 1. Reset Checkboxes and Labels
   const checkboxes = document.querySelectorAll('.sub-task[type="checkbox"]');
   checkboxes.forEach(cb => {
@@ -552,7 +552,7 @@ function clearInputsForNewLoad() {
 
 function renderSearchList(items, listEl, inputEl, selectEl) {
   listEl.innerHTML = '';
-  
+
   if (items.length === 0) {
     const noResult = document.createElement('div');
     noResult.className = 'custom-dropdown-item no-results';
@@ -570,33 +570,33 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
     div.textContent = item;
     div.onclick = async function() {
       console.log('Selected item via onclick:', item);
-      
+
       // Tampilkan loading popup
      showStatusModal('loading', 'Mohon Tunggu', `Sedang mengambil data kavling ${item}...`);
-      
+
       inputEl.value = item;
       selectEl.value = item;
       listEl.style.display = 'none';
-      
+
       // Ensure the value is synced and trigger search
       selectedKavling = item;
-      
+
       // Clear all inputs and progress displays before loading new data
       clearInputsForNewLoad();
-      
+
       // Force change event for any listeners
       const event = new Event('change', { bubbles: true });
       selectEl.dispatchEvent(event);
-      
+
       // Tunggu 300ms untuk efek visual
       await new Promise(resolve => setTimeout(resolve, 300));
-      
+
       try {
         const data = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
           action: 'getKavlingData',
           kavling: item
         });
-        
+
         if (data.success) {
           currentKavlingData = {
             kavling: data.kavling || item,
@@ -607,18 +607,18 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
             totalAH: data.totalAH || '0%',
             data: data.data || {}
           };
-          
+
           updateKavlingInfo(currentKavlingData, currentRole + 'Page');
           loadProgressData(data.data);
-          
+
           // Tampilkan sukses dan auto close
           showStatusModal('success', 'Data Dimuat', `Data ${item} berhasil dimuat!`);
-          
+
           setTimeout(() => {
             hideGlobalLoading();
             showToast('success', `Data ${item} berhasil dimuat!`);
           }, 1500);
-          
+
         } else {
           hideGlobalLoading();
           showToast('error', data.message || 'Kavling tidak ditemukan');
@@ -630,7 +630,7 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
     };
     listEl.appendChild(div);
   });
-  
+
   if (items.length > 100) {
     const more = document.createElement('div');
     more.className = 'custom-dropdown-item no-results';
@@ -702,13 +702,13 @@ function setupEditKavling() {
         if (result.success) {
           showStatusModal('success', 'Berhasil Update', `Data kavling ${name} telah diperbarui.`);
           modal.style.display = 'none';
-          
+
           // Clear all inputs before re-sync
           clearInputsForNewLoad();
-          
+
           // Refresh list of kavlings first
           await loadKavlingList();
-          
+
           // Re-sync specific kavling data
           await searchKavling(true);
         } else {
@@ -726,7 +726,7 @@ function setupEditKavling() {
   if (deleteBtn) {
     deleteBtn.addEventListener('click', async () => {
       const name = document.getElementById('editKavlingName').value;
-      
+
       if (!confirm(`Apakah Anda yakin ingin menghapus data kavling ${name}? Tindakan ini tidak dapat dibatalkan.`)) {
         return;
       }
@@ -743,21 +743,21 @@ function setupEditKavling() {
         if (result.success) {
           showStatusModal('delete-success', 'Berhasil Hapus', `Data kavling ${name} telah dihapus.`);
           modal.style.display = 'none';
-          
+
           // Reset internal selection state
           selectedKavling = null;
           currentKavlingData = null;
-          
+
           // Reset UI inputs and progress displays
           clearInputsForNewLoad();
-          
+
           // Refresh kavling list from database
           await loadKavlingList();
-          
+
           // Reset display info to neutral
           const rolePage = currentRole + 'Page';
           updateKavlingInfo({kavling: '-', type: '-', lt: '-', lb: '-'}, rolePage);
-          
+
           updateTabsState();
         } else {
           showToast('error', 'Gagal menghapus: ' + (result.message || 'Unknown error'));
@@ -779,10 +779,10 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCustomSearch('searchKavlingUser3Input', 'searchKavlingUser3List', 'searchKavlingUser3');
   setupCustomSearch('searchKavlingUser4Input', 'searchKavlingUser4List', 'searchKavlingUser4');
   setupCustomSearch('searchKavlingManagerInput', 'searchKavlingManagerList', 'searchKavlingManager');
-  
+
   // Set initial setup for each page if needed
   setupUser4Page();
-  
+
   updateTabsState(); // Initial state: disabled if no kavling
 });
 
@@ -790,35 +790,35 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadKavlingList() {
   console.log('Loading kavling list...');
   showGlobalLoading('Memuat daftar kavling...');
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'getKavlingList'
     });
-    
+
     if (result.success && result.kavlings && result.kavlings.length > 0) {
       allKavlings = result.kavlings; // Store globally
       updateAllKavlingSelects(result.kavlings);
       console.log(`✅ Loaded ${result.kavlings.length} kavlings`);
-      
+
       // Show success notification when data is loaded for Pelaksana/Manager roles
       if (currentRole && currentRole !== 'admin') {
         showStatusModal('success', 'Data Berhasil Dimuat', 'Data kavling terbaru telah berhasil dimuat dari server.');
       }
-      
+
       if (selectedKavling) {
         setTimeout(() => {
           setSelectedKavlingInDropdowns(selectedKavling);
         }, 100);
       }
-      
+
       return result.kavlings;
     } else {
       console.log('❌ No kavlings found:', result.message);
       showToast('warning', 'Tidak ada data kavling ditemukan');
       return [];
     }
-    
+
   } catch (error) {
     console.error('❌ Error loading kavling list:', error);
     showToast('error', 'Gagal memuat daftar kavling');
@@ -831,19 +831,19 @@ async function loadKavlingList() {
 function getDataFromServer(url, params = {}) {
   return new Promise((resolve, reject) => {
     const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    
+
     window[callbackName] = function(data) {
       resolve(data);
       delete window[callbackName];
-      
+
       const scriptId = 'script_' + callbackName;
       const scriptEl = document.getElementById(scriptId);
       if (scriptEl) scriptEl.remove();
     };
-    
+
     let requestUrl = url + '?';
     const urlParams = new URLSearchParams();
-    
+
     Object.keys(params).forEach(key => {
       if (params[key] !== undefined && params[key] !== null) {
         if (typeof params[key] === 'object') {
@@ -853,10 +853,10 @@ function getDataFromServer(url, params = {}) {
         }
       }
     });
-    
+
     urlParams.append('callback', callbackName);
     requestUrl += urlParams.toString();
-    
+
     const script = document.createElement('script');
     script.id = 'script_' + callbackName;
     script.src = requestUrl;
@@ -865,7 +865,7 @@ function getDataFromServer(url, params = {}) {
       delete window[callbackName];
       script.remove();
     };
-    
+
     document.body.appendChild(script);
   });
 }
@@ -878,7 +878,7 @@ function updateAllKavlingSelects(kavlings) {
     'searchKavlingUser4',
     'searchKavlingManager'
   ];
-  
+
   selectIds.forEach(selectId => {
     const selectElement = document.getElementById(selectId);
     if (selectElement) {
@@ -890,7 +890,7 @@ function updateAllKavlingSelects(kavlings) {
 function updateKavlingSelect(selectElement, kavlings) {
   const currentValue = selectElement.value;
   selectElement.innerHTML = '<option value="">-- Pilih Kavling --</option>';
-  
+
   if (!kavlings || kavlings.length === 0) {
     const option = document.createElement('option');
     option.value = "";
@@ -899,7 +899,7 @@ function updateKavlingSelect(selectElement, kavlings) {
     selectElement.appendChild(option);
     return;
   }
-  
+
   const sortedKavlings = [...kavlings].sort((a, b) => {
     const extractParts = (str) => {
       const match = str.match(/([A-Za-z]+)[_ ]*(\d+)/);
@@ -908,23 +908,23 @@ function updateKavlingSelect(selectElement, kavlings) {
       }
       return { block: str, number: 0 };
     };
-    
+
     const aParts = extractParts(a);
     const bParts = extractParts(b);
-    
+
     if (aParts.block !== bParts.block) {
       return aParts.block.localeCompare(bParts.block);
     }
     return aParts.number - bParts.number;
   });
-  
+
   sortedKavlings.forEach(kavling => {
     const option = document.createElement('option');
     option.value = kavling;
     option.textContent = kavling;
     selectElement.appendChild(option);
   });
-  
+
   if (currentValue && kavlings.includes(currentValue)) {
     selectElement.value = currentValue;
   }
@@ -938,7 +938,7 @@ function setSelectedKavlingInDropdowns(kavlingName) {
     'searchKavlingUser4',
     'searchKavlingManager'
   ];
-  
+
   selectIds.forEach(selectId => {
     const selectElement = document.getElementById(selectId);
     if (selectElement) {
@@ -947,7 +947,7 @@ function setSelectedKavlingInDropdowns(kavlingName) {
       } else if (Array.from(selectElement.options).some(opt => opt.value === kavlingName)) {
         selectElement.value = kavlingName;
       }
-      
+
       // Also update the custom search inputs if they exist
       const inputId = selectId + 'Input';
       const inputEl = document.getElementById(inputId);
@@ -960,19 +960,19 @@ function setSelectedKavlingInDropdowns(kavlingName) {
 function updateTabsState() {
   const pelaksanaTabs = document.querySelectorAll('.pelaksana-tabs .admin-tab-btn');
   const pelaksanaContent = document.querySelector('.pelaksana-tab-content');
-  
+
   // SELALU AKTIFKAN TABS (Hapus fungsi freeze)
   pelaksanaTabs.forEach(btn => {
     btn.style.opacity = '1';
     btn.style.pointerEvents = 'auto';
     btn.style.cursor = 'pointer';
   });
-  
+
   if (pelaksanaContent) {
     pelaksanaContent.style.opacity = '1';
     pelaksanaContent.style.pointerEvents = 'auto';
   }
-  
+
   // Selalu pastikan input aktif
   enableAllInputs();
 }
@@ -991,9 +991,9 @@ function enableAllInputs() {
     console.error(`❌ Page ${pageId} not found for enableAllInputs`);
     return;
   }
-  
+
   console.log(`🔧 Enabling all inputs for ${pageId}`);
-  
+
   // 1. Enable semua checkbox
  const checkboxes = page.querySelectorAll('input[type="checkbox"]');
   checkboxes.forEach((cb, index) => {
@@ -1002,7 +1002,7 @@ function enableAllInputs() {
     cb.style.opacity = '1';
     cb.style.cursor = 'pointer';
     cb.style.pointerEvents = 'auto';
-    
+
     // Tambah event listener langsung jika belum ada
     if (!cb.hasAttribute('data-listener-added')) {
       cb.addEventListener('change', function() {
@@ -1020,7 +1020,7 @@ function enableAllInputs() {
       cb.setAttribute('data-listener-added', 'true');
     }
   });
-  
+
   // 2. Enable tombol state
   const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
   stateButtons.forEach((btn, index) => {
@@ -1028,13 +1028,13 @@ function enableAllInputs() {
     btn.style.opacity = '1';
     btn.style.cursor = 'pointer';
     btn.style.pointerEvents = 'auto';
-    
+
     if (!btn.hasAttribute('data-listener-added')) {
       btn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         console.log(`State button ${index} clicked directly`);
-        
+
         if (this.classList.contains('system-btn')) {
           toggleSystemButton(this, this.getAttribute('data-state'));
         } else if (this.classList.contains('tiles-btn')) {
@@ -1046,7 +1046,7 @@ function enableAllInputs() {
       btn.setAttribute('data-listener-added', 'true');
     }
   });
-  
+
   // 3. Enable input text/date/textarea
   const textInputs = page.querySelectorAll('input[type="text"], input[type="date"], textarea');
   textInputs.forEach(input => {
@@ -1056,7 +1056,7 @@ function enableAllInputs() {
     input.style.cursor = 'text';
     input.style.pointerEvents = 'auto';
   });
-  
+
   // 4. Enable tombol save
   const saveButtons = page.querySelectorAll('.btn-save-section');
   saveButtons.forEach(btn => {
@@ -1065,38 +1065,38 @@ function enableAllInputs() {
     btn.style.cursor = 'pointer';
     btn.style.pointerEvents = 'auto';
   });
-  
+
   console.log(`✅ Enabled: ${checkboxes.length} checkboxes, ${stateButtons.length} state buttons, ${saveButtons.length} save buttons`);
-  
+
   // Debug output
   debugInputStatus();
 }
 
 async function searchKavling(isSync = false) {
   console.log('=== FUNGSI searchKavling DIPANGGIL ===');
-  
+
   try {
     const rolePage = currentRole + 'Page';
     const selectId = getSelectIdByRole(currentRole);
     const selectElement = document.getElementById(selectId);
-    
+
     if (!selectElement) {
       showToast('error', 'Dropdown kavling tidak ditemukan!');
       return;
     }
-    
+
     // Check custom input first for current role
     const inputId = selectId + 'Input';
     const inputEl = document.getElementById(inputId);
     let kavlingName = selectElement.value.trim();
-    
+
     if (!kavlingName && inputEl) {
       kavlingName = inputEl.value.trim();
       if (kavlingName) {
         selectElement.value = kavlingName;
       }
     }
-    
+
     if (!kavlingName && !isSync) {
       showToast('warning', 'Pilih kavling terlebih dahulu dari pencarian!');
       if (inputEl) inputEl.focus();
@@ -1121,17 +1121,17 @@ async function searchKavling(isSync = false) {
 
     // Clear all inputs/status before sync to give "refresh" feel
     clearInputsForNewLoad();
-    
+
     showGlobalLoading('Menyinkronkan data ' + kavlingName + '...');
 
-    
+
     const data = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'getKavlingData',
       kavling: kavlingName
     });
-    
+
      console.log('📦 Full response from server:', data);
-    
+
     if (data.success) {
        // Periksa data sebelum memuat
        console.log('Data dari server:', {
@@ -1141,10 +1141,10 @@ async function searchKavling(isSync = false) {
         });
       selectedKavling = kavlingName;
       updateTabsState(); // Enable tabs when kavling is loaded
-      
+
       // Ambil data progres dari server
       let serverProgress = data.totalAH || '0%';
-      
+
       // Konversi desimal (misal 0.14) ke persen (14%) jika perlu
       if (typeof serverProgress === 'number') {
         serverProgress = (serverProgress <= 1 ? Math.round(serverProgress * 100) : Math.round(serverProgress)) + '%';
@@ -1165,27 +1165,27 @@ async function searchKavling(isSync = false) {
         totalAH: serverProgress, // Gunakan nilai yang sudah diformat
         data: data.data || {}
       };
-     
+
       setSelectedKavlingInDropdowns(kavlingName);
       updateKavlingInfo(currentKavlingData, rolePage);
-      
+
       // LANGSUNG UPDATE PROGRESS DARI SERVER AGAR TIDAK MUNCUL 0%
       updateTotalProgressDisplay(currentKavlingData.totalAH, rolePage);
       const overallPercent = document.querySelector(`#${rolePage} .total-percent`);
       const overallBar = document.querySelector(`#${rolePage} .total-bar`);
       if (overallPercent) overallPercent.textContent = currentKavlingData.totalAH;
       if (overallBar) overallBar.style.width = currentKavlingData.totalAH;
-           
+
       if (currentRole !== 'manager') {
         loadProgressData(data.data);
       }
-      
+
       if (currentRole === 'manager') {
         loadPropertyNotesFromData(currentKavlingData);
-        
+
         // Update progress display untuk manager menggunakan data AH
         updateManagerProgressDisplay(currentKavlingData.totalAH);
-        
+
         // Jika di tab reports, load laporan
         const activeTab = document.querySelector('#managerPage .admin-tab-btn.active');
         if (activeTab && activeTab.getAttribute('data-tab') === 'reports') {
@@ -1194,12 +1194,12 @@ async function searchKavling(isSync = false) {
           }, 500);
         }
       }
-      
+
       if (currentRole === 'user4') {
         // Load data untuk Admin Utilitas
         loadUtilitasDataFromData(currentKavlingData);
         updateUtilitasProgressDisplay(currentKavlingData.totalAH);
-        
+
         // Load additional data from Admin Utilitas Apps Script
         if (typeof loadAdminUtilitasData === 'function') {
             loadAdminUtilitasData(kavlingName);
@@ -1208,32 +1208,32 @@ async function searchKavling(isSync = false) {
         // TAMBAHAN: Update Property Notes khusus untuk user4
         // Logic will now use loadProgressData since we added .tahap-comments class
       }
-     
+
      // ⚡ Aktifkan semua input setelah data dimuat
             setTimeout(() => {
         enableAllInputs();
-        
+
         // Tambahkan event listener untuk checkbox
         setupCheckboxListeners(rolePage);
-        
+
         // Update tabs state
         updateTabsState();
       }, 100);
-     
+
       // Tampilkan sukses dan auto close setelah 1.5 detik
       showStatusModal('success', 'Data Dimuat', `Data ${kavlingName} berhasil dimuat!`);
-     
+
      setTimeout(() => {
         hideGlobalLoading();
         showToast('success', `Data ${kavlingName} berhasil dimuat!`);
       }, 1500);
-      
+
     } else {
       hideGlobalLoading();
       showToast('error', data.message || 'Kavling tidak ditemukan');
       selectElement.value = '';
     }
-    
+
  } catch (error) {
     console.error('Error dalam searchKavling:', error);
     hideGlobalLoading();
@@ -1245,21 +1245,21 @@ async function searchKavling(isSync = false) {
 function setupCheckboxListeners(pageId) {
   const page = document.getElementById(pageId);
   if (!page) return;
-  
+
   console.log(`Setting up checkbox listeners for ${pageId}`);
-  
+
   // Hanya ambil checkbox yang ada di progress sections
   const checkboxes = page.querySelectorAll('.progress-section input[type="checkbox"].sub-task');
-  
+
   checkboxes.forEach(checkbox => {
     // Clone untuk hapus event listener lama
     const newCheckbox = checkbox.cloneNode(true);
     checkbox.parentNode.replaceChild(newCheckbox, checkbox);
-    
+
     // Setup event listener untuk checkbox baru
     newCheckbox.addEventListener('change', function() {
       console.log(`Checkbox changed: ${this.id || this.name || 'unnamed'}`, this.checked);
-      
+
       const label = this.closest('label');
       if (label) {
         if (this.checked) {
@@ -1268,18 +1268,18 @@ function setupCheckboxListeners(pageId) {
           label.classList.remove('task-completed');
         }
       }
-      
+
       // Update progress
       updateProgress(pageId);
     });
-    
+
     // Pastikan checkbox enabled
     newCheckbox.disabled = false;
     newCheckbox.style.pointerEvents = 'auto';
     newCheckbox.style.opacity = '1';
     newCheckbox.style.cursor = 'pointer';
   });
-  
+
   console.log(`✅ Setup ${checkboxes.length} checkbox listeners for ${pageId}`);
 }
 
@@ -1289,14 +1289,14 @@ function toggleSystemButton(button, state) {
   if (!parent) return;
   const buttons = parent.querySelectorAll('.system-btn');
   const hiddenInput = parent.querySelector('input[type="hidden"]');
-  
+
   const wasActive = button.classList.contains('active');
-  
+
   buttons.forEach(btn => {
     btn.setAttribute('data-active', 'false');
     btn.classList.remove('active');
   });
-  
+
   if (!wasActive) {
     button.setAttribute('data-active', 'true');
     button.classList.add('active');
@@ -1308,7 +1308,7 @@ function toggleSystemButton(button, state) {
       hiddenInput.value = '';
     }
   }
-  
+
   // Update progress calculation
   const pageId = currentRole + 'Page';
   updateProgress(pageId);
@@ -1319,14 +1319,14 @@ function toggleTilesButton(button, state) {
   if (!parent) return;
   const buttons = parent.querySelectorAll('.tiles-btn');
   const hiddenInput = parent.querySelector('input[type="hidden"]');
-  
+
   const wasActive = button.classList.contains('active');
-  
+
   buttons.forEach(btn => {
     btn.setAttribute('data-active', 'false');
     btn.classList.remove('active');
   });
-  
+
   if (!wasActive) {
     button.setAttribute('data-active', 'true');
     button.classList.add('active');
@@ -1338,7 +1338,7 @@ function toggleTilesButton(button, state) {
       hiddenInput.value = '';
     }
   }
-  
+
   // Update progress calculation
   const pageId = currentRole + 'Page';
   updateProgress(pageId);
@@ -1349,14 +1349,14 @@ function toggleTableButton(button, state) {
   if (!parent) return;
   const buttons = parent.querySelectorAll('.table-btn');
   const hiddenInput = parent.querySelector('input[type="hidden"]');
-  
+
   const wasActive = button.classList.contains('active');
-  
+
   buttons.forEach(btn => {
     btn.setAttribute('data-active', 'false');
     btn.classList.remove('active');
   });
-  
+
   if (!wasActive) {
     button.setAttribute('data-active', 'true');
     button.classList.add('active');
@@ -1368,7 +1368,7 @@ function toggleTableButton(button, state) {
       hiddenInput.value = '';
     }
   }
-  
+
   // Update progress calculation
   const pageId = currentRole + 'Page';
   updateProgress(pageId);
@@ -1377,9 +1377,9 @@ function toggleTableButton(button, state) {
 function setupStateButtons(pageId) {
   const page = document.getElementById(pageId);
   if (!page) return;
-  
+
   console.log(`Setting up state buttons for ${pageId}`);
-  
+
   // 1. Sistem Pembuangan
   const systemBtns = page.querySelectorAll('.system-btn');
   systemBtns.forEach(btn => {
@@ -1388,7 +1388,7 @@ function setupStateButtons(pageId) {
       toggleSystemButton(this, this.getAttribute('data-state'));
     };
   });
-  
+
   // 2. Keramik Dinding
   const tilesBtns = page.querySelectorAll('.tiles-btn');
   tilesBtns.forEach(btn => {
@@ -1397,7 +1397,7 @@ function setupStateButtons(pageId) {
       toggleTilesButton(this, this.getAttribute('data-state'));
     };
   });
-  
+
   // 3. Cor Meja Dapur
   const tableBtns = page.querySelectorAll('.table-btn');
   tableBtns.forEach(btn => {
@@ -1414,15 +1414,15 @@ function updateManagerProgressDisplay(totalProgress) {
     console.error('managerProgressDisplay element not found');
     return;
   }
-  
+
   progressDisplay.style.display = 'block';
-  
+
   const overallVal = progressDisplay.querySelector('.val-overall');
   const progressFill = progressDisplay.querySelector('.total-bar');
-  
+
   if (overallVal) {
     let displayProgress = totalProgress || '0%';
-    
+
     // Jika masih berupa angka desimal (0.97), konversi ke persen
     if (typeof totalProgress === 'string' && !totalProgress.includes('%')) {
       const num = parseFloat(totalProgress);
@@ -1432,13 +1432,13 @@ function updateManagerProgressDisplay(totalProgress) {
     } else if (typeof totalProgress === 'number') {
       displayProgress = (totalProgress <= 1 ? Math.round(totalProgress * 100) : Math.round(totalProgress)) + '%';
     }
-    
+
     overallVal.textContent = displayProgress;
   }
-  
+
   if (progressFill) {
     let percentValue = 0;
-    
+
     if (typeof totalProgress === 'string') {
       const percentMatch = totalProgress.match(/(\d+)%/);
       if (percentMatch) {
@@ -1452,9 +1452,9 @@ function updateManagerProgressDisplay(totalProgress) {
     } else if (typeof totalProgress === 'number') {
       percentValue = totalProgress <= 1 ? Math.round(totalProgress * 100) : Math.round(totalProgress);
     }
-    
+
     progressFill.style.width = percentValue + '%';
-    
+
     progressFill.className = 'total-bar';
     if (percentValue >= 89) progressFill.classList.add('bar-high');
     else if (percentValue >= 60) progressFill.classList.add('bar-medium');
@@ -1496,13 +1496,13 @@ function getKavlingInfoIdByRole(role) {
 }
 function setupRoleButtons() {
   console.log("=== DEBUG SETUP ROLE BUTTONS ===");
-  
+
   const roleButtons = document.querySelectorAll('.role-btn');
   console.log(`Found ${roleButtons.length} role buttons`);
-  
+
   if (roleButtons.length === 0) {
     console.error("❌ No role buttons found! Check HTML structure.");
-    
+
     // Coba cari dengan cara lain
     const allButtons = document.querySelectorAll('button');
     console.log(`Total buttons on page: ${allButtons.length}`);
@@ -1513,47 +1513,47 @@ function setupRoleButtons() {
         dataRole: btn.getAttribute('data-role')
       });
     });
-    
+
     return;
   }
-  
+
   roleButtons.forEach((btn, index) => {
     console.log(`Role button ${index + 1}:`, {
       role: btn.getAttribute('data-role'),
       text: btn.querySelector('h3')?.textContent || btn.textContent,
       id: btn.id || 'no-id'
     });
-    
+
     // Hapus event listener lama
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
-    
+
     // Tambah event listener baru dengan logging
     newBtn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      
+
       console.log('✅ Role button clicked successfully!');
       console.log('Button data-role:', this.getAttribute('data-role'));
       console.log('Button text:', this.textContent);
-      
+
       currentRole = this.getAttribute('data-role');
       console.log('Current role set to:', currentRole);
-      
+
       // Reset modal
       const errorMsg = document.getElementById('errorMessage');
       const passwordInput = document.getElementById('passwordInput');
-      
+
       if (errorMsg) errorMsg.textContent = '';
       if (passwordInput) passwordInput.value = '';
-      
+
       // Show modal
       const modal = document.getElementById('passwordModal');
       if (modal) {
         modal.style.display = 'flex';
         console.log('✅ Password modal shown');
-        
+
         // Update modal title
         const roleNames = {
           'user1': 'Pelaksana 1',
@@ -1563,12 +1563,12 @@ function setupRoleButtons() {
           'manager': 'Supervisor',
           'admin': 'Admin System'
         };
-        
+
         const modalTitle = document.getElementById('modalTitle');
         if (modalTitle) {
           modalTitle.textContent = `Login sebagai ${roleNames[currentRole] || currentRole}`;
         }
-        
+
         // Focus on password input
         setTimeout(() => {
           if (passwordInput) {
@@ -1580,10 +1580,10 @@ function setupRoleButtons() {
         console.error('❌ Password modal not found!');
       }
     });
-    
+
     console.log(`✅ Event listener added to role button ${index + 1}`);
   });
-  
+
   console.log("=== ROLE BUTTONS SETUP COMPLETE ===");
 }
 
@@ -1592,9 +1592,9 @@ function updateKavlingInfo(data, pageId) {
   const role = currentRole;
   const infoId = getKavlingInfoIdByRole(role);
   const infoDisplay = document.getElementById(infoId);
-  
+
   if (!infoDisplay) return;
-  
+
   if (role === 'manager') {
     infoDisplay.innerHTML = `
       <div class="info-item">
@@ -1698,15 +1698,15 @@ function loadProgressData(progressData) {
     if (wasteSystemItem && sistemPembuanganValue) {
       const buttons = wasteSystemItem.querySelectorAll('.system-btn');
       const hiddenInput = wasteSystemItem.querySelector('#wasteSystemInput');
-      
+
       // Normalize the value from database
       const normalizedValue = sistemPembuanganValue.toString().toLowerCase().trim();
       console.log('Sistem Pembuangan from DB:', normalizedValue);
-      
+
       buttons.forEach(btn => {
         const btnState = btn.getAttribute('data-state');
         const btnText = btn.textContent.toLowerCase().trim();
-        
+
         // Multiple matching conditions
         const isMatch = 
           normalizedValue === btnState ||
@@ -1715,7 +1715,7 @@ function loadProgressData(progressData) {
           (normalizedValue === 'septictank' && btnState === 'septictank') ||
           (normalizedValue === 'biotank' && btnState === 'biotank') ||
           (normalizedValue === 'ipal' && btnState === 'ipal');
-        
+
         if (isMatch) {
           btn.classList.add('active');
           btn.setAttribute('data-active', 'true');
@@ -1726,26 +1726,26 @@ function loadProgressData(progressData) {
         }
       });
     }
-    
+
     // Handle Cor Meja Dapur - PERBAIKAN DI SINI
     const corMejaDapurValue = progressData.tahap1['COR MEJA DAPUR'];
     const tableKitchenItem = pageElement.querySelector('.table-kitchen');
     if (tableKitchenItem && corMejaDapurValue) {
       const buttons = tableKitchenItem.querySelectorAll('.table-btn');
       const hiddenInput = tableKitchenItem.querySelector('#tableKitchenInput');
-      
+
       const normalizedValue = corMejaDapurValue.toString().toLowerCase().trim();
       console.log('Cor Meja Dapur from DB:', normalizedValue);
-      
+
       buttons.forEach(btn => {
         const btnState = btn.getAttribute('data-state');
         const btnText = btn.textContent.toLowerCase().trim();
-        
+
         const isMatch = 
           (btnState === 'include' && (normalizedValue.includes('dengan') || normalizedValue.includes('with'))) ||
           (btnState === 'exclude' && (normalizedValue.includes('tanpa') || normalizedValue.includes('without'))) ||
           (btnText.includes(normalizedValue) || normalizedValue.includes(btnText));
-        
+
         if (isMatch) {
           btn.classList.add('active');
           btn.setAttribute('data-active', 'true');
@@ -1756,12 +1756,12 @@ function loadProgressData(progressData) {
         }
       });
     }
-    
+
     // Load checkbox biasa untuk tahap 1
     const checkboxTasks1 = ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 
                            'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 
                            'PIPA AIR BERSIH', 'PLESTER', 'ACIAN & BENANGAN'];
-    
+
     checkboxTasks1.forEach(taskName => {
       const isChecked = progressData.tahap1[taskName];
       const checkbox = findCheckboxByTaskName(taskName, 1, rolePage);
@@ -1786,19 +1786,19 @@ function loadProgressData(progressData) {
     if (bathroomTilesItem && keramikDindingValue) {
       const buttons = bathroomTilesItem.querySelectorAll('.tiles-btn');
       const hiddenInput = bathroomTilesItem.querySelector('#bathroomTilesInput');
-      
+
       const normalizedValue = keramikDindingValue.toString().toLowerCase().trim();
       console.log('Keramik Dinding from DB:', normalizedValue);
-      
+
       buttons.forEach(btn => {
         const btnState = btn.getAttribute('data-state');
         const btnText = btn.textContent.toLowerCase().trim();
-        
+
         const isMatch = 
           (btnState === 'include' && (normalizedValue.includes('dengan') || normalizedValue.includes('with'))) ||
           (btnState === 'exclude' && (normalizedValue.includes('tanpa') || normalizedValue.includes('without'))) ||
           (btnText.includes(normalizedValue) || normalizedValue.includes(btnText));
-        
+
         if (isMatch) {
           btn.classList.add('active');
           btn.setAttribute('data-active', 'true');
@@ -1809,10 +1809,10 @@ function loadProgressData(progressData) {
         }
       });
     }
-    
+
     // Load checkbox biasa untuk tahap 2
     const checkboxTasks2 = ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'INSTALASI LISTRIK', 'KERAMIK LANTAI'];
-    
+
     checkboxTasks2.forEach(taskName => {
       const isChecked = progressData.tahap2[taskName];
       const checkbox = findCheckboxByTaskName(taskName, 2, rolePage);
@@ -1829,7 +1829,7 @@ function loadProgressData(progressData) {
       }
     });
   }
-  
+
   if (progressData.tahap3) {
     Object.keys(progressData.tahap3).forEach(taskName => {
       const isChecked = progressData.tahap3[taskName];
@@ -1856,7 +1856,7 @@ function loadProgressData(progressData) {
         commentEl.value = progressData.tahap4['KETERANGAN'];
       }
     }
-    
+
     // Load Penyerahan Kunci
     if (progressData.tahap4['PENYERAHAN KUNCI']) {
       const deliveryEl = pageElement.querySelector('.key-delivery-input');
@@ -1872,7 +1872,7 @@ function loadProgressData(progressData) {
         // Format tanggal untuk input type="date" (yyyy-MM-dd)
         const rawDate = progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'];
         let formattedDate = '';
-        
+
         if (rawDate instanceof Date || (typeof rawDate === 'string' && rawDate.includes('-'))) {
           // Jika sudah format Date atau yyyy-MM-dd
           formattedDate = formatDateForInput(rawDate);
@@ -1880,13 +1880,13 @@ function loadProgressData(progressData) {
           // Coba parse tanggal lain
           formattedDate = formatDateForInput(new Date(rawDate));
         }
-        
+
         dateEl.value = formattedDate;
         console.log(`Loaded date for ${selectedKavling}: ${rawDate} → ${formattedDate}`);
       }
     }
 
-  
+
     // Load Completion - PERBAIKAN: CARI CHECKBOX DI TAHAP 4
     if (progressData.tahap4['COMPLETION / Penyelesaian akhir']) {
       const completionCheckbox = findCheckboxByTaskName('COMPLETION / Penyelesaian akhir', 4, rolePage);
@@ -1901,7 +1901,7 @@ function loadProgressData(progressData) {
           }
         }
       }
-      
+
       if (completionCheckbox) {
         completionCheckbox.checked = true;
         const label = completionCheckbox.closest('label');
@@ -1910,7 +1910,7 @@ function loadProgressData(progressData) {
         }
       }
     }
-    
+
     // Update total progress
     if (progressData.tahap4['TOTAL']) {
       updateTotalProgressDisplay(progressData.tahap4['TOTAL'] || '0%', rolePage);
@@ -1921,78 +1921,78 @@ function loadProgressData(progressData) {
   if (rolePage === 'user4Page' && typeof setupAdminUtilitasMutation === 'function') {
     setupAdminUtilitasMutation(pageElement);
   }
-  
+
   // ===== TAMBAHKAN INI DI AKHIR FUNGSI (HANYA SATU setTimeout) =====
   console.log(`🔄 Starting UI setup for ${rolePage}...`);
-  
+
   setTimeout(() => {
     console.log(`✅ Data loaded for ${rolePage}, setting up UI...`);
-    
+
     // 1. Setup checkbox listeners
     const checkboxCount = pageElement.querySelectorAll('input[type="checkbox"]').length;
     console.log(`📋 Found ${checkboxCount} checkboxes`);
     setupCheckboxListeners(rolePage);
-    
+
     // 2. Setup state buttons (PENTING!)
     const stateBtnCount = pageElement.querySelectorAll('.system-btn, .tiles-btn, .table-btn').length;
     console.log(`🎯 Found ${stateBtnCount} state buttons`);
     setupStateButtons(rolePage);
-    
+
     // 3. Aktifkan semua input
     console.log(`🔓 Enabling all inputs...`);
     enableAllInputs();
-    
+
     // 4. Perbaiki font styles
     console.log(`🎨 Fixing font styles...`);
     fixFontStyles();
-    
+
     // 5. Update progress calculation
     console.log(`📊 Updating progress...`);
     updateProgress(rolePage);
-    
+
     // 6. Tambahkan visual feedback
     addVisualFeedback();
-    
+
     console.log(`✅ UI setup complete for ${rolePage}! Inputs should be editable now.`);
-    
+
     // 7. Debug final status
     console.log('=== FINAL STATE BUTTONS STATUS ===');
     debugStateButtonsStatus();
     debugFinalStatus();
-    
+
   }, 300);
 }
 
 function debugStateButtonsStatus() {
   if (!currentRole) return;
-  
+
   const pageId = currentRole + 'Page';
   const page = document.getElementById(pageId);
   if (!page) return;
-  
+
   // Sistem Pembuangan
   const wasteSystemInput = page.querySelector('#wasteSystemInput');
   const wasteButtons = page.querySelectorAll('.system-btn');
-  
+
   // Cor Meja Dapur
   const tableKitchenInput = page.querySelector('#tableKitchenInput');
   const tableButtons = page.querySelectorAll('.table-btn');
-  
+
   // Keramik Dinding
   const bathroomTilesInput = page.querySelector('#bathroomTilesInput');
   const tilesButtons = page.querySelectorAll('.tiles-btn');
-  
+
   console.log('State Buttons Status:');
   console.log('1. Sistem Pembuangan:', {
     inputValue: wasteSystemInput ? wasteSystemInput.value : 'null',
     activeButtons: Array.from(wasteButtons).filter(btn => btn.classList.contains('active')).length
   });
-  
+
   console.log('2. Cor Meja Dapur:', {
     inputValue: tableKitchenInput ? tableKitchenInput.value : 'null',
     activeButtons: Array.from(tableButtons).filter(btn => btn.classList.contains('active')).length
   });
-  
+
   console.log('3. Keramik Dinding:', {
     inputValue: bathroomTilesInput ? bathroomTilesInput.value : 'null',
     activeButtons: Array.from(tilesButtons).filter(btn => btn.classList.contains('active')).length
@@ -2005,13 +2005,13 @@ function addVisualFeedback() {
   const pageId = currentRole + 'Page';
   const page = document.getElementById(pageId);
   if (!page) return;
-  
+
   // Tambahkan efek visual untuk state buttons
   const stateBtns = page.querySelectorAll('.system-btn, .tiles-btn, .table-btn');
   stateBtns.forEach(btn => {
     // Tambah transition
     btn.style.transition = 'all 0.2s ease';
-    
+
     // Tambah hover effect yang lebih jelas
     btn.addEventListener('mouseenter', function() {
       if (!this.classList.contains('active')) {
@@ -2019,7 +2019,7 @@ function addVisualFeedback() {
         this.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
       }
     });
-    
+
     btn.addEventListener('mouseleave', function() {
       this.style.transform = 'translateY(0)';
       if (!this.classList.contains('active')) {
@@ -2027,13 +2027,13 @@ function addVisualFeedback() {
       }
     });
   });
-  
+
   // Tambah visual untuk checkbox
   const checkboxes = page.querySelectorAll('input[type="checkbox"]');
   checkboxes.forEach(cb => {
     cb.style.transform = 'scale(1.2)';
     cb.style.marginRight = '10px';
-    
+
     // Highlight jika checked
     if (cb.checked) {
       const label = cb.closest('label');
@@ -2050,9 +2050,9 @@ function debugFinalStatus() {
   const pageId = currentRole + 'Page';
   const page = document.getElementById(pageId);
   if (!page) return;
-  
+
   console.log('=== FINAL DEBUG STATUS ===');
-  
+
   // Checkboxes
   const checkboxes = page.querySelectorAll('input[type="checkbox"]');
   let enabledCheckboxes = 0;
@@ -2060,23 +2060,23 @@ function debugFinalStatus() {
     if (!cb.disabled) enabledCheckboxes++;
   });
   console.log(`Checkboxes: ${enabledCheckboxes}/${checkboxes.length} enabled`);
-  
+
   // State buttons
   const stateBtns = page.querySelectorAll('.system-btn, .tiles-btn, .table-btn');
   let enabledButtons = 0;
   stateBtns.forEach(btn => {
     if (!btn.disabled) enabledButtons++;
-    
+
     // Test click event
     const testClick = new Event('click', { bubbles: true });
     btn.dispatchEvent(testClick);
   });
   console.log(`State buttons: ${enabledButtons}/${stateBtns.length} enabled`);
-  
+
   // Simpan buttons
   const saveBtns = page.querySelectorAll('.btn-save-section');
   console.log(`Save buttons: ${saveBtns.length} found`);
-  
+
   // Test tombol pertama secara manual
   if (stateBtns.length > 0) {
     console.log('🔧 To test manually from console:');
@@ -2089,24 +2089,24 @@ function debugFinalStatus() {
 // Fungsi untuk test tombol secara manual
 function testStateButtonsManually() {
   console.log('=== MANUAL STATE BUTTONS TEST ===');
-  
+
   if (!currentRole) {
     console.log('No current role selected');
     return;
   }
-  
+
   const pageId = currentRole + 'Page';
   const page = document.getElementById(pageId);
-  
+
   if (!page) {
     console.log(`Page ${pageId} not found`);
     return;
   }
-  
+
   // Test Sistem Pembuangan
   const wasteButtons = page.querySelectorAll('.system-btn');
   console.log(`Found ${wasteButtons.length} system buttons`);
-  
+
   wasteButtons.forEach((btn, index) => {
     console.log(`System button ${index}:`, {
       text: btn.textContent.trim(),
@@ -2114,11 +2114,11 @@ function testStateButtonsManually() {
       isActive: btn.classList.contains('active')
     });
   });
-  
+
   // Test Cor Meja Dapur
   const tableButtons = page.querySelectorAll('.table-btn');
   console.log(`Found ${tableButtons.length} table buttons`);
-  
+
   tableButtons.forEach((btn, index) => {
     console.log(`Table button ${index}:`, {
       text: btn.textContent.trim(),
@@ -2126,11 +2126,11 @@ function testStateButtonsManually() {
       isActive: btn.classList.contains('active')
     });
   });
-  
+
   // Test Keramik Dinding
   const tilesButtons = page.querySelectorAll('.tiles-btn');
   console.log(`Found ${tilesButtons.length} tiles buttons`);
-  
+
   tilesButtons.forEach((btn, index) => {
     console.log(`Tiles button ${index}:`, {
       text: btn.textContent.trim(),
@@ -2145,24 +2145,24 @@ function forceTestButtons() {
   const pageId = currentRole + 'Page';
   const page = document.getElementById(pageId);
   if (!page) return;
-  
+
   console.log('🧪 FORCE TESTING BUTTONS...');
-  
+
   const stateBtns = page.querySelectorAll('.system-btn, .tiles-btn, .table-btn');
-  
+
   stateBtns.forEach((btn, index) => {
     console.log(`Testing button ${index}: ${btn.textContent.trim()}`);
-    
+
     // Simulate click
     btn.click();
-    
+
     // Check if click worked
     setTimeout(() => {
       const isActive = btn.classList.contains('active');
       console.log(`  Button ${index} active after click: ${isActive}`);
     }, 100);
   });
-  
+
   console.log('✅ Force testing complete. Check console for results.');
 }
 
@@ -2174,9 +2174,9 @@ function enableAllInputs() {
     console.error(`❌ Page ${pageId} not found for enableAllInputs`);
     return;
   }
-  
+
   console.log(`🔓 FORCE ENABLING ALL INPUTS for ${pageId}`);
-  
+
   // 1. Enable semua checkbox dengan cara paksa
   const checkboxes = page.querySelectorAll('input[type="checkbox"]');
   checkboxes.forEach((cb, index) => {
@@ -2184,16 +2184,16 @@ function enableAllInputs() {
     cb.removeAttribute('disabled');
     cb.disabled = false;
     cb.readOnly = false;
-    
+
     // Force styling
     cb.style.opacity = '1';
     cb.style.cursor = 'pointer';
     cb.style.pointerEvents = 'auto';
-    
+
     // Force event listener
     const newCb = cb.cloneNode(true);
     cb.parentNode.replaceChild(newCb, cb);
-    
+
     newCb.addEventListener('change', function() {
       console.log(`📝 Checkbox ${index} changed:`, this.checked);
       const label = this.closest('label');
@@ -2207,7 +2207,7 @@ function enableAllInputs() {
       updateProgress(pageId);
     });
   });
-  
+
   // 2. Enable tombol state dengan cara paksa
   const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
   stateButtons.forEach((btn, index) => {
@@ -2219,13 +2219,13 @@ function enableAllInputs() {
     // Hapus inline styles yang memaksa warna putih/abu-abu
     btn.style.backgroundColor = '';
     btn.style.color = '';
-    
+
     // Force event dengan .onclick
     btn.onclick = function(e) {
       e.preventDefault();
       e.stopPropagation();
       console.log(`🖱️ Button ${index} clicked via .onclick:`, this.textContent);
-      
+
       if (this.classList.contains('system-btn')) {
         toggleSystemButton(this, this.getAttribute('data-state'));
       } else if (this.classList.contains('tiles-btn')) {
@@ -2233,11 +2233,11 @@ function enableAllInputs() {
       } else if (this.classList.contains('table-btn')) {
         toggleTableButton(this, this.getAttribute('data-state'));
       }
-      
+
       return false;
     };
   });
-  
+
   console.log(`✅ Force enabled: ${checkboxes.length} checkboxes, ${stateButtons.length} state buttons`);
 }
 
@@ -2245,7 +2245,7 @@ function enableAllInputs() {
 function formatDateForInput(dateValue) {
   try {
     if (!dateValue) return '';
-    
+
     let date;
     if (dateValue instanceof Date) {
       date = dateValue;
@@ -2269,12 +2269,12 @@ function formatDateForInput(dateValue) {
     } else {
       return '';
     }
-    
+
     // Format ke yyyy-MM-dd untuk input[type="date"]
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
   } catch (error) {
     console.error('Error formatting date:', error);
@@ -2286,16 +2286,16 @@ function formatDateForInput(dateValue) {
 function findCheckboxByTaskName(taskName, tahap, pageId) {
   const pageElement = document.getElementById(pageId);
   if (!pageElement) return null;
-  
+
   const cleanTaskName = taskName.toUpperCase().trim();
   const checkboxes = pageElement.querySelectorAll(`[data-tahap="${tahap}"] .sub-task[type="checkbox"]`);
-  
+
   for (let cb of checkboxes) {
     if (cb.getAttribute('data-task') === cleanTaskName) {
       return cb;
     }
   }
-  
+
   // Fallback: search by text content if data-task doesn't match
   const cleanSearch = cleanTaskName.replace(/[^A-Z0-9]/g, '');
   for (let cb of checkboxes) {
@@ -2316,16 +2316,16 @@ async function saveTahap1() {
     showToast('error', 'Pilih kavling terlebih dahulu');
     return;
   }
-  
+
   const rolePage = currentRole + 'Page';
   const tahap1Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="1"]`);
   if (!tahap1Section) return;
-  
+
   const checkboxes = tahap1Section.querySelectorAll('.sub-task');
   const wasteSystemInput = tahap1Section.querySelector('#wasteSystemInput');
   const tableKitchenInput = tahap1Section.querySelector('#tableKitchenInput');
   const saveButton = tahap1Section.querySelector('.btn-save-section');
-  
+
   const t1Mapping = {
     "Land Clearing": "LAND CLEARING",
     "Pondasi": "PONDASI",
@@ -2378,9 +2378,9 @@ async function saveTahap1() {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveButton.disabled = true;
   }
-  
+
   showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 1...');
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveTahap1',
@@ -2388,12 +2388,12 @@ async function saveTahap1() {
       data: tahapData,
       user: currentRole
     });
-    
+
     hideGlobalLoading();
-    
+
     if (result.success) {
       showToast('success', `Berhasil! Tahap 1 untuk Blok ${selectedKavling} telah tersimpan.`);
-      
+
       // Update data lokal
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap1) currentKavlingData.data.tahap1 = {};
@@ -2403,7 +2403,7 @@ async function saveTahap1() {
           }
         });
       }
-      
+
       updateProgress(rolePage);
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 1');
@@ -2425,15 +2425,15 @@ async function saveTahap2() {
     showToast('error', 'Pilih kavling terlebih dahulu');
     return;
   }
-  
+
   const rolePage = currentRole + 'Page';
   const tahap2Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="2"]`);
   if (!tahap2Section) return;
-  
+
   const checkboxes = tahap2Section.querySelectorAll('.sub-task');
   const bathroomTilesInput = tahap2Section.querySelector('#bathroomTilesInput');
   const saveButton = tahap2Section.querySelector('.btn-save-section');
-  
+
   const t2Mapping = {
     "Rangka Atap": "RANGKA ATAP",
     "Genteng": "GENTENG",
@@ -2470,9 +2470,9 @@ async function saveTahap2() {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveButton.disabled = true;
   }
-  
+
   showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 2...');
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveTahap2',
@@ -2480,12 +2480,12 @@ async function saveTahap2() {
       data: tahapData,
       user: currentRole
     });
-    
+
     hideGlobalLoading();
-    
+
     if (result.success) {
       showToast('success', `Berhasil! Tahap 2 untuk Blok ${selectedKavling} telah tersimpan.`);
-      
+
       // Update data lokal
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap2) currentKavlingData.data.tahap2 = {};
@@ -2495,7 +2495,7 @@ async function saveTahap2() {
           }
         });
       }
-      
+
       updateProgress(rolePage);
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 2');
@@ -2517,14 +2517,14 @@ async function saveTahap3() {
     showToast('error', 'Pilih kavling terlebih dahulu');
     return;
   }
-  
+
   const rolePage = currentRole + 'Page';
   const tahap3Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="3"]`);
   if (!tahap3Section) return;
-  
+
   const checkboxes = tahap3Section.querySelectorAll('.sub-task');
   const saveButton = tahap3Section.querySelector('.btn-save-section');
-  
+
   const t3Mapping = {
     "Kusen Pintu & Jendela": "KUSEN PINTU & JENDELA",
     "Daun Pintu & Jendela": "DAUN PINTU & JENDELA",
@@ -2560,9 +2560,9 @@ async function saveTahap3() {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveButton.disabled = true;
   }
-  
+
   showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 3...');
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveTahap3',
@@ -2570,12 +2570,12 @@ async function saveTahap3() {
       data: tahapData,
       user: currentRole
     });
-    
+
     hideGlobalLoading();
-    
+
     if (result.success) {
       showToast('success', `Berhasil! Tahap 3 untuk Blok ${selectedKavling} telah tersimpan.`);
-      
+
       // Update data lokal
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap3) currentKavlingData.data.tahap3 = {};
@@ -2585,7 +2585,7 @@ async function saveTahap3() {
           }
         });
       }
-      
+
       updateProgress(rolePage);
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 3');
@@ -2607,11 +2607,11 @@ async function saveTahap4() {
     showToast('error', 'Pilih kavling terlebih dahulu');
     return;
   }
-  
+
   const rolePage = currentRole + 'Page';
   const tahap4Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="4"]`);
   if (!tahap4Section) return;
-  
+
   const commentEl = tahap4Section.querySelector('.tahap-comments');
   const deliveryEl = tahap4Section.querySelector('.key-delivery-input');
  const dateEl = tahap4Section.querySelector('.key-delivery-date');
@@ -2629,7 +2629,7 @@ async function saveTahap4() {
       }
     }
   }
-  
+
 
   const tahapData = {};
 
@@ -2637,12 +2637,12 @@ async function saveTahap4() {
     tahapData['COMPLETION / Penyelesaian akhir'] = completionCheckbox.checked;
     console.log('Completion checked:', completionCheckbox.checked);
   }
-  
+
    if (commentEl) {
     tahapData['KETERANGAN'] = commentEl.value.trim();
     console.log('Keterangan:', tahapData['KETERANGAN']);
   }
-  
+
   // Tambahkan PENYERAHAN KUNCI
   if (deliveryEl) {
     tahapData['PENYERAHAN KUNCI'] = deliveryEl.value.trim();
@@ -2654,20 +2654,20 @@ async function saveTahap4() {
     tahapData['TANGGAL_PENYERAHAN_KUNCI'] = dateEl.value;
     console.log('Tanggal:', tahapData['TANGGAL_PENYERAHAN_KUNCI']);
   }
-  
+
   // Tambahkan LT, LB, dan TYPE
   if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
   if (currentKavlingData.lb) tahapData['LB'] = currentKavlingData.lb;
   if (currentKavlingData.type) tahapData['TYPE'] = currentKavlingData.type;
  console.log('Tahap 4 data to save:', tahapData);
-  
+
   if (saveButton) {
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     saveButton.disabled = true;
   }
-  
+
   showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 4...');
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveTahap4',
@@ -2675,16 +2675,16 @@ async function saveTahap4() {
       data: tahapData,
       user: currentRole
     });
-    
+
     hideGlobalLoading();
-    
+
     if (result.success) {
       showToast('success', `Berhasil! Tahap 4 untuk Blok ${selectedKavling} telah tersimpan.`);
-      
+
       // PERBAIKAN PENTING: Update data lokal
       if (currentKavlingData.data) {
         if (!currentKavlingData.data.tahap4) currentKavlingData.data.tahap4 = {};
-        
+
         // Update semua field tahap 4
         Object.keys(tahapData).forEach(taskName => {
           if (taskName !== 'LT' && taskName !== 'LB' && taskName !== 'TYPE') {
@@ -2692,15 +2692,15 @@ async function saveTahap4() {
           }
         });
       }
-      
+
       // PERBAIKAN: Update total progress display dengan benar
       if (result.totalProgress) {
         updateTotalProgressDisplay(result.totalProgress, rolePage);
-        
+
         // Update juga di overall rekap
         const overallPercent = document.querySelector(`#${rolePage} .total-percent`);
         const overallBar = document.querySelector(`#${rolePage} .total-bar`);
-        
+
         if (overallPercent) {
           overallPercent.textContent = result.totalProgress;
         }
@@ -2716,17 +2716,17 @@ async function saveTahap4() {
           overallBar.style.width = percentValue + '%';
         }
       }
-      
+
       // PERBAIKAN: Refresh data kavling untuk mendapatkan progress terbaru dari server
       setTimeout(async () => {
         await searchKavling(); // Ini akan memuat ulang data dengan progress terbaru
         updateProgress(rolePage); // Update perhitungan progress lokal
       }, 300);
-      
+
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 4');
     }
-    
+
   } catch (error) {
     console.error('Error saving tahap 4:', error);
     showToast('error', 'Gagal menyimpan: ' + error.message);
@@ -2742,11 +2742,11 @@ async function saveTahap4() {
 async function loadSummaryReport() {
   try {
     showGlobalLoading('Mengambil laporan summary...');
-    
+
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'getSummaryReport'
     });
-    
+
     if (result.success) {
       displaySummaryReport(result);
       // Auto-filter to 'all' to show the list immediately
@@ -2754,7 +2754,7 @@ async function loadSummaryReport() {
     } else {
       showToast('error', result.message || 'Gagal mengambil laporan');
     }
-    
+
   } catch (error) {
     console.error('Error loading summary report:', error);
     showToast('error', 'Gagal mengambil laporan');
@@ -2766,12 +2766,12 @@ async function loadSummaryReport() {
 function displaySummaryReport(summaryData) {
   const container = document.getElementById('summaryReportContainer');
   if (!container) return;
-  
+
   console.log("Summary data received:", summaryData);
-  
+
   // Store summary data for filtering
   window.lastSummaryData = summaryData;
-  
+
   // PERBAIKAN: Jika server tidak mengirimkan allKavlings atau items, kita kumpulkan dari kategori
   if (!summaryData.allKavlings && !summaryData.items) {
     summaryData.allKavlings = [
@@ -2781,32 +2781,32 @@ function displaySummaryReport(summaryData) {
       ...(summaryData.categories?.lowProgress?.items || summaryData.categories?.lowProgress?.kavlings || summaryData.needAttention || [])
     ];
   }
-  
+
   const timestamp = new Date(summaryData.timestamp || new Date()).toLocaleString('id-ID');
-  
+
   // Ensure we have numbers for the badges
   const totalCount = summaryData.totalKavlings || 
                      (summaryData.items ? summaryData.items.length : 0) || 
                      (summaryData.allKavlings ? summaryData.allKavlings.length : 0) || 0;
-  
+
   const completedCount = summaryData.categories?.completed?.count || 
                          summaryData.completedKavlings?.length || 
                          summaryData.items?.filter(k => (parseInt(k.totalProgress) || 0) >= 89).length || 0;
-                         
+
   const almostCount = summaryData.categories?.almostCompleted?.count || 
                       summaryData.almostCompletedKavlings?.length || 
                       summaryData.items?.filter(k => {
                         const p = parseInt(k.totalProgress) || 0;
                         return p >= 60 && p < 89;
                       }).length || 0;
-                      
+
   const progressCount = summaryData.categories?.inProgress?.count || 
                         summaryData.inProgressKavlings?.length || 
                         summaryData.items?.filter(k => {
                           const p = parseInt(k.totalProgress) || 0;
                           return p >= 10 && p < 60;
                         }).length || 0;
-                        
+
   const lowCount = summaryData.categories?.lowProgress?.count || 
                    summaryData.lowProgressKavlings?.length || 
                    summaryData.items?.filter(k => (parseInt(k.totalProgress) || 0) < 10).length || 0;
@@ -2816,7 +2816,7 @@ function displaySummaryReport(summaryData) {
       <h3><i class="fas fa-chart-bar"></i> Laporan Summary Progress Kavling</h3>
       <p class="summary-timestamp">Diperbarui: ${timestamp}</p>
     </div>
-    
+
     <div class="summary-stats">
       <div class="stat-card stat-total" onclick="filterKavlingByProgress('all')" style="cursor: pointer;">
         <div class="stat-icon">
@@ -2827,7 +2827,7 @@ function displaySummaryReport(summaryData) {
           <div class="stat-label">Total Kavling</div>
         </div>
       </div>
-      
+
       <div class="stat-card stat-completed" onclick="filterKavlingByProgress('completed')" style="cursor: pointer;">
         <div class="stat-icon">
           <i class="fas fa-check-circle"></i>
@@ -2838,7 +2838,7 @@ function displaySummaryReport(summaryData) {
           <div class="stat-percent">${totalCount > 0 ? Math.round((completedCount/totalCount)*100) : 0}%</div>
         </div>
       </div>
-      
+
       <div class="stat-card stat-almost" onclick="filterKavlingByProgress('almostCompleted')" style="cursor: pointer;">
         <div class="stat-icon">
           <i class="fas fa-hourglass-half"></i>
@@ -2849,7 +2849,7 @@ function displaySummaryReport(summaryData) {
           <div class="stat-percent">${totalCount > 0 ? Math.round((almostCount/totalCount)*100) : 0}%</div>
         </div>
       </div>
-      
+
       <div class="stat-card stat-progress" onclick="filterKavlingByProgress('inProgress')" style="cursor: pointer;">
         <div class="stat-icon">
           <i class="fas fa-tools"></i>
@@ -2860,7 +2860,7 @@ function displaySummaryReport(summaryData) {
           <div class="stat-percent">${totalCount > 0 ? Math.round((progressCount/totalCount)*100) : 0}%</div>
         </div>
       </div>
-      
+
       <div class="stat-card stat-low" onclick="filterKavlingByProgress('lowProgress')" style="cursor: pointer;">
         <div class="stat-icon">
           <i class="fas fa-exclamation-triangle"></i>
@@ -2879,7 +2879,7 @@ function displaySummaryReport(summaryData) {
       </div>
     </div>
   `;
-  
+
   container.innerHTML = html;
 }
 
@@ -2905,11 +2905,11 @@ function renderKavlingSection(title, kavlings) {
       </div>
       <div class="kavling-list">
   `;
-  
+
   kavlings.forEach((kavling, index) => {
     const progressVal = parseInt(kavling.totalProgress) || 0;
     const progressClass = progressVal >= 89 ? 'progress-high' : (progressVal >= 60 ? 'progress-medium' : 'progress-low');
-    
+
     html += `
       <div class="kavling-item">
         <div class="kavling-rank">${index + 1}</div>
@@ -2921,7 +2921,7 @@ function renderKavlingSection(title, kavlings) {
       </div>
     `;
   });
-  
+
   html += `</div></div>`;
   return html;
 }
@@ -2993,7 +2993,7 @@ function filterKavlingByProgress(category) {
 
   console.log(`Filtering for ${category}, found ${kavlings.length} items`);
   sectionContainer.innerHTML = renderKavlingSection(title, kavlings);
-  
+
   // Highlight active card
   document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active-filter'));
   const activeCardClass = `.stat-${category === 'almostCompleted' ? 'almost' : (category === 'inProgress' ? 'progress' : (category === 'all' ? 'total' : category))}`;
@@ -3006,15 +3006,15 @@ async function saveUtilitasData() {
     showToast('warning', 'Pilih kavling terlebih dahulu!');
     return;
   }
-  
+
   const listrikDate = document.getElementById('listrikInstallDate')?.value || '';
   const airDate = document.getElementById('airInstallDate')?.value || '';
   const notes = document.getElementById('utilityNotes')?.value || '';
-  
+
   console.log('Saving utilitas data:', { listrikDate, airDate, notes });
-  
+
   showGlobalLoading('Menyimpan data utilitas...');
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveUtilitasData',
@@ -3024,10 +3024,10 @@ async function saveUtilitasData() {
       notes: notes,
       user: 'user4'
     });
-    
+
     if (result.success) {
       showToast('success', 'Data utilitas berhasil disimpan!');
-      
+
       // Update data lokal jika perlu
       if (currentKavlingData) {
         if (!currentKavlingData.utilitas) currentKavlingData.utilitas = {};
@@ -3048,18 +3048,18 @@ async function saveUtilitasData() {
 
 function setupUser4Page() {
     console.log('Setting up User4 page...');
-    
+
     // Load script admin
     loadAdminUtilitasScript().then(() => {
         // Setup tabs
         setupUser4Tabs();
-        
+
         // Setup event listeners
         setupUser4EventListeners();
-        
+
         // Setup mutasi buttons
         setupMutasiButtons();
-        
+
         // Setup dropdown search
         const searchSelect = document.getElementById('searchKavlingUser4');
         if (searchSelect) {
@@ -3069,7 +3069,7 @@ function setupUser4Page() {
                 }
             });
         }
-        
+
         console.log('User4 page setup complete with Admin Utilitas');
     }).catch(error => {
         console.error('Failed to load Admin Utilitas, using fallback:', error);
@@ -3101,13 +3101,13 @@ function debugKeyDeliveryStructure() {
         console.log('❌ user4Page not found');
         return;
     }
-    
+
     const deliveryTab = user4Page.querySelector('#tab-delivery');
     if (!deliveryTab) {
         console.log('❌ tab-delivery not found in HTML');
         return;
     }
-    
+
     console.log('✅ tab-delivery found');
 }
 
@@ -3118,16 +3118,16 @@ function loadUtilitasDataFromData(data) {
     if (keyInput) {
         keyInput.value = data.data?.tahap4?.['PENYERAHAN KUNCI'] || '';
     }
-    
+
     // Utility Dates
     const listrikInput = document.getElementById('listrikInstallDate');
     const airInput = document.getElementById('airInstallDate');
     const propNotesInput = document.getElementById('utilityPropertyNotes');
-    
+
     if (listrikInput) listrikInput.value = data.utilitas?.listrikDate || '';
     if (airInput) airInput.value = data.utilitas?.airDate || '';
     if (propNotesInput) propNotesInput.value = data.propertyNotes || '';
-    
+
     // Panggil admin utilitas jika tersedia
     if (currentRole === 'user4' && window.adminUtilitas && window.adminUtilitas.loadData) {
         setTimeout(() => {
@@ -3143,7 +3143,7 @@ function setupKeyDeliveryButton() {
     // Hapus listener lama jika ada
     const newBtn = btnSaveKeyDelivery.cloneNode(true);
     btnSaveKeyDelivery.parentNode.replaceChild(newBtn, btnSaveKeyDelivery);
-    
+
     newBtn.addEventListener('click', function(e) {
       e.preventDefault();
       saveKeyDelivery();
@@ -3160,7 +3160,7 @@ function setupMutasiButtons() {
       saveMutasi('masuk');
     });
   }
-  
+
   // Button mutasi keluar
   const btnMutasiKeluar = document.querySelector('#tab-kunci-keluar .btn-save-section');
   if (btnMutasiKeluar) {
@@ -3169,7 +3169,7 @@ function setupMutasiButtons() {
       saveMutasi('keluar');
     });
   }
-  
+
   // Button mutasi HO
   const btnMutasiHO = document.querySelector('#tab-ho-user .btn-save-section');
   if (btnMutasiHO) {
@@ -3185,9 +3185,9 @@ async function saveMutasi(type) {
     showToast('warning', 'Pilih kavling terlebih dahulu!');
     return;
   }
-  
+
   let dariInput, keInput, tglInput;
-  
+
   switch(type) {
     case 'masuk':
       dariInput = document.querySelector('.input-mutasi-masuk-dari');
@@ -3205,18 +3205,18 @@ async function saveMutasi(type) {
       tglInput = document.querySelector('.input-mutasi-ho-tgl');
       break;
   }
-  
+
   const dari = dariInput?.value || '';
   const ke = keInput?.value || '';
   const tgl = tglInput?.value || '';
-  
+
   if (!dari || !ke) {
     showToast('warning', 'Nama pemberi dan penerima harus diisi!');
     return;
   }
-  
+
   showGlobalLoading('Menyimpan mutasi kunci...');
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveMutasi',
@@ -3227,10 +3227,10 @@ async function saveMutasi(type) {
       tanggal: tgl,
       user: 'user4'
     });
-    
+
     if (result.success) {
       showToast('success', `Mutasi kunci ${type} berhasil disimpan!`);
-      
+
       // Reset form jika berhasil
       if (dariInput) dariInput.value = '';
       if (keInput) keInput.value = '';
@@ -3250,7 +3250,7 @@ function downloadKavlingToExcel(title) {
   // Simple CSV generation as a proxy for Excel since we are in client-side JS without heavy libraries
   const sectionContainer = document.getElementById('filteredKavlingSection');
   const items = sectionContainer.querySelectorAll('.kavling-item');
-  
+
   if (items.length === 0) {
     showToast('warning', 'Tidak ada data untuk didownload');
     return;
@@ -3264,7 +3264,7 @@ function downloadKavlingToExcel(title) {
     const name = item.querySelector('.kavling-name').textContent;
     const details = item.querySelector('.kavling-details').textContent;
     const progress = item.querySelector('.kavling-progress').textContent;
-    
+
     // Parse details LT: 72 | LB: 36
     const lt = details.match(/LT: (.*?) \|/) ? details.match(/LT: (.*?) \|/)[1] : '-';
     const lb = details.match(/LB: (.*)$/) ? details.match(/LB: (.*)$/)[1] : '-';
@@ -3279,7 +3279,7 @@ function downloadKavlingToExcel(title) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
+
   showToast('success', 'Laporan berhasil didownload');
 }
 
@@ -3290,11 +3290,11 @@ async function loadActivityLog() {
       action: 'getActivityLog',
       limit: 20
     });
-    
+
     if (result.success && result.logs) {
       displayActivityLog(result.logs);
     }
-    
+
   } catch (error) {
     console.error('Error loading activity log:', error);
   }
@@ -3303,12 +3303,12 @@ async function loadActivityLog() {
 function displayActivityLog(logs) {
   const container = document.getElementById('activityLogContainer');
   if (!container) return;
-  
+
   if (logs.length === 0) {
     container.innerHTML = '<p class="no-data">Belum ada aktivitas yang tercatat</p>';
     return;
   }
-  
+
   let html = `
     <div class="activity-header">
       <h4><i class="fas fa-history"></i> Log Aktivitas Terakhir</h4>
@@ -3316,7 +3316,7 @@ function displayActivityLog(logs) {
     </div>
     <div class="activity-list">
   `;
-  
+
   logs.forEach(log => {
     const time = new Date(log.timestamp).toLocaleString('id-ID', {
       hour: '2-digit',
@@ -3324,12 +3324,12 @@ function displayActivityLog(logs) {
       day: '2-digit',
       month: 'short'
     });
-    
+
     const icon = log.action === 'LOGIN' ? 'sign-in-alt' :
                  log.action.includes('UPDATE') ? 'edit' :
                  log.action === 'ADD_KAVLING' ? 'plus-circle' :
                  log.action === 'EXPORT_REPORT' ? 'file-export' : 'info-circle';
-    
+
     html += `
       <div class="activity-item">
         <div class="activity-icon">
@@ -3346,7 +3346,7 @@ function displayActivityLog(logs) {
       </div>
     `;
   });
-  
+
   html += `</div>`;
   container.innerHTML = html;
 }
@@ -3354,17 +3354,17 @@ function displayActivityLog(logs) {
 async function loadUsersForAdmin() {
   try {
     showGlobalLoading('Memuat data pengguna...');
-    
+
     const result = await getDataFromServer(USER_APPS_SCRIPT_URL, {
       action: 'getUsers'
     });
-    
+
     if (result.success && result.users) {
       displayUsersForAdmin(result.users);
     } else {
       showToast('error', result.message || 'Gagal memuat data pengguna');
     }
-    
+
   } catch (error) {
     console.error('Error loading users:', error);
     showToast('error', 'Gagal memuat data pengguna');
@@ -3376,12 +3376,12 @@ async function loadUsersForAdmin() {
 function displayUsersForAdmin(users) {
   const container = document.getElementById('usersListContainer');
   if (!container) return;
-  
+
   if (!users || users.length === 0) {
     container.innerHTML = '<p class="no-data">Tidak ada data pengguna</p>';
     return;
   }
-  
+
   let html = `
     <div class="users-header">
       <h4><i class="fas fa-users"></i> Daftar Pengguna</h4>
@@ -3389,10 +3389,10 @@ function displayUsersForAdmin(users) {
     </div>
     <div class="users-list">
   `;
-  
+
   users.forEach(user => {
     const roleName = defaultDisplayNames[user.role] || user.role;
-    
+
     html += `
       <div class="user-item">
         <div class="user-info">
@@ -3418,7 +3418,7 @@ function displayUsersForAdmin(users) {
       </div>
     `;
   });
-  
+
   html += `</div>`;
   container.innerHTML = html;
 }
@@ -3431,18 +3431,18 @@ async function submitNewKavling() {
   const lbInput = document.getElementById('newKavlingLB');
   const typeInput = document.getElementById('newKavlingType');
   const submitBtn = document.getElementById('submitNewKavling');
-  
+
  if (!nameInput) { 
     console.error('Missing name input');
     showToast('error', 'Elemen form tidak ditemukan!');
     return;
   }
-  
+
   const name = nameInput.value.trim();
   const lt = ltInput ? ltInput.value.trim() : '';
   const lb = lbInput ? lbInput.value.trim() : ''; 
   const type = typeInput ? typeInput.value.trim() : '';
-  
+
   console.log('Kavling data:', { name, lt, lb, type });
 
   if (!name) { 
@@ -3450,12 +3450,12 @@ async function submitNewKavling() {
     nameInput.focus();
     return;
   }
-  
+
   if (submitBtn) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     submitBtn.disabled = true;
   }
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'addNewKavling',
@@ -3465,28 +3465,28 @@ async function submitNewKavling() {
       type: type || '',
       createdBy: currentRole || 'admin'
     });
-    
+
     console.log('Server result:', result);
 
     if (result.success) {
       showToast('success', result.message || 'Kavling berhasil ditambahkan');
-      
+
       // Clear all inputs and progress displays to start fresh
       clearInputsForNewLoad();
-      
+
       // Reset form fields in the modal
       if (nameInput) nameInput.value = '';
       if (ltInput) ltInput.value = '';
       if (lbInput) lbInput.value = '';
       if (typeInput) typeInput.value = '';
-      
+
       // Tutup modal
       const modal = document.getElementById('addKavlingModal');
       if (modal) modal.style.display = 'none';
-      
+
       // Refresh daftar kavling dari server
       await loadKavlingList();
-      
+
       // Optional: Auto-select the newly created kavling
       if (name) {
         selectedKavling = name;
@@ -3494,7 +3494,7 @@ async function submitNewKavling() {
         // Trigger a sync for the new kavling (which should have 0% progress)
         await searchKavling(true);
       }
-      
+
     } else {
       showToast('error', result.message || 'Gagal menambahkan kavling');
     }
@@ -3516,59 +3516,59 @@ async function handleLogin() {
   const passwordInput = document.getElementById('passwordInput');
   const errorMsg = document.getElementById('errorMessage');
   const submitBtn = document.getElementById('submitPassword');
-  
+
   if (!passwordInput || !currentRole) return;
-  
+
   const password = passwordInput.value.trim();
   if (!password) {
     if (errorMsg) errorMsg.textContent = 'Password harus diisi!';
     showToast('warning', 'Password harus diisi');
     return;
   }
-  
+
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memverifikasi...';
   }
-  
+
   try {
     const result = await getDataFromServer(USER_APPS_SCRIPT_URL, {
       action: 'login',
       role: currentRole,
       password: password
     });
-    
+
     if (result.success) {
       sessionStorage.setItem('loggedRole', currentRole);
       sessionStorage.setItem('loggedDisplayName', result.displayName);
       sessionStorage.setItem('loginTime', new Date().toISOString());
-      
+
       document.querySelectorAll(`[data-role="${currentRole}"] h3`).forEach(el => {
         el.textContent = result.displayName;
       });
-      
+
       updateDashboardTitle(currentRole, result.displayName);
-      
+
       const modal = document.getElementById('passwordModal');
       if (modal) modal.style.display = 'none';
-      
+
       showToast('success', `Login berhasil sebagai ${result.displayName}`);
       showPage(currentRole);
-      
+
       // ===== TAMBAHAN: Load data awal setelah login pelaksana =====
       if (currentRole.startsWith('user')) {
         setTimeout(async () => {
           await loadKavlingListWithLoading();
         }, 100);
       }
-      
+
     } else {
       if (errorMsg) errorMsg.textContent = result.message || 'Password salah!';
       showToast('error', 'Password salah');
       passwordInput.value = '';
       passwordInput.focus();
     }
-    
+
   } catch (error) {
     console.error('Login error:', error);
     if (errorMsg) errorMsg.textContent = 'Gagal menghubungi server';
@@ -3590,7 +3590,7 @@ function updateDashboardTitle(role, name) {
     'manager': 'managerTitle',
     'admin': 'adminTitle'
   };
-  
+
   const el = document.getElementById(titleIds[role]);
   if (el) {
     const prefix = role === 'manager' ? 'Dashboard' : (role === 'admin' ? 'Panel' : 'Dashboard');
@@ -3600,7 +3600,7 @@ function updateDashboardTitle(role, name) {
   // Reset selected kavling when entering dashboard
   selectedKavling = null;
   currentKavlingData = null;
-  
+
   // Clear all kavling selections including custom search inputs
   setSelectedKavlingInDropdowns('');
 
@@ -3656,27 +3656,27 @@ function updateDashboardTitle(role, name) {
 function setupUser4Tabs() {
   const page = document.getElementById('user4Page');
   if (!page) return;
-  
+
   const tabBtns = page.querySelectorAll('.admin-tab-btn');
   const tabContents = page.querySelectorAll('.tab-content-item');
-  
+
   console.log('Setting up User4 tabs, count:', tabBtns.length);
 
   tabBtns.forEach(btn => {
     btn.addEventListener('click', function() {
       const tabId = this.getAttribute('data-tab');
       console.log('User4 Tab clicked:', tabId);
-      
+
       // Hapus active dari semua tombol dan konten di halaman ini
       tabBtns.forEach(b => b.classList.remove('active'));
       tabContents.forEach(c => c.classList.remove('active'));
-      
+
       // Tambah active ke yang dipilih
       this.classList.add('active');
       const targetTab = page.querySelector('#tab-' + tabId);
       if (targetTab) {
         targetTab.classList.add('active');
-        
+
         // ===== TAMBAHAN: Load data ketika tab diaktifkan =====
         if (tabId === 'delivery' && selectedKavling) {
           setTimeout(() => {
@@ -3691,24 +3691,24 @@ function setupUser4Tabs() {
 async function loadKavlingListWithLoading() {
   console.log('Loading kavling list with loading modal...');
   showGlobalLoading('Memuat daftar kavling...');
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'getKavlingList'
     });
-    
+
     if (result.success && result.kavlings && result.kavlings.length > 0) {
       allKavlings = result.kavlings; // Store globally
       updateAllKavlingSelects(result.kavlings);
       console.log(`✅ Loaded ${result.kavlings.length} kavlings`);
-      
+
       // Tampilkan sukses dan auto close
       showStatusModal('success', 'Daftar Dimuat', `${result.kavlings.length} kavling berhasil dimuat!`);
-      
+
       setTimeout(() => {
         hideGlobalLoading();
       }, 1500);
-      
+
       return result.kavlings;
     } else {
       hideGlobalLoading();
@@ -3716,7 +3716,7 @@ async function loadKavlingListWithLoading() {
       showToast('warning', 'Tidak ada data kavling ditemukan');
       return [];
     }
-    
+
   } catch (error) {
     hideGlobalLoading();
     console.error('❌ Error loading kavling list:', error);
@@ -3729,25 +3729,25 @@ function showPage(role) {
   document.querySelectorAll('.page-content').forEach(page => {
     page.style.display = 'none';
   });
-  
+
   document.querySelectorAll('.section-container').forEach(container => {
     container.style.display = 'none';
   });
-  
+
   const pageElement = document.getElementById(role + 'Page');
   if (pageElement) {
     pageElement.style.display = 'block';
     pageElement.setAttribute('aria-hidden', 'false');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
+
     const savedName = sessionStorage.getItem('loggedDisplayName');
     if (savedName) updateDashboardTitle(role, savedName);
-    
+
     // ⚡ RESET: Nonaktifkan semua input terlebih dahulu
     disableAllInputs();
    // ⚡ Aktifkan hanya input pencarian
     enableSearchInputs();
-    
+
     if (role === 'admin') {
       setTimeout(() => {
         loadUsersForAdmin();
@@ -3762,7 +3762,7 @@ function showPage(role) {
       setTimeout(() => {
         loadKavlingList();
         setupPelaksanaTabs();
-        
+
         // Setup awal untuk checkbox di halaman pelaksana
         setTimeout(() => {
           setupCheckboxListeners(role + 'Page');
@@ -3785,7 +3785,7 @@ function enableSearchInputs() {
   const pageId = currentRole + 'Page';
   const page = document.getElementById(pageId);
   if (!page) return;
-  
+
   // Aktifkan semua input pencarian
   const searchInputs = page.querySelectorAll('.search-input-custom, input[id*="searchKavling"]');
   searchInputs.forEach(input => {
@@ -3794,7 +3794,7 @@ function enableSearchInputs() {
     input.style.pointerEvents = 'auto';
     input.style.cursor = 'text';
   });
-  
+
   // Aktifkan dropdown list jika ada
   const dropdownLists = page.querySelectorAll('.custom-dropdown-list');
   dropdownLists.forEach(list => {
@@ -3804,15 +3804,15 @@ function enableSearchInputs() {
 
 function setupPelaksanaTabs() {
   const roles = ['user1', 'user2', 'user3'];
-  
+
   roles.forEach(role => {
     const pageId = role + 'Page';
     const page = document.getElementById(pageId);
     if (!page) return;
-    
+
     const tabBtns = page.querySelectorAll('.admin-tab-btn');
     const tabContents = page.querySelectorAll('.tab-content-item');
-    
+
     console.log(`Setting up pelaksana tabs for ${role}, count:`, tabBtns.length);
 
     // Set active tab pertama kali jika belum ada yang active
@@ -3833,19 +3833,19 @@ function setupPelaksanaTabs() {
       // Remove old listener and add new one
       const newBtn = btn.cloneNode(true);
       btn.parentNode.replaceChild(newBtn, btn);
-      
+
       newBtn.addEventListener('click', function() {
         const tabId = this.getAttribute('data-tab');
         console.log(`Tab clicked for ${role}:`, tabId);
-        
+
         // Re-select fresh buttons and contents after clones
         const allBtns = page.querySelectorAll('.admin-tab-btn');
         const allContents = page.querySelectorAll('.tab-content-item');
-        
+
         // Reset
         allBtns.forEach(b => b.classList.remove('active'));
         allContents.forEach(c => c.classList.remove('active'));
-        
+
         // Set active
         this.classList.add('active');
         const targetTab = page.querySelector(`#tab-${tabId}`);
@@ -3864,7 +3864,7 @@ function goBack() {
   document.querySelectorAll('.section-container').forEach(container => {
     container.style.display = 'block';
   });
-  
+
   document.querySelectorAll('.page-content').forEach(page => {
     page.style.display = 'none';
     page.setAttribute('aria-hidden', 'true');
@@ -3885,20 +3885,20 @@ function clearSession() {
 async function syncData() {
   const rolePage = currentRole + 'Page';
   const syncBtn = document.querySelector(`#${rolePage} .sync-btn`);
-  
+
   if (syncBtn) {
     syncBtn.disabled = true;
     syncBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Sinkronisasi...';
   }
-  
+
   try {
     showGlobalLoading('Sinkronisasi data...');
    await loadKavlingListWithLoading();
-    
+
     // Clear selections and reset UI
     selectedKavling = null;
     currentKavlingData = null;
-    
+
     // Clear all selections including custom search inputs
     setSelectedKavlingInDropdowns('');
 
@@ -3950,12 +3950,12 @@ async function syncData() {
 
  // Tampilkan success dan auto close setelah 1.5 detik
     showStatusModal('success', 'Sinkronisasi Berhasil', 'Data berhasil disinkronisasi!');
-    
+
     setTimeout(() => {
       hideGlobalLoading();
       showToast('success', 'Data berhasil disinkronisasi dan tampilan dibersihkan!');
     }, 1500);
-    
+
   } catch (error) {
     console.error('Sync error:', error);
     hideGlobalLoading();
@@ -3972,25 +3972,25 @@ async function syncData() {
 // ========== TAB FUNCTIONS ==========
 function setupManagerTabs() {
   const tabBtns = document.querySelectorAll('#managerPage .admin-tab-btn, #user4Page .admin-tab-btn');
-  
+
   tabBtns.forEach(btn => {
     btn.addEventListener('click', function() {
       const tabId = this.getAttribute('data-tab');
       const parentPage = this.closest('.page-content');
-      
+
       const siblingBtns = parentPage.querySelectorAll('.admin-tab-btn');
       const siblingContents = parentPage.querySelectorAll('.tab-content-item');
-      
+
       // Hapus active dari saudara
       siblingBtns.forEach(b => b.classList.remove('active'));
       siblingContents.forEach(c => c.classList.remove('active'));
-      
+
       // Tambah active ke yang dipilih
       this.classList.add('active');
       const targetTab = document.getElementById(`tab-${tabId}`);
       if (targetTab) {
         targetTab.classList.add('active');
-        
+
         // Load data sesuai tab (Manager)
         if (parentPage.id === 'managerPage') {
           if (tabId === 'reports') {
@@ -4007,7 +4007,7 @@ function setupManagerTabs() {
 function setupAdminTabs() {
   const tabBtns = document.querySelectorAll('#adminPage .admin-tab-btn');
   const tabContents = document.querySelectorAll('#adminPage .tab-content-item');
-  
+
   // Set active tab pertama kali
   if (tabBtns.length > 0 && !document.querySelector('#adminPage .admin-tab-btn.active')) {
     tabBtns[0].classList.add('active');
@@ -4015,28 +4015,28 @@ function setupAdminTabs() {
     const firstTab = document.getElementById(`tab-${firstTabId}-admin`);
     if (firstTab) firstTab.classList.add('active');
   }
-  
+
   // Tambahkan tombol sync di tab laporan admin
   const adminButtons = document.getElementById('adminButtons');
-  
+
   tabBtns.forEach(btn => {
     btn.addEventListener('click', function() {
       const tabId = this.getAttribute('data-tab');
-      
+
       // Hapus active dari semua
       tabBtns.forEach(b => b.classList.remove('active'));
       tabContents.forEach(c => c.classList.remove('active'));
-      
+
       // Tambah active ke yang dipilih
       this.classList.add('active');
       const targetTab = document.getElementById(`tab-${tabId}-admin`);
       if (targetTab) {
         targetTab.classList.add('active');
-        
+
         // Jika tab laporan, load report dan tambahkan tombol sync
         if (tabId === 'reports') {
           setTimeout(loadSummaryReport, 100);
-          
+
           // Tambahkan tombol sync jika belum ada
           if (!document.querySelector('#adminButtons .sync-btn')) {
             const syncBtn = document.createElement('button');
@@ -4054,7 +4054,7 @@ function setupAdminTabs() {
             existingSyncBtn.remove();
           }
         }
-        
+
         // Load data sesuai tab
         if (tabId === 'users') {
           setTimeout(loadUsersForAdmin, 100);
@@ -4068,7 +4068,7 @@ function setupAdminTabs() {
 
 function setupDynamicEventListeners() {
   console.log('Setting up dynamic event listeners...');
-  
+
   // 1. Tombol tambah kavling
   document.querySelectorAll('.btn-add-kavling').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -4077,7 +4077,7 @@ function setupDynamicEventListeners() {
       if (modal) modal.style.display = 'flex';
     });
   });
-  
+
   // 2. Tombol submit tambah kavling
   const submitNewKavlingBtn = document.getElementById('submitNewKavling');
   if (submitNewKavlingBtn) {
@@ -4086,7 +4086,7 @@ function setupDynamicEventListeners() {
       submitNewKavling();
     });
   }
-  
+
   // 3. Tombol close modal tambah kavling
   const closeAddKavlingBtn = document.getElementById('closeAddKavling');
   if (closeAddKavlingBtn) {
@@ -4094,7 +4094,7 @@ function setupDynamicEventListeners() {
       document.getElementById('addKavlingModal').style.display = 'none';
     });
   }
-  
+
   // 4. Tombol sync
   document.querySelectorAll('.sync-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -4102,13 +4102,13 @@ function setupDynamicEventListeners() {
       syncData();
     });
   });
-  
+
   // 5. Tombol logout
   document.querySelectorAll('.logout-btn').forEach(btn => {
     // Hapus event listener lama
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
-    
+
     // Tambah event listener baru
     newBtn.addEventListener('click', function(e) {
       e.preventDefault();
@@ -4132,21 +4132,21 @@ function setupDynamicEventListeners() {
   document.querySelectorAll('.btn-save-section:not(#tab-notes .btn-save-section)').forEach(btn => {
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
-    
+
     // Tambah listener baru
     newBtn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       console.log('Save button clicked:', this);
-      
+
       // PERBAIKAN: Cari .progress-section dengan benar
       const progressSection = this.closest('.progress-section');
       console.log('Closest progress section:', progressSection);
-      
+
       if (progressSection) {
         const tahap = progressSection.getAttribute('data-tahap');
         console.log(`Processing tahap ${tahap}`);
-        
+
         if (tahap === '1') {
           console.log('Calling saveTahap1');
           saveTahap1();
@@ -4165,7 +4165,7 @@ function setupDynamicEventListeners() {
       } else {
         console.error('No progress section found for this button!');
         console.log('Parent structure:', this.parentElement);
-        
+
         // Fallback: Coba ambil data-tahap dari tombol itu sendiri
         const tahapFromBtn = this.getAttribute('data-tahap');
         if (tahapFromBtn === '4') {
@@ -4175,7 +4175,7 @@ function setupDynamicEventListeners() {
       }
     });
   });
-  
+
   // 8. Dropdown kavling
   const selectIds = ['searchKavlingUser1', 'searchKavlingUser2', 'searchKavlingUser3', 'searchKavlingUser4', 'searchKavlingManager'];
   selectIds.forEach(selectId => {
@@ -4184,7 +4184,7 @@ function setupDynamicEventListeners() {
       // Hapus event listener lama
       const newEl = el.cloneNode(true);
       el.parentNode.replaceChild(newEl, el);
-      
+
       // Tambah event listener baru
       newEl.addEventListener('change', () => {
         console.log('Kavling dropdown changed:', selectId);
@@ -4192,7 +4192,7 @@ function setupDynamicEventListeners() {
       });
     }
   });
-  
+
   // 9. Tombol close modal
   document.querySelectorAll('.close-btn').forEach(btn => {
     if (!btn.id || !btn.id.includes('AddKavling')) {
@@ -4202,7 +4202,7 @@ function setupDynamicEventListeners() {
       });
     }
   });
-  
+
   // 10. Tutup modal ketika klik di luar konten modal
   window.addEventListener('click', function(event) {
     const modals = document.querySelectorAll('.modal');
@@ -4213,22 +4213,22 @@ function setupDynamicEventListeners() {
       }
     });
   });
-  
+
   // 11. Setup admin tabs jika di halaman admin
   if (document.getElementById('adminPage')) {
     setupAdminTabs();
   }
-  
+
   // 12. Setup manager tabs jika di halaman manager
   if (document.getElementById('managerPage')) {
     setupManagerTabs();
   }
-  
+
   // 13. Setup pelaksana tabs
   if (document.getElementById('user1Page') || document.getElementById('user2Page') || document.getElementById('user3Page')) {
     setupPelaksanaTabs();
   }
-  
+
   // 14. Setup user4 tabs jika di halaman user4
   if (document.getElementById('user4Page')) {
     setupUser4Tabs();
@@ -4239,7 +4239,7 @@ function setupDynamicEventListeners() {
   if (saveKeyDeliveryBtn) {
     const newBtn = saveKeyDeliveryBtn.cloneNode(true);
     saveKeyDeliveryBtn.parentNode.replaceChild(newBtn, saveKeyDeliveryBtn);
-    
+
     newBtn.addEventListener('click', async function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -4247,7 +4247,7 @@ function setupDynamicEventListeners() {
       await saveKeyDelivery();
     });
   }
-  
+
   console.log('Dynamic event listeners setup complete');
 }
 
@@ -4260,7 +4260,7 @@ function initApp() {
     console.log('Setting up role buttons...');
     setupRoleButtons();
   }, 100);
-  
+
   // Setup event delegation untuk checkbox
   document.addEventListener('change', function(e) {
     if (e.target.classList.contains('sub-task') && e.target.type === 'checkbox') {
@@ -4279,10 +4279,10 @@ function initApp() {
                      e.target.classList.contains('tiles-btn') || 
                      e.target.classList.contains('table-btn'))) {
       console.log('State button clicked via global event delegation:', e.target);
-      
+
       const type = e.target.classList.contains('system-btn') ? 'system' : 
                    e.target.classList.contains('tiles-btn') ? 'tiles' : 'table';
-      
+
       if (type === 'system') {
         toggleSystemButton(e.target, e.target.getAttribute('data-state'));
       } else if (type === 'tiles') {
@@ -4292,19 +4292,19 @@ function initApp() {
       }
     }
   });
-  
+
   // Setup semua event listener
   setupDynamicEventListeners();
-  
+
   // Setup tombol role di halaman utama
   setupRoleButtons();
-  
+
   // Setup tombol submit password
   const submitPasswordBtn = document.getElementById('submitPassword');
   if (submitPasswordBtn) {
     submitPasswordBtn.addEventListener('click', handleLogin);
   }
-  
+
   // Setup enter key untuk password input
   const passwordInput = document.getElementById('passwordInput');
   if (passwordInput) {
@@ -4314,39 +4314,39 @@ function initApp() {
       }
     });
   }
-  
+
   // Cek session login
   const savedRole = sessionStorage.getItem('loggedRole');
   if (savedRole) {
     currentRole = savedRole;
     showPage(savedRole);
   }
-  
+
   console.log('=== APP INITIALIZED ===');
 }
 
 // ========== FUNGSI LOAD UTILITAS DATA ==========
 async function loadUtilitasData() {
   if (!selectedKavling) return;
-  
+
   try {
     showGlobalLoading('Memuat data utilitas...');
-    
+
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'getUtilitasData',
       kavling: selectedKavling
     });
-    
+
     if (result.success) {
       // Update input fields
       const listrikDateInput = document.getElementById('listrikInstallDate');
       const airDateInput = document.getElementById('airInstallDate');
       const propertyNotesInput = document.getElementById('utilityPropertyNotes');
-      
+
       if (listrikDateInput) listrikDateInput.value = result.listrikDate || '';
       if (airDateInput) airDateInput.value = result.airDate || '';
       if (propertyNotesInput) propertyNotesInput.value = result.propertyNotes || '';
-      
+
       // Update total progress jika ada
       if (result.totalProgress) {
         updateUtilitasProgressDisplay(result.totalProgress);
@@ -4364,13 +4364,13 @@ async function loadUtilitasData() {
 
 function debugInputStatus() {
   if (!currentRole) return;
-  
+
   const pageId = currentRole + 'Page';
   const page = document.getElementById(pageId);
   if (!page) return;
-  
+
   console.log(`🔍 DEBUG INPUT STATUS untuk ${pageId}:`);
-  
+
   // Checkboxes
   const checkboxes = page.querySelectorAll('input[type="checkbox"]');
   console.log(`Total checkbox: ${checkboxes.length}`);
@@ -4386,11 +4386,11 @@ function debugInputStatus() {
       }
     });
   });
-  
+
   // State buttons
   const stateButtons = page.querySelectorAll('.state-btn, .system-btn, .tiles-btn, .table-btn');
   console.log(`Total state buttons: ${stateButtons.length}`);
-  
+
   // Save buttons
   const saveButtons = page.querySelectorAll('.btn-save-section');
   console.log(`Total save buttons: ${saveButtons.length}`);
@@ -4400,24 +4400,24 @@ function debugInputStatus() {
 function setupRoleButtons() {
   const roleButtons = document.querySelectorAll('.role-btn');
   console.log(`Found ${roleButtons.length} role buttons`);
-  
+
   roleButtons.forEach(btn => {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       console.log('Role button clicked:', this.getAttribute('data-role'));
-      
+
       currentRole = this.getAttribute('data-role');
       const modal = document.getElementById('passwordModal');
-      
+
       if (modal) {
         // Reset modal state
         document.getElementById('errorMessage').textContent = '';
         document.getElementById('passwordInput').value = '';
-        
+
         modal.style.display = 'flex';
         document.getElementById('passwordInput').focus();
-        
+
         // Update modal title berdasarkan role
         const roleNames = {
           'user1': 'Pelaksana 1',
@@ -4427,7 +4427,7 @@ function setupRoleButtons() {
           'manager': 'Supervisor',
           'admin': 'AdminSystemWeb'
         };
-        
+
         const modalTitle = document.getElementById('modalTitle');
         if (modalTitle) {
           modalTitle.textContent = `Login sebagai ${roleNames[currentRole] || currentRole}`;
@@ -4466,26 +4466,26 @@ function handleEditUser(role, displayName, id) {
 
 function toggleSystemButton(button, systemType) {
     console.log('toggleSystemButton called:', systemType);
-    
+
     const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
     if (!taskItem) return;
-    
+
     const buttons = taskItem.querySelectorAll('.system-btn');
     const hiddenInput = taskItem.querySelector('#wasteSystemInput');
-    
+
     // PERBAIKAN: Cek apakah tombol sudah aktif
     const isAlreadyActive = button.classList.contains('active');
-    
+
     console.log(`Tombol ${systemType} sebelumnya aktif: ${isAlreadyActive}`);
     console.log(`Nilai hidden input sebelum: "${hiddenInput ? hiddenInput.value : 'tidak ditemukan'}"`);
-    
+
     // Reset semua tombol
     buttons.forEach(btn => {
         btn.classList.remove('active');
         btn.removeAttribute('style');
         btn.setAttribute('data-active', 'false');
     });
-    
+
     // Jika tombol sudah aktif, reset ke kosong
     if (isAlreadyActive) {
         console.log('Mereset sistem pembuangan ke kosong');
@@ -4496,7 +4496,7 @@ function toggleSystemButton(button, systemType) {
         // Aktifkan tombol yang diklik
         button.classList.add('active');
         button.setAttribute('data-active', 'true');
-        
+
         // Set nilai sesuai systemType
         let displayValue = '';
         switch(systemType) {
@@ -4505,13 +4505,13 @@ function toggleSystemButton(button, systemType) {
             case 'ipal': displayValue = 'Ipal'; break;
             default: displayValue = systemType;
         }
-        
+
         if (hiddenInput) {
             hiddenInput.value = displayValue;
             console.log(`Sistem Pembuangan diatur ke: "${displayValue}"`);
         }
     }
-    
+
     // Update progress
     const rolePage = currentRole + 'Page';
     updateProgress(rolePage);
@@ -4519,25 +4519,25 @@ function toggleSystemButton(button, systemType) {
 
 function toggleTilesButton(button, option) {
   console.log('toggleTilesButton called:', option);
-  
+
   const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   if (!taskItem) return;
-  
+
   const buttons = taskItem.querySelectorAll('.tiles-btn');
   const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
-  
+
   const isAlreadyActive = button.classList.contains('active');
 
   console.log(`Tombol Keramik Dinding "${option}" sebelumnya aktif: ${isAlreadyActive}`);
   console.log(`Nilai hidden input sebelum: "${hiddenInput ? hiddenInput.value : 'tidak ditemukan'}"`);
-  
+
   // Reset semua tombol
   buttons.forEach(btn => {
     btn.classList.remove('active');
     btn.removeAttribute('style'); // Hapus inline styles agar menggunakan CSS
     btn.setAttribute('data-active', 'false');
   });
-  
+
    if (isAlreadyActive) {
         console.log('Mereset Keramik Dinding ke kosong');
         if (hiddenInput) {
@@ -4547,13 +4547,13 @@ function toggleTilesButton(button, option) {
         // Aktifkan tombol yang diklik
         button.classList.add('active');
         button.setAttribute('data-active', 'true');
-        
+
         if (hiddenInput) {
             hiddenInput.value = option === 'include' ? 'Dengan Keramik Dinding' : 'Tanpa Keramik Dinding';
             console.log(`Keramik Dinding diatur ke: "${hiddenInput.value}"`);
         }
     }
-    
+
     const rolePage = currentRole + 'Page';
     updateProgress(rolePage);
 }
@@ -4561,25 +4561,25 @@ function toggleTilesButton(button, option) {
 
 function toggleTableButton(button, option) {
   console.log('toggleTableButton called:', option);
-  
+
   const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   if (!taskItem) return;
-  
+
   const buttons = taskItem.querySelectorAll('.table-btn');
   const hiddenInput = taskItem.querySelector('#tableKitchenInput');
 // Cek apakah tombol sudah aktif
     const isAlreadyActive = button.classList.contains('active');
-    
+
     console.log(`Tombol Cor Meja Dapur "${option}" sebelumnya aktif: ${isAlreadyActive}`);
     console.log(`Nilai hidden input sebelum: "${hiddenInput ? hiddenInput.value : 'tidak ditemukan'}"`);
-    
+
     // Reset semua tombol
     buttons.forEach(btn => {
         btn.classList.remove('active');
         btn.removeAttribute('style');
         btn.setAttribute('data-active', 'false');
     });
-    
+
     // Jika tombol sudah aktif, reset ke kosong
     if (isAlreadyActive) {
         console.log('Mereset Cor Meja Dapur ke kosong');
@@ -4590,13 +4590,13 @@ function toggleTableButton(button, option) {
         // Aktifkan tombol yang diklik
         button.classList.add('active');
         button.setAttribute('data-active', 'true');
-        
+
         if (hiddenInput) {
             hiddenInput.value = option === 'include' ? 'Dengan Cor Meja Dapur' : 'Tanpa Cor Meja Dapur';
             console.log(`Cor Meja Dapur diatur ke: "${hiddenInput.value}"`);
         }
     }
-    
+
     const rolePage = currentRole + 'Page';
     updateProgress(rolePage);
 }
@@ -4611,18 +4611,18 @@ function setupDeleteKavling() {
         showToast('warning', 'Pilih kavling yang akan dihapus terlebih dahulu!');
         return;
       }
-      
+
       const confirmDelete = confirm(`Apakah Anda yakin ingin menghapus kavling ${selectedKavling}? Tindakan ini tidak dapat dibatalkan.`);
-      
+
       if (confirmDelete) {
         showGlobalLoading(`Menghapus kavling ${selectedKavling}...`);
-        
+
         try {
           const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
             action: 'deleteKavling',
             kavling: selectedKavling
           });
-          
+
           if (result.success) {
             showToast('success', `Kavling ${selectedKavling} berhasil dihapus.`);
             selectedKavling = null;
@@ -4666,14 +4666,14 @@ function setupDeleteKavling() {
 }
 function debugAllStateButtons() {
     console.log('=== DEBUG SEMUA STATE BUTTONS ===');
-    
+
     const pageId = currentRole + 'Page';
     const page = document.getElementById(pageId);
     if (!page) {
         console.log('Halaman tidak ditemukan:', pageId);
         return;
     }
-    
+
     // Sistem Pembuangan
     const wasteSystem = page.querySelector('#wasteSystemInput');
     const wasteButtons = page.querySelectorAll('.system-btn');
@@ -4682,7 +4682,7 @@ function debugAllStateButtons() {
         aktif: wasteSystem && wasteSystem.value !== '' ? 'Ya' : 'Tidak',
         tombolAktif: Array.from(wasteButtons).filter(btn => btn.classList.contains('active')).map(btn => btn.textContent.trim())
     });
-    
+
     // Cor Meja Dapur
     const tableKitchen = page.querySelector('#tableKitchenInput');
     const tableButtons = page.querySelectorAll('.table-btn');
@@ -4691,7 +4691,7 @@ function debugAllStateButtons() {
         aktif: tableKitchen && tableKitchen.value !== '' ? 'Ya' : 'Tidak',
         tombolAktif: Array.from(tableButtons).filter(btn => btn.classList.contains('active')).map(btn => btn.textContent.trim())
     });
-    
+
     // Keramik Dinding
     const bathroomTiles = page.querySelector('#bathroomTilesInput');
     const tilesButtons = page.querySelectorAll('.tiles-btn');
@@ -4700,7 +4700,7 @@ function debugAllStateButtons() {
         aktif: bathroomTiles && bathroomTiles.value !== '' ? 'Ya' : 'Tidak',
         tombolAktif: Array.from(tilesButtons).filter(btn => btn.classList.contains('active')).map(btn => btn.textContent.trim())
     });
-    
+
     console.log('=== SELESAI DEBUG ===');
 }
 
@@ -4736,7 +4736,7 @@ function toggleSystemButton(button, systemType) {
   const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   const buttons = taskItem.querySelectorAll('.system-btn');
   const hiddenInput = taskItem.querySelector('#wasteSystemInput');
-  
+
   const wasActive = button.classList.contains('active');
 
   // Reset semua tombol
@@ -4744,7 +4744,7 @@ function toggleSystemButton(button, systemType) {
     btn.classList.remove('active');
     btn.setAttribute('data-active', 'false');
   });
-  
+
   if (wasActive) {
     hiddenInput.value = '';
   } else {
@@ -4753,7 +4753,7 @@ function toggleSystemButton(button, systemType) {
     button.setAttribute('data-active', 'true');
     hiddenInput.value = systemType;
   }
-  
+
   const rolePage = currentRole + 'Page';
   updateProgress(rolePage);
 }
@@ -4763,7 +4763,7 @@ function toggleTilesButton(button, option) {
   const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   const buttons = taskItem.querySelectorAll('.tiles-btn');
   const hiddenInput = taskItem.querySelector('#bathroomTilesInput');
-  
+
   const wasActive = button.classList.contains('active');
 
   // Reset semua tombol
@@ -4771,7 +4771,7 @@ function toggleTilesButton(button, option) {
     btn.classList.remove('active');
     btn.setAttribute('data-active', 'false');
   });
-  
+
   if (wasActive) {
     hiddenInput.value = '';
   } else {
@@ -4780,7 +4780,7 @@ function toggleTilesButton(button, option) {
     button.setAttribute('data-active', 'true');
     hiddenInput.value = option;
   }
-  
+
   const rolePage = currentRole + 'Page';
   updateProgress(rolePage);
 }
@@ -4790,7 +4790,7 @@ function toggleTableButton(button, option) {
   const taskItem = button.closest('.task-item') || button.closest('.task-item-standalone');
   const buttons = taskItem.querySelectorAll('.table-btn');
   const hiddenInput = taskItem.querySelector('#tableKitchenInput');
-  
+
   const wasActive = button.classList.contains('active');
 
   // Reset semua tombol
@@ -4798,7 +4798,7 @@ function toggleTableButton(button, option) {
     btn.classList.remove('active');
     btn.setAttribute('data-active', 'false');
   });
-  
+
   if (wasActive) {
     hiddenInput.value = '';
   } else {
@@ -4807,7 +4807,7 @@ function toggleTableButton(button, option) {
     button.setAttribute('data-active', 'true');
     hiddenInput.value = option;
   }
-  
+
   const rolePage = currentRole + 'Page';
   updateProgress(rolePage);
 }
@@ -4820,17 +4820,17 @@ async function saveKeyDelivery() {
     showToast('warning', 'Pilih kavling terlebih dahulu!');
     return;
   }
-  
+
   // Cari elemen-elemen di tab baru
   const deliverySection = document.getElementById('tab-delivery');
   if (!deliverySection) {
     showToast('error', 'Tab penyerahan kunci tidak ditemukan');
     return;
   }
-  
+
   const deliveryToInput = deliverySection.querySelector('.delivery-section');
   const deliveryDateInput = deliverySection.querySelector('.key-delivery-date');
-  
+
   if (!deliveryToInput || !deliveryDateInput) {
     console.error('Input elements not found:', {
       deliveryTo: !!deliveryToInput,
@@ -4839,18 +4839,18 @@ async function saveKeyDelivery() {
     showToast('error', 'Form tidak lengkap!');
     return;
   }
-  
+
   const deliveryTo = deliveryToInput.value.trim();
   const deliveryDate = deliveryDateInput.value;
-  
+
   if (!deliveryTo) {
     showToast('warning', 'Harap isi "Penyerahan Kunci Ke"');
     deliveryToInput.focus();
     return;
   }
-  
+
   showGlobalLoading('Menyimpan data penyerahan kunci...');
-  
+
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveKeyDelivery',
@@ -4859,17 +4859,17 @@ async function saveKeyDelivery() {
       deliveryDate: deliveryDate,
       user: currentRole
     });
-    
+
     if (result.success) {
       showToast('success', 'Data penyerahan kunci berhasil disimpan!');
-      
+
       // Update data lokal
       if (currentKavlingData) {
         if (!currentKavlingData.keyDelivery) currentKavlingData.keyDelivery = {};
         currentKavlingData.keyDelivery.deliveryTo = deliveryTo;
         currentKavlingData.keyDelivery.deliveryDate = deliveryDate;
       }
-      
+
       // Clear form jika berhasil
       deliveryToInput.value = '';
       deliveryDateInput.value = '';
@@ -4938,7 +4938,7 @@ function updateProgress(rolePage) {
       '3': 0.20,  // 20%
       '4': 0.10   // 10%
     };
-    
+
     const weightFactor = tahapWeights[tahap] || 0.25;
     totalWeightedProgress += sectionPercent * weightFactor;
   });
@@ -4948,14 +4948,14 @@ function updateProgress(rolePage) {
  // Juga update langsung di overall rekap
   const overallPercent = pageElement.querySelector('.total-percent');
   const overallBar = pageElement.querySelector('.total-bar');
-  
+
   if (overallPercent) {
     overallPercent.textContent = roundedProgress + '%';
   }
   if (overallBar) {
     overallBar.style.width = roundedProgress + '%';
   }
-  
+
   console.log(`Updated progress for ${rolePage}: ${roundedProgress}%`);
 }
 
@@ -4985,14 +4985,14 @@ function savePropertyNotes() {
     showToast('error', 'Pilih kavling terlebih dahulu');
     return;
   }
-  
+
   const notesEl = document.getElementById('propertyNotesManager');
   if (!notesEl) return;
-  
+
   const notes = notesEl.value.trim();
-  
+
   showGlobalLoading('Menyimpan catatan...');
-  
+
   // Panggil server untuk menyimpan notes
   // Implementasi Anda di sini
 }
@@ -5018,26 +5018,26 @@ function updateNotesCounter(length) {
 // ========== FUNGSI DEBUG UNTUK MEMERIKSA STRUKTUR ==========
 function debugTahap4Structure() {
   console.log('=== DEBUG TAHAP 4 STRUCTURE ===');
-  
+
   // Cek di semua halaman
   const pages = ['user1Page', 'user2Page', 'user3Page'];
-  
+
   pages.forEach(pageId => {
     const page = document.getElementById(pageId);
     if (!page) return;
-    
+
     console.log(`\nChecking ${pageId}:`);
-    
+
     // Cari section tahap 4
     const tahap4Section = page.querySelector('[data-tahap="4"]');
     if (!tahap4Section) {
       console.log('❌ No tahap 4 section found');
       return;
     }
-    
+
     console.log('✅ Found tahap 4 section');
     console.log('Section class:', tahap4Section.className);
-    
+
     // Cari tombol save di dalam section
     const saveButton = tahap4Section.querySelector('.btn-save-section');
     if (saveButton) {
@@ -5046,7 +5046,7 @@ function debugTahap4Structure() {
       console.log('Button is child of progress-section:', saveButton.closest('.progress-section') === tahap4Section);
     } else {
       console.log('❌ Save button NOT FOUND inside progress-section');
-      
+
       // Cari tombol di luar
       const allButtons = page.querySelectorAll('.btn-save-section[data-tahap="4"]');
       console.log(`Found ${allButtons.length} tahap 4 buttons total in page`);
@@ -5064,28 +5064,28 @@ function loadAdminUtilitasScript() {
             resolve(window.adminUtilitas);
             return;
         }
-        
+
         const script = document.createElement('script');
         script.id = 'admin-utilitas-script';
         script.src = 'scriptadmin.js';
-        
+
         script.onload = function() {
             console.log('Admin Utilitas script loaded successfully');
             isAdminUtilitasLoaded = true;
             adminUtilitasModule = window.adminUtilitas;
-            
+
             // Inisialisasi jika di halaman user4
             if (currentRole === 'user4' && adminUtilitasModule && adminUtilitasModule.init) {
                 adminUtilitasModule.init();
             }
             resolve(window.adminUtilitas);
         };
-        
+
         script.onerror = function(error) {
             console.error('Failed to load Admin Utilitas script:', error);
             reject(error);
         };
-        
+
         document.head.appendChild(script);
     });
 }
@@ -5094,7 +5094,7 @@ function loadAdminUtilitasScript() {
 const originalShowPage = showPage;
 showPage = function(role) {
     originalShowPage(role);
-    
+
     // Load admin utilitas script jika role user4
     if (role === 'user4') {
         setTimeout(loadAdminUtilitasScript, 300);
