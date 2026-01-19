@@ -1799,21 +1799,27 @@ function loadProgressData(progressData) {
       if (deliveryEl) deliveryEl.value = progressData.tahap4['PENYERAHAN KUNCI'];
     }
 
-    // Tanggal Penyerahan Kunci
-   if (progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']) {
+// Tanggal Penyerahan Kunci
+if (progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']) {
   const dateEl = pageElement.querySelector('.key-delivery-date');
   if (dateEl) {
     const rawDate = progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'];
     
-    // Format ke dd/mm/yyyy untuk ditampilkan
+    // ⚠️ PERUBAHAN: Konversi ke yyyy-MM-dd untuk input date
     let formattedDate = '';
     
     if (rawDate) {
-      // Jika sudah format dd/mm/yyyy, langsung pakai
+      // 1. Jika sudah format dd/mm/yyyy, konversi ke yyyy-MM-dd
       if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawDate)) {
+        const [day, month, year] = rawDate.split('/');
+        formattedDate = `${year}-${month}-${day}`;
+      }
+      // 2. Jika sudah format yyyy-MM-dd, langsung pakai
+      else if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
         formattedDate = rawDate;
-      } else {
-        // Convert dari format lain ke dd/mm/yyyy
+      }
+      // 3. Format lain, coba parse
+      else {
         formattedDate = formatDateForInput(rawDate);
       }
     }
@@ -1822,7 +1828,7 @@ function loadProgressData(progressData) {
     console.log(`Loaded date for ${selectedKavling}: ${rawDate} → ${formattedDate}`);
   }
 }
-
+setupTodayButtons();
     // Completion
     if (progressData.tahap4['COMPLETION / Penyelesaian akhir']) {
       const completionCheckbox = findCheckboxByTaskName('COMPLETION / Penyelesaian akhir', 4, rolePage);
@@ -4574,6 +4580,45 @@ function setupDeleteKavling() {
     });
   }
 }
+
+// Fungsi setup tombol "Hari Ini"
+function setupTodayButtons() {
+  console.log('Setting up "Today" buttons...');
+  
+  // Cari semua tombol hari ini
+  const todayBtns = document.querySelectorAll('.btn-today');
+  
+  todayBtns.forEach((btn, index) => {
+    console.log(`Setting up today button ${index + 1}`);
+    
+    btn.addEventListener('click', function() {
+      // Cari input date yang bersebelahan
+      const dateInput = this.previousElementSibling;
+      
+      if (dateInput && dateInput.type === 'date') {
+        // Format tanggal hari ini ke yyyy-MM-dd (format input date)
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        
+        dateInput.value = `${year}-${month}-${day}`;
+        
+        // Feedback visual
+        this.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        setTimeout(() => {
+          this.style.background = 'linear-gradient(135deg, #38bdf8, #0ea5e9)';
+        }, 500);
+        
+        console.log('Set date to today:', dateInput.value);
+      }
+    });
+  });
+  
+  console.log(`✅ Setup ${todayBtns.length} "Today" buttons`);
+}
+
+
 function debugAllStateButtons() {
     console.log('=== DEBUG SEMUA STATE BUTTONS ===');
 
