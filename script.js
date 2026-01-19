@@ -1,4 +1,4 @@
-// versi 0.441
+// versi 0.442
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzpC_OqLvzKsNTB0ngV6Fte20kx1LWl8NSIpDNVjpP9FV0hdZy2e8gy_q8leycLLgmm_w/exec';
 
@@ -2437,8 +2437,9 @@ async function saveTahap3() {
     "Cat Finish Exterior": "CAT FINISH EXTERIOR",
     "Bak Kontrol & Batas Carport": "BAK KONTROL & BATAS CARPORT",
     "Paving Halaman": "PAVING HALAMAN",
-    "General Cleaning": "GENERAL CLEANING",
-    "Completion": "COMPLETION / Penyelesaian akhir"
+    "Meteran Listrik": "METERAN LISTRIK",
+    "Meteran Air": "METERAN AIR",
+    "General Cleaning": "GENERAL CLEANING"
   };
 
   const tahapData = {};
@@ -4221,6 +4222,9 @@ function initApp() {
     console.log('Setting up key delivery button...');
     setupKeyDeliveryButton();
     
+   // Setup tombol view mutation history
+    setupViewMutationButton();
+    
     // Debug untuk memastikan tombol ditemukan
     const todayBtns = document.querySelectorAll('.btn-today');
     console.log(`Found ${todayBtns.length} "Hari Ini" buttons`);
@@ -4330,6 +4334,88 @@ function setupGlobalEventDelegation() {
   });
 }
 
+// ========== FUNGSI VIEW MUTATION HISTORY ==========
+async function loadMutationHistory() {
+  if (!selectedKavling) {
+    showToast('warning', 'Pilih kavling terlebih dahulu!');
+    return;
+  }
+
+  showGlobalLoading('Memuat riwayat mutasi...');
+
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getAllMutasi',
+      kavling: selectedKavling
+    });
+
+    if (result.success && result.mutasiData && result.mutasiData.length > 0) {
+      displayMutationHistory(result.mutasiData);
+    } else {
+      showToast('info', 'Belum ada riwayat mutasi untuk kavling ini');
+      document.getElementById('mutasiHistoryContainer').innerHTML = 
+        '<p class="no-data">Belum ada riwayat mutasi</p>';
+    }
+  } catch (error) {
+    console.error('Error loading mutation history:', error);
+    showToast('error', 'Gagal memuat riwayat mutasi');
+  } finally {
+    hideGlobalLoading();
+  }
+}
+
+function displayMutationHistory(mutasiData) {
+  const container = document.getElementById('mutasiHistoryContainer');
+  if (!container) return;
+
+  let html = `
+    <div class="mutasi-history-list">
+      <h5>Total ${mutasiData.length} Riwayat Mutasi</h5>
+  `;
+
+  mutasiData.forEach((mutasi, index) => {
+    html += `
+      <div class="mutasi-history-item">
+        <div class="mutasi-no">${index + 1}</div>
+        <div class="mutasi-info">
+          <div class="mutasi-tanggal">
+            <i class="far fa-calendar"></i> ${mutasi.tanggal || '-'}
+          </div>
+          <div class="mutasi-transfer">
+            <span class="mutasi-dari">${mutasi.dari || '-'}</span>
+            <i class="fas fa-arrow-right"></i>
+            <span class="mutasi-ke">${mutasi.ke || '-'}</span>
+          </div>
+          <div class="mutasi-kolom">
+            <small>Kolom: ${mutasi.kolomExcel || 'N/A'}</small>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+  container.style.display = 'block';
+}
+
+// Setup tombol View Mutation History
+function setupViewMutationButton() {
+  const btnViewMutation = document.getElementById('btnViewMutationHistory');
+  if (btnViewMutation) {
+    btnViewMutation.addEventListener('click', function(e) {
+      e.preventDefault();
+      const container = document.getElementById('mutasiHistoryContainer');
+      
+      if (container.style.display === 'none' || container.style.display === '') {
+        loadMutationHistory();
+      } else {
+        container.style.display = 'none';
+      }
+    });
+  }
+}
+  
 // ========== FUNGSI LOAD UTILITAS DATA ==========
 async function loadUtilitasData() {
   if (!selectedKavling) return;
