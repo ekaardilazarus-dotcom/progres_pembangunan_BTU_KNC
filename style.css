@@ -1800,3 +1800,109 @@ footer {
   border-radius: 12px;
   border: 2px dashed #475569;
 }
+
+/* CSS untuk Mutation History */
+.mutasi-history-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-view-history {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 10px;
+  width: 100%;
+  transition: all 0.3s;
+}
+
+.btn-view-history:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: translateY(-2px);
+}
+
+.mutasi-history-container {
+  margin-top: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+  background: white;
+}
+
+.mutasi-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mutasi-history-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.mutasi-history-item:last-child {
+  border-bottom: none;
+}
+
+.mutasi-no {
+  background: #3b82f6;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.mutasi-info {
+  flex-grow: 1;
+}
+
+.mutasi-transfer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.mutasi-dari, .mutasi-ke {
+  padding: 3px 8px;
+  background: #e0e7ff;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.mutasi-tanggal {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.mutasi-kolom {
+  margin-top: 5px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.no-data {
+  text-align: center;
+  color: #94a3b8;
+  padding: 20px;
+  font-style: italic;
+}
