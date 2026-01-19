@@ -4167,20 +4167,98 @@ function setupDynamicEventListeners() {
   console.log('Dynamic event listeners setup complete');
 }
 
-// ========== INITIALIZE ON DOM READY ==========
 function initApp() {
   console.log('=== INITIALIZING APP ===');
   console.log('DOM ready state:', document.readyState);
 
-    setTimeout(() => {
-    console.log('Setting up role buttons...');
-    setupRoleButtons();
-  }, 100);
+  // 1. Setup dasar yang tidak bergantung pada DOM kompleks
+  const submitPasswordBtn = document.getElementById('submitPassword');
+  if (submitPasswordBtn) {
+    submitPasswordBtn.addEventListener('click', handleLogin);
+  }
 
-  // Setup event delegation untuk checkbox
+  const passwordInput = document.getElementById('passwordInput');
+  if (passwordInput) {
+    passwordInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        handleLogin();
+      }
+    });
+  }
+
+  // 2. Setup role buttons (hanya sekali)
+  console.log('Setting up role buttons...');
+  setupRoleButtons();
+
+  // 3. Event delegation (global)
+  setupGlobalEventDelegation();
+
+  // 4. Setup dynamic listeners
+  console.log('Setting up dynamic event listeners...');
+  setupDynamicEventListeners();
+
+  // 5. Setup edit kavling
+  console.log('Setting up edit kavling...');
+  setupEditKavling();
+
+  // 6. Setup delete kavling
+  console.log('Setting up delete kavling...');
+  setupDeleteKavling();
+
+  // 7. TUNGGU DOM SELESAI LOAD untuk setup yang kompleks
+  setTimeout(() => {
+    console.log('Delayed setup after DOM ready...');
+    
+    // Setup tombol hari ini (setelah semua element ada)
+    console.log('Setting up today buttons...');
+    setupTodayButtons();
+    
+    // Setup date inputs (setelah semua element ada)
+    console.log('Setting up date inputs...');
+    setupAllDateInputs();
+    
+    // Setup key delivery button (khusus user4)
+    console.log('Setting up key delivery button...');
+    setupKeyDeliveryButton();
+    
+    // Debug untuk memastikan tombol ditemukan
+    const todayBtns = document.querySelectorAll('.btn-today');
+    console.log(`Found ${todayBtns.length} "Hari Ini" buttons`);
+    
+    todayBtns.forEach((btn, index) => {
+      console.log(`Button ${index + 1}:`, {
+        text: btn.textContent.trim(),
+        parent: btn.parentElement?.className || 'no-parent',
+        hasClick: btn.hasAttribute('onclick') || btn.onclick ? 'yes' : 'no'
+      });
+    });
+    
+    // Test satu tombol untuk memastikan bekerja
+    if (todayBtns.length > 0) {
+      console.log('✅ Ready to test "Hari Ini" button');
+      
+      // Simpan referensi untuk testing
+      window.debugTodayBtn = todayBtns[0];
+    }
+    
+  }, 500); // Delay 500ms untuk memastikan DOM siap
+
+  // 8. Cek session login
+  const savedRole = sessionStorage.getItem('loggedRole');
+  if (savedRole) {
+    currentRole = savedRole;
+    showPage(savedRole);
+  }
+
+  console.log('=== APP INITIALIZED ===');
+}
+
+function setupGlobalEventDelegation() {
+  console.log('Setting up global event delegation...');
+  
+  // Event delegation untuk checkbox
   document.addEventListener('change', function(e) {
     if (e.target.classList.contains('sub-task') && e.target.type === 'checkbox') {
-      console.log('Checkbox changed via event delegation:', e.target);
       const page = e.target.closest('.page-content');
       if (page) {
         const pageId = page.id;
@@ -4208,37 +4286,48 @@ function initApp() {
       }
     }
   });
-
-  // Setup semua event listener
-  setupDynamicEventListeners();
-
-  // Setup tombol role di halaman utama
-  setupRoleButtons();
-
-  // Setup tombol submit password
-  const submitPasswordBtn = document.getElementById('submitPassword');
-  if (submitPasswordBtn) {
-    submitPasswordBtn.addEventListener('click', handleLogin);
-  }
-
-  // Setup enter key untuk password input
-  const passwordInput = document.getElementById('passwordInput');
-  if (passwordInput) {
-    passwordInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        handleLogin();
+  
+  // Event delegation untuk tombol hari ini (fallback)
+  document.addEventListener('click', function(e) {
+    const target = e.target.closest('.btn-today');
+    if (target) {
+      console.log('Global event delegation caught btn-today click');
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Cari input tanggal terdekat
+      let dateInput = target.previousElementSibling;
+      
+      if (!dateInput || !dateInput.classList.contains('key-delivery-date')) {
+        // Cari dengan cara lain
+        const container = target.closest('div');
+        if (container) {
+          dateInput = container.querySelector('.key-delivery-date, input[type="date"], .date-input');
+        }
       }
-    });
-  }
-
-  // Cek session login
-  const savedRole = sessionStorage.getItem('loggedRole');
-  if (savedRole) {
-    currentRole = savedRole;
-    showPage(savedRole);
-  }
-
-  console.log('=== APP INITIALIZED ===');
+      
+      if (dateInput) {
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        
+        // Set format dd/mm/yyyy
+        dateInput.value = `${day}/${month}/${year}`;
+        
+        // Feedback
+        target.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        target.innerHTML = '<i class="fas fa-check"></i> Terisi!';
+        
+        setTimeout(() => {
+          target.style.background = 'linear-gradient(135deg, #38bdf8, #0ea5e9)';
+          target.innerHTML = '<i class="fas fa-calendar-check"></i> Hari Ini';
+        }, 800);
+        
+        console.log(`Set today's date: ${dateInput.value}`);
+      }
+    }
+  });
 }
 
 // ========== FUNGSI LOAD UTILITAS DATA ==========
@@ -4581,43 +4670,206 @@ function setupDeleteKavling() {
   }
 }
 
-// Fungsi setup tombol "Hari Ini"
 function setupTodayButtons() {
-  console.log('Setting up "Today" buttons...');
+  console.log('🔧 Setting up "Hari Ini" buttons...');
   
-  // Cari semua tombol hari ini
   const todayBtns = document.querySelectorAll('.btn-today');
+  console.log(`Found ${todayBtns.length} buttons`);
   
   todayBtns.forEach((btn, index) => {
-    console.log(`Setting up today button ${index + 1}`);
+    console.log(`Button ${index + 1}:`, {
+      text: btn.innerHTML,
+      parentHTML: btn.parentElement?.outerHTML.substring(0, 100) + '...'
+    });
     
-    btn.addEventListener('click', function() {
-      // Cari input date yang bersebelahan
-      const dateInput = this.previousElementSibling;
+    // Hapus event listener lama
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    // Tambah event listener baru dengan lebih robust
+    newBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
       
-      if (dateInput && dateInput.type === 'date') {
-        // Format tanggal hari ini ke yyyy-MM-dd (format input date)
+      console.log(`✅ Tombol "Hari Ini" #${index + 1} diklik`);
+      
+      // Cari input tanggal dengan berbagai cara
+      let dateInput = null;
+      
+      // Cara 1: Previous sibling
+      if (this.previousElementSibling) {
+        const prev = this.previousElementSibling;
+        if (prev.matches('.key-delivery-date, input[type="date"], input[type="text"].date-input')) {
+          dateInput = prev;
+          console.log('Found input as previous sibling');
+        }
+      }
+      
+      // Cara 2: Cari di parent container
+      if (!dateInput) {
+        const parent = this.closest('div');
+        if (parent) {
+          const inputs = parent.querySelectorAll('.key-delivery-date, input[type="date"], .date-input');
+          if (inputs.length > 0) {
+            dateInput = inputs[0];
+            console.log('Found input in parent container');
+          }
+        }
+      }
+      
+      // Cara 3: Cari berdasarkan class
+      if (!dateInput) {
+        const inputs = document.querySelectorAll('.key-delivery-date, input[type="date"], .date-input');
+        if (inputs.length > 0) {
+          dateInput = inputs[0];
+          console.log('Found first available date input');
+        }
+      }
+      
+      if (dateInput) {
+        // Format hari ini
         const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
         
-        dateInput.value = `${year}-${month}-${day}`;
+        // Set nilai (dd/mm/yyyy untuk text input, yyyy-MM-dd untuk date input)
+        if (dateInput.type === 'date') {
+          dateInput.value = `${year}-${month}-${day}`;
+        } else {
+          dateInput.value = `${day}/${month}/${year}`;
+        }
+        
+        console.log(`📅 Set tanggal: ${dateInput.value}`);
         
         // Feedback visual
-        this.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-        setTimeout(() => {
-          this.style.background = 'linear-gradient(135deg, #38bdf8, #0ea5e9)';
-        }, 500);
+        const originalHTML = this.innerHTML;
+        const originalBG = this.style.background;
         
-        console.log('Set date to today:', dateInput.value);
+        this.innerHTML = '<i class="fas fa-check-circle"></i> Terisi!';
+        this.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        
+        setTimeout(() => {
+          this.innerHTML = originalHTML;
+          this.style.background = originalBG;
+        }, 1500);
+        
+        // Trigger events
+        dateInput.dispatchEvent(new Event('input', { bubbles: true }));
+        dateInput.dispatchEvent(new Event('change', { bubbles: true }));
+        
+      } else {
+        console.warn('❌ Tidak menemukan input tanggal untuk tombol ini');
+        console.log('Button context:', {
+          parent: this.parentElement,
+          siblings: Array.from(this.parentElement.children).map(c => c.tagName + (c.className ? '.' + c.className : ''))
+        });
+        
+        // Feedback error
+        const originalHTML = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error!';
+        this.style.background = 'linear-gradient(135deg, #f43f5e, #dc2626)';
+        
+        setTimeout(() => {
+          this.innerHTML = originalHTML;
+          this.style.background = 'linear-gradient(135deg, #38bdf8, #0ea5e9)';
+        }, 2000);
       }
+    });
+    
+    // Tambah juga mouse event untuk debugging
+    newBtn.addEventListener('mouseover', function() {
+      console.log(`Mouse over button ${index + 1}`);
     });
   });
   
-  console.log(`✅ Setup ${todayBtns.length} "Today" buttons`);
+  console.log('✅ Setup "Hari Ini" buttons completed');
 }
 
+// Fungsi untuk mengisi tanggal hari ini ke input
+function fillTodayDate(inputElement) {
+  if (!inputElement) return;
+  
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, '0');
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const year = today.getFullYear();
+  
+  // Format dd/mm/yyyy
+  const formattedDate = `${day}/${month}/${year}`;
+  
+  // Set value
+  inputElement.value = formattedDate;
+  
+  // Jika input type="date", perlu format yyyy-MM-dd
+  if (inputElement.type === 'date') {
+    inputElement.value = `${year}-${month}-${day}`;
+  }
+  
+  // Trigger event
+  const event = new Event('input', { bubbles: true });
+  inputElement.dispatchEvent(event);
+  
+  return formattedDate;
+}
+
+// Fungsi untuk setup semua input tanggal
+function setupAllDateInputs() {
+  console.log('📅 Setting up all date inputs...');
+  
+  // Ubah placeholder untuk input type="date"
+  document.querySelectorAll('input[type="date"]').forEach(input => {
+    input.setAttribute('placeholder', 'dd/mm/yyyy');
+    
+    // Format ulang nilai yang ada
+    if (input.value) {
+      const currentValue = input.value;
+      // Jika format yyyy-MM-dd, konversi ke dd/mm/yyyy
+      if (/^\d{4}-\d{2}-\d{2}$/.test(currentValue)) {
+        const [year, month, day] = currentValue.split('-');
+        input.value = `${day}/${month}/${year}`;
+      }
+    }
+  });
+  
+  // Event listener untuk validasi format
+  document.addEventListener('input', function(e) {
+    const input = e.target;
+    
+    if (input.classList.contains('key-delivery-date') || 
+        input.type === 'date' ||
+        input.classList.contains('date-input')) {
+      
+      let value = input.value;
+      
+      // Auto-format dd/mm/yyyy
+      value = value.replace(/\D/g, ''); // Hapus non-digit
+      
+      if (value.length > 8) value = value.substring(0, 8);
+      
+      if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2);
+      }
+      if (value.length >= 5) {
+        value = value.substring(0, 5) + '/' + value.substring(5, 9);
+      }
+      
+      input.value = value;
+      
+      // Validasi
+      if (value.length === 10) {
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+          input.style.borderColor = '#10b981';
+        } else {
+          input.style.borderColor = '#f43f5e';
+        }
+      } else {
+        input.style.borderColor = '#334155';
+      }
+    }
+  });
+}
 
 function debugAllStateButtons() {
     console.log('=== DEBUG SEMUA STATE BUTTONS ===');
