@@ -1,35 +1,12 @@
-// scriptadmin.js - Versi yang Diperbaiki
+// scriptadmin.js - VERSI 0.25
 (function() {
     'use strict';
     
     console.log('=== ADMIN UTILITAS SCRIPT LOADING ===');
     
-    // Tunggu sampai script.js selesai load
-    function waitForMainScript() {
-        return new Promise((resolve, reject) => {
-            let attempts = 0;
-            const maxAttempts = 50;
-            
-            const checkScript = () => {
-                attempts++;
-                
-                // Cek apakah fungsi utama dari script.js sudah tersedia
-                if (window.searchKavling && window.showToast && window.getDataFromServer) {
-                    console.log('✅ Main script.js loaded successfully');
-                    resolve();
-                } else if (attempts >= maxAttempts) {
-                    reject(new Error('Timeout waiting for main script.js'));
-                } else {
-                    setTimeout(checkScript, 100);
-                }
-            };
-            
-            checkScript();
-        });
-    }
-    
     // ========== KONFIGURASI ==========
-    const ADMIN_UTILITAS_URL = 'https://script.google.com/macros/s/AKfycbwsAzZ8bUgp-jyWN09CNQ7_qLCOn7qfzqhoXOMjNKQ3GduLH5e7ySD_qdgQSO1wXeZTtQ/exec';
+    // ⚠️ Gunakan URL yang sama dengan script.js
+    const ADMIN_UTILITAS_URL = 'https://script.google.com/macros/s/AKfycbzpC_OqLvzKsNTB0ngV6Fte20kx1LWl8NSIpDNVjpP9FV0hdZy2e8gy_q8leycLLgmm_w/exec';
     
     // ========== VARIABEL ==========
     let adminData = {
@@ -65,22 +42,6 @@
         }
     }
     
-    async function fetchAdminData(params) {
-        try {
-            const url = new URL(ADMIN_UTILITAS_URL);
-            Object.keys(params).forEach(key => {
-                url.searchParams.append(key, params[key]);
-            });
-            
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return await response.json();
-        } catch (error) {
-            console.error('Admin fetch error:', error);
-            throw error;
-        }
-    }
-    
     // ========== CORE FUNCTIONS ==========
     async function loadAdminUtilitasData(kavlingName) {
         if (!kavlingName) {
@@ -91,8 +52,8 @@
         showAdminLoading(`Memuat data admin untuk ${kavlingName}...`);
         
         try {
-            // Load data handover dari admin DB
-            const result = await fetchAdminData({
+            // Gunakan fungsi getDataFromServer dari script.js
+            const result = await window.getDataFromServer(ADMIN_UTILITAS_URL, {
                 action: 'getHandoverData',
                 kavling: kavlingName
             });
@@ -151,11 +112,17 @@
         const masukTab = document.getElementById('tab-kunci-masuk');
         if (masukTab) {
             const masukInfo = masukTab.querySelector('.prev-mutasi-masuk-info');
-            const masukData = adminData.mutasi.filter(m => m.jenis === 'MASUK');
-            if (masukInfo && masukData.length > 0) {
-                masukInfo.innerHTML = masukData.map(m => 
-                    `<div>${m.tanggal}: ${m.dari} → ${m.ke}</div>`
-                ).join('');
+            if (masukInfo) {
+                const masukData = adminData.mutasi.filter(m => 
+                    m.jenis === 'MASUK' || (!m.jenis && m.dari && m.ke)
+                );
+                if (masukData.length > 0) {
+                    masukInfo.innerHTML = masukData.map(m => 
+                        `<div>${m.tanggal || '-'}: ${m.dari || '-'} → ${m.ke || '-'}</div>`
+                    ).join('');
+                } else {
+                    masukInfo.innerHTML = '<div class="no-data">Belum ada riwayat mutasi masuk</div>';
+                }
             }
         }
         
@@ -163,11 +130,15 @@
         const keluarTab = document.getElementById('tab-kunci-keluar');
         if (keluarTab) {
             const keluarInfo = keluarTab.querySelector('.prev-mutasi-keluar-info');
-            const keluarData = adminData.mutasi.filter(m => m.jenis === 'KELUAR');
-            if (keluarInfo && keluarData.length > 0) {
-                keluarInfo.innerHTML = keluarData.map(m => 
-                    `<div>${m.tanggal}: ${m.dari} → ${m.ke}</div>`
-                ).join('');
+            if (keluarInfo) {
+                const keluarData = adminData.mutasi.filter(m => m.jenis === 'KELUAR');
+                if (keluarData.length > 0) {
+                    keluarInfo.innerHTML = keluarData.map(m => 
+                        `<div>${m.tanggal || '-'}: ${m.dari || '-'} → ${m.ke || '-'}</div>`
+                    ).join('');
+                } else {
+                    keluarInfo.innerHTML = '<div class="no-data">Belum ada riwayat mutasi keluar</div>';
+                }
             }
         }
     }
@@ -226,12 +197,13 @@
         showAdminLoading('Menyimpan data handover...');
         
         try {
-            const result = await fetchAdminData({
+            const result = await window.getDataFromServer(ADMIN_UTILITAS_URL, {
                 action: 'saveHandoverKunci',
                 kavling: kavlingName,
                 tglHandover: tgl,
                 dari: dari,
-                ke: ke
+                ke: ke,
+                user: 'user4'
             });
             
             if (result.success) {
@@ -248,11 +220,50 @@
         }
     }
     
+    async function saveUtilitasDates() {
+        const kavlingName = getSelectedKavling();
+        if (!kavlingName) {
+            showAdminToast('warning', 'Pilih kavling terlebih dahulu!');
+            return;
+        }
+        
+        const listrikDate = document.getElementById('listrikInstallDate')?.value || '';
+        const airDate = document.getElementById('airInstallDate')?.value || '';
+        
+        if (!listrikDate && !airDate) {
+            showAdminToast('warning', 'Tidak ada data yang diubah');
+            return;
+        }
+        
+        showAdminLoading('Menyimpan data utilitas...');
+        
+        try {
+            const result = await window.getDataFromServer(ADMIN_UTILITAS_URL, {
+                action: 'saveUtilitasData',
+                kavling: kavlingName,
+                listrikDate: listrikDate,
+                airDate: airDate,
+                user: 'user4'
+            });
+            
+            if (result.success) {
+                showAdminToast('success', 'Data utilitas berhasil disimpan!');
+            } else {
+                showAdminToast('error', 'Gagal menyimpan: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error saving utilitas:', error);
+            showAdminToast('error', 'Error: ' + error.message);
+        } finally {
+            hideAdminLoading();
+        }
+    }
+    
     // ========== SETUP FUNCTIONS ==========
     function setupAdminEventListeners() {
         console.log('Setting up admin event listeners...');
         
-        // HO User
+        // HO User tab
         const saveHOButton = document.querySelector('#tab-ho-user .btn-save-section');
         if (saveHOButton) {
             saveHOButton.addEventListener('click', function(e) {
@@ -260,6 +271,17 @@
                 saveHandoverKunci();
             });
         }
+        
+        // Utility Install tab
+        const saveUtilityBtn = document.querySelector('#tab-utility-install .btn-save-section');
+        if (saveUtilityBtn) {
+            saveUtilityBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                saveUtilitasDates();
+            });
+        }
+        
+        // ⚠️ HAPUS: Bagian untuk save meteran checkbox - TIDAK PERLU di admin
         
         // Fetch Mutasi Data Button
         const fetchBtn = document.getElementById('btnFetchMutasiData');
@@ -269,6 +291,27 @@
                 const kavling = getSelectedKavling();
                 if (kavling) {
                     loadAdminUtilitasData(kavling);
+                } else {
+                    showAdminToast('warning', 'Pilih kavling terlebih dahulu!');
+                }
+            });
+        }
+        
+        // View Mutation History Button
+        const viewHistoryBtn = document.getElementById('btnViewMutationHistory');
+        if (viewHistoryBtn) {
+            viewHistoryBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const kavling = getSelectedKavling();
+                if (kavling) {
+                    loadAdminUtilitasData(kavling);
+                    
+                    // Tampilkan container riwayat
+                    const historyContainer = document.getElementById('mutasiHistoryContainer');
+                    if (historyContainer) {
+                        historyContainer.style.display = 
+                            historyContainer.style.display === 'none' ? 'block' : 'none';
+                    }
                 } else {
                     showAdminToast('warning', 'Pilih kavling terlebih dahulu!');
                 }
@@ -295,6 +338,16 @@
                 this.classList.add('active');
                 const targetTab = document.getElementById(`tab-${tabId}`);
                 if (targetTab) targetTab.classList.add('active');
+                
+                // Load data sesuai tab
+                if (getSelectedKavling()) {
+                    setTimeout(() => {
+                        if (tabId === 'ho-user' || tabId === 'utility-install' || 
+                            tabId === 'kunci-masuk' || tabId === 'kunci-keluar') {
+                            loadAdminUtilitasData(getSelectedKavling());
+                        }
+                    }, 200);
+                }
             });
         });
     }
@@ -303,63 +356,46 @@
     function integrateWithMainScript() {
         console.log('Integrating with main script.js...');
         
-        // Override fungsi di window object
-        window.setupAdminUtilitasMutation = function(pageElement) {
-            console.log('setupAdminUtilitasMutation called from admin script');
-            const btnViewMutation = pageElement.querySelector('#btnViewMutationHistory');
-            if (btnViewMutation) {
-                btnViewMutation.onclick = function() {
-                    const kavlingName = window.selectedKavling;
-                    if (kavlingName) {
-                        showAdminToast('info', `Mengambil riwayat mutasi ${kavlingName}`);
-                        loadAdminUtilitasData(kavlingName);
-                    } else {
-                        showAdminToast('warning', 'Pilih kavling terlebih dahulu!');
-                    }
-                };
+        // Override loadAdminUtilitasData jika belum ada
+        if (!window.loadAdminUtilitasData) {
+            window.loadAdminUtilitasData = loadAdminUtilitasData;
+        }
+        
+        // Tambahkan fungsi untuk tombol view mutation history
+        window.showMutationHistory = function() {
+            const kavling = getSelectedKavling();
+            if (kavling) {
+                loadAdminUtilitasData(kavling);
+            } else {
+                showAdminToast('warning', 'Pilih kavling terlebih dahulu!');
             }
         };
-        
-        // Override loadAdminUtilitasData
-        window.loadAdminUtilitasData = loadAdminUtilitasData;
-        
-        // Integrasi dengan fungsi searchKavling
-        if (window.searchKavling) {
-            const originalSearchKavling = window.searchKavling;
-            window.searchKavling = async function(isSync = false) {
-                const result = await originalSearchKavling.call(this, isSync);
-                
-                // Jika di user4 page dan ada kavling terpilih, load admin data
-                if (window.currentRole === 'user4' && window.selectedKavling) {
-                    setTimeout(() => {
-                        loadAdminUtilitasData(window.selectedKavling);
-                    }, 500);
-                }
-                
-                return result;
-            };
-        }
     }
     
     // ========== INITIALIZATION ==========
-    async function initAdminUtilitas() {
+    function initAdminUtilitas() {
         try {
-            // Tunggu main script
-            await waitForMainScript();
-            
             console.log('=== INITIALIZING ADMIN UTILITAS ===');
             
-            // Setup
-            setupAdminEventListeners();
-            setupAdminTabs();
-            integrateWithMainScript();
+            // Tunggu sedikit untuk main script
+            setTimeout(() => {
+                // Setup hanya jika di halaman user4
+                if (document.getElementById('user4Page')) {
+                    setupAdminEventListeners();
+                    setupAdminTabs();
+                    integrateWithMainScript();
+                    
+                    console.log('✅ Admin Utilitas initialized successfully');
+                    
+                    // Jika ada kavling yang sudah dipilih, load data
+                    if (getSelectedKavling()) {
+                        setTimeout(() => {
+                            loadAdminUtilitasData(getSelectedKavling());
+                        }, 500);
+                    }
+                }
+            }, 500);
             
-            console.log('✅ Admin Utilitas initialized successfully');
-            
-            // Auto-init jika sudah di user4 page
-            if (window.currentRole === 'user4') {
-                console.log('Auto-initializing for user4 page');
-            }
         } catch (error) {
             console.error('❌ Failed to initialize Admin Utilitas:', error);
         }
@@ -369,18 +405,19 @@
     window.adminUtilitas = {
         init: initAdminUtilitas,
         loadData: loadAdminUtilitasData,
-        saveHandover: saveHandoverKunci
+        saveHandover: saveHandoverKunci,
+        saveUtilitas: saveUtilitasDates
     };
     
     // Auto-init saat DOM siap
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM ready, initializing Admin Utilitas...');
-        initAdminUtilitas();
-    });
-    
-    // Juga init jika DOM sudah siap
-    if (document.readyState === 'interactive' || document.readyState === 'complete') {
-        setTimeout(initAdminUtilitas, 100);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM ready, initializing Admin Utilitas...');
+            initAdminUtilitas();
+        });
+    } else {
+        // Jika DOM sudah siap
+        setTimeout(initAdminUtilitas, 300);
     }
     
 })();
