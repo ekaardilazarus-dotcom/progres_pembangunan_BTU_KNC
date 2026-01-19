@@ -1800,13 +1800,28 @@ function loadProgressData(progressData) {
     }
 
     // Tanggal Penyerahan Kunci
-    if (progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']) {
-      const dateEl = pageElement.querySelector('.key-delivery-date');
-      if (dateEl) {
-        const rawDate = progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'];
-        dateEl.value = formatDateForInput(rawDate);
+   if (progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI']) {
+  const dateEl = pageElement.querySelector('.key-delivery-date');
+  if (dateEl) {
+    const rawDate = progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'];
+    
+    // Format ke dd/mm/yyyy untuk ditampilkan
+    let formattedDate = '';
+    
+    if (rawDate) {
+      // Jika sudah format dd/mm/yyyy, langsung pakai
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawDate)) {
+        formattedDate = rawDate;
+      } else {
+        // Convert dari format lain ke dd/mm/yyyy
+        formattedDate = formatDateForInput(rawDate);
       }
     }
+    
+    dateEl.value = formattedDate;
+    console.log(`Loaded date for ${selectedKavling}: ${rawDate} → ${formattedDate}`);
+  }
+}
 
     // Completion
     if (progressData.tahap4['COMPLETION / Penyelesaian akhir']) {
@@ -2134,12 +2149,12 @@ function formatDateForInput(dateValue) {
       return '';
     }
 
-    // Format ke yyyy-MM-dd untuk input[type="date"]
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    // ⭐ PERUBAHAN: Format ke dd/mm/yyyy (bukan yyyy-MM-dd)
     const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
 
-    return `${year}-${month}-${day}`;
+    return `${day}/${month}/${year}`;
   } catch (error) {
     console.error('Error formatting date:', error);
     return '';
@@ -2531,9 +2546,23 @@ async function saveTahap4() {
   }
 
    // Tambahkan TANGGAL_PENYERAHAN_KUNCI
-  if (dateEl && dateEl.value) {
-    tahapData['TANGGAL_PENYERAHAN_KUNCI'] = dateEl.value;
-    console.log('Tanggal:', tahapData['TANGGAL_PENYERAHAN_KUNCI']);
+   if (dateEl && dateEl.value.trim()) {
+    const dateValue = dateEl.value.trim();
+    
+    // Validasi format dd/mm/yyyy
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateValue)) {
+      tahapData['TANGGAL_PENYERAHAN_KUNCI'] = dateValue;
+      console.log('Tanggal valid:', dateValue);
+    } else {
+      // Jika format tidak valid, kirim string kosong
+      tahapData['TANGGAL_PENYERAHAN_KUNCI'] = '';
+      console.log('Format tanggal tidak valid, dikirim kosong');
+      showToast('warning', 'Format tanggal harus dd/mm/yyyy (contoh: 25/12/2023)');
+    }
+  } else if (dateEl) {
+    // Jika input kosong atau hanya spasi
+    tahapData['TANGGAL_PENYERAHAN_KUNCI'] = '';
+    console.log('Tanggal kosong, dikirim string kosong');
   }
 
   // Tambahkan LT, LB, dan TYPE
