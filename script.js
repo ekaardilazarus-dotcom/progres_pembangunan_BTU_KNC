@@ -2221,17 +2221,29 @@ async function saveTahap1() {
       }
     });
 
-  // Handle Sistem Pembuangan
-  if (wasteSystemInput && wasteSystemInput.value) {
-    tahapData['SISTEM PEMBUANGAN'] = wasteSystemInput.value === 'biotank' ? 'Biotank' : 
-                                     wasteSystemInput.value === 'ipal' ? 'Ipal' : 'Septictank';
+// Handle Sistem Pembuangan
+if (wasteSystemInput) {
+  if (wasteSystemInput.value === 'septictank') {
+    tahapData['SISTEM PEMBUANGAN'] = 'Septictank';
+  } else if (wasteSystemInput.value === 'biotank') {
+    tahapData['SISTEM PEMBUANGAN'] = 'Biotank';
+  } else if (wasteSystemInput.value === 'ipal') {
+    tahapData['SISTEM PEMBUANGAN'] = 'Ipal';
+  } else {
+    tahapData['SISTEM PEMBUANGAN'] = ''; // Untuk '', null, undefined, atau nilai lain
   }
+}
 
-  // Handle Cor Meja Dapur
-  if (tableKitchenInput && tableKitchenInput.value) {
-    tahapData['COR MEJA DAPUR'] = tableKitchenInput.value === 'include' ? 
-                                  'Dengan Cor Meja Dapur' : 'Tanpa Cor Meja Dapur';
+// Handle Cor Meja Dapur
+if (tableKitchenInput) {
+  if (tableKitchenInput.value === 'include') {
+    tahapData['COR MEJA DAPUR'] = 'Dengan Cor Meja Dapur';
+  } else if (tableKitchenInput.value === 'exclude') {
+    tahapData['COR MEJA DAPUR'] = 'Tanpa Cor Meja Dapur';
+  } else {
+    tahapData['COR MEJA DAPUR'] = ''; // Untuk '', null, undefined, atau nilai lain
   }
+}
 
   // Tambahkan LT, LB, dan TYPE
   if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
@@ -2319,11 +2331,16 @@ async function saveTahap2() {
     }
   });
 
-  // Handle Keramik Dinding Toilet & Dapur
-  if (bathroomTilesInput && bathroomTilesInput.value) {
-    tahapData['KERAMIK DINDING TOILET & DAPUR'] = bathroomTilesInput.value === 'include' ? 
-                                                  'Dengan Keramik Dinding' : 'Tanpa Keramik Dinding';
+if (bathroomTilesInput) {
+  // Selalu kirim value, meskipun kosong
+  if (bathroomTilesInput.value === 'include') {
+    tahapData['KERAMIK DINDING TOILET & DAPUR'] = 'Dengan Keramik Dinding';
+  } else if (bathroomTilesInput.value === 'exclude') {
+    tahapData['KERAMIK DINDING TOILET & DAPUR'] = 'Tanpa Keramik Dinding';
+  } else {
+    tahapData['KERAMIK DINDING TOILET & DAPUR'] = ''; // Kirim string kosong
   }
+}
 
   // Tambahkan LT, LB, dan TYPE
   if (currentKavlingData.lt) tahapData['LT'] = currentKavlingData.lt;
