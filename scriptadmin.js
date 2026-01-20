@@ -311,16 +311,26 @@ function updateMutasiTabs() {
         const editContainer = document.getElementById('utility-edit-container');
         const saveBtn = document.getElementById('btnSaveUtility');
         
-        if (listrikInput) listrikInput.value = formatDateForInput(adminData.utilitas?.tglListrik || '');
-        if (airInput) airInput.value = formatDateForInput(adminData.utilitas?.tglAir || '');
+        const listrikVal = formatDateForInput(adminData.utilitas?.tglListrik || '');
+        const airVal = formatDateForInput(adminData.utilitas?.tglAir || '');
+        
+        if (listrikInput) listrikInput.value = listrikVal;
+        if (airInput) airInput.value = airVal;
 
-        if (adminData.utilitas && (adminData.utilitas.tglListrik || adminData.utilitas.tglAir)) {
+        if (listrikVal || airVal) {
             [listrikInput, airInput].forEach(input => {
                 if (input) {
                     input.disabled = true;
                     input.style.opacity = '0.7';
                 }
             });
+            
+            // Sembunyikan tombol "Hari Ini" jika sudah ada isian
+            const todayButtons = utilitasTab.querySelectorAll('.btn-today-admin');
+            todayButtons.forEach(btn => {
+                btn.style.display = 'none';
+            });
+
             if (editContainer) editContainer.style.display = 'block';
             if (saveBtn) saveBtn.style.display = 'none';
         } else {
@@ -330,6 +340,13 @@ function updateMutasiTabs() {
                     input.style.opacity = '1';
                 }
             });
+
+            // Tampilkan kembali tombol "Hari Ini" jika kosong
+            const todayButtons = utilitasTab.querySelectorAll('.btn-today-admin');
+            todayButtons.forEach(btn => {
+                btn.style.display = 'block';
+            });
+
             if (editContainer) editContainer.style.display = 'none';
             if (saveBtn) saveBtn.style.display = 'block';
         }
@@ -399,6 +416,8 @@ function updateMutasiTabs() {
         const listrikDate = document.getElementById('listrikInstallDate')?.value || '';
         const airDate = document.getElementById('airInstallDate')?.value || '';
         
+        console.log('Saving Utilitas:', { kavlingName, listrikDate, airDate });
+        
         if (!listrikDate && !airDate) {
             showAdminToast('warning', 'Tidak ada data yang diubah');
             return;
@@ -417,11 +436,13 @@ function updateMutasiTabs() {
         showAdminLoading('Menyimpan data utilitas...');
         
         try {
+            // Kita gunakan parameter yang sesuai dengan apa yang diharapkan Apps Script (Kolom E & F)
+            // Sesuai kode Apps Script: tglAir -> Kolom 5 (E), tglListrik -> Kolom 6 (F)
             const result = await window.getDataFromServer(ADMIN_UTILITAS_URL, {
                 action: 'saveUtilitasData',
                 kavling: kavlingName,
-                listrikDate: listrikDate,
-                airDate: airDate
+                tglListrik: listrikDate, 
+                tglAir: airDate       
             });
             
             if (result.success) {
@@ -527,7 +548,8 @@ function updateMutasiTabs() {
         console.log('Setting up admin event listeners...');
         
         // HO User tab
-        const saveHOButton = document.querySelector('#tab-ho-user .btn-save-section');
+        const hoTab = document.getElementById('tab-ho-user');
+        const saveHOButton = hoTab ? hoTab.querySelector('.btn-save-section') : null;
         if (saveHOButton) {
             saveHOButton.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -539,9 +561,9 @@ function updateMutasiTabs() {
         const btnEditHO = document.getElementById('btn-edit-ho');
         if (btnEditHO) {
             btnEditHO.addEventListener('click', function() {
-                const hoTab = document.getElementById('tab-ho-user');
-                const inputs = hoTab.querySelectorAll('input');
-                const saveBtn = hoTab.querySelector('.btn-save-section');
+                const targetHoTab = document.getElementById('tab-ho-user');
+                const inputs = targetHoTab.querySelectorAll('input');
+                const saveBtn = targetHoTab.querySelector('.btn-save-section');
                 
                 inputs.forEach(input => {
                     input.disabled = false;
@@ -559,21 +581,30 @@ function updateMutasiTabs() {
                 const utilityTab = document.getElementById('tab-utility-install');
                 const inputs = utilityTab.querySelectorAll('input');
                 const saveBtn = document.getElementById('btnSaveUtility');
+                const todayButtons = utilityTab.querySelectorAll('.btn-today-admin');
                 
                 inputs.forEach(input => {
                     input.disabled = false;
                     input.style.opacity = '1';
                 });
+                
+                todayButtons.forEach(btn => {
+                    btn.style.display = 'block';
+                });
+
                 if (saveBtn) saveBtn.style.display = 'block';
                 this.parentElement.style.display = 'none';
             });
         }
         
         // Utility Install tab
-        const saveUtilityBtn = document.querySelector('#tab-utility-install .btn-save-section');
+        const saveUtilityBtn = document.getElementById('btnSaveUtility');
         if (saveUtilityBtn) {
+            // Remove any existing listeners by cloning (if needed, but usually once is fine)
             saveUtilityBtn.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation(); // Stop from bubbling to script.js
+                console.log('Save utility button clicked via ID');
                 saveUtilitasDates();
             });
         }
