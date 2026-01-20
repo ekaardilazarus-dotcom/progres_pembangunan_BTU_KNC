@@ -1,4 +1,4 @@
-// versi 0.444
+// versi 0.445
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSFK7tTjxYD-Z-UO35ObXnOMIxNdOmiN_YiV4xTvuifuoLY7v4Gs6HMmPn-yHGyJlbmg/exec';
 
@@ -5167,33 +5167,20 @@ async function saveKeyDelivery() {
     return;
   }
 
-  // Cari elemen-elemen di tab baru
-  const deliverySection = document.getElementById('tab-delivery');
-  if (!deliverySection) {
-    showToast('error', 'Tab penyerahan kunci tidak ditemukan');
-    return;
-  }
+  // Cari elemen-elemen di Tahap 4
+  const pageId = currentRole + 'Page';
+  const page = document.getElementById(pageId);
+  if (!page) return;
 
-  const deliveryToInput = deliverySection.querySelector('.delivery-section');
-  const deliveryDateInput = deliverySection.querySelector('.key-delivery-date');
+  const deliveryDateInput = page.querySelector('.key-delivery-date');
 
-  if (!deliveryToInput || !deliveryDateInput) {
-    console.error('Input elements not found:', {
-      deliveryTo: !!deliveryToInput,
-      deliveryDate: !!deliveryDateInput
-    });
+  if (!deliveryDateInput) {
+    console.error('Input element not found');
     showToast('error', 'Form tidak lengkap!');
     return;
   }
 
-  const deliveryTo = deliveryToInput.value.trim();
   const deliveryDate = deliveryDateInput.value;
-
-  if (!deliveryTo) {
-    showToast('warning', 'Harap isi "Penyerahan Kunci Ke"');
-    deliveryToInput.focus();
-    return;
-  }
 
   showGlobalLoading('Menyimpan data penyerahan kunci...');
 
@@ -5201,7 +5188,6 @@ async function saveKeyDelivery() {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
       action: 'saveKeyDelivery',
       kavling: selectedKavling,
-      deliveryTo: deliveryTo,
       deliveryDate: deliveryDate,
       user: currentRole
     });
@@ -5212,13 +5198,9 @@ async function saveKeyDelivery() {
       // Update data lokal
       if (currentKavlingData) {
         if (!currentKavlingData.keyDelivery) currentKavlingData.keyDelivery = {};
-        currentKavlingData.keyDelivery.deliveryTo = deliveryTo;
         currentKavlingData.keyDelivery.deliveryDate = deliveryDate;
       }
 
-      // Clear form jika berhasil
-      deliveryToInput.value = '';
-      deliveryDateInput.value = '';
     } else {
       showToast('error', 'Gagal menyimpan: ' + result.message);
     }
@@ -5239,9 +5221,8 @@ function updateProgress(rolePage) {
   
   // Progress values for specific components
   let tahap1_3_Progress = 0; // Max 94
-  let completionProgress = 0; // Max 4 (Total 98)
-  let deliveryToProgress = 0; // Max 1 (Total 99)
-  let deliveryDateProgress = 0; // Max 1 (Total 100)
+  let completionProgress = 0; // Max 5
+  let deliveryDateProgress = 0; // Max 1
 
   // Tahap 1-3 tasks count
   let t13_total = 0;
@@ -5277,29 +5258,21 @@ function updateProgress(rolePage) {
     });
 
     // Specific Tahap 4 components
+    let sectionPercent = 0;
     if (tahap === '4') {
       const completionTask = section.querySelector('[data-task^="COMPLETION"]');
-      const deliveryToTask = section.querySelector('.key-delivery-input');
       const deliveryDateTask = section.querySelector('.key-delivery-date');
 
       if (completionTask && completionTask.checked) {
-        completionProgress = 5; // Updated to 5% for overall (Total 94 + 5 + 1 = 100)
+        completionProgress = 5;
       }
       if (deliveryDateTask && deliveryDateTask.value.trim() !== '') {
         deliveryDateProgress = 1;
       }
       
-      // Set section percent logic
-      // Tahap 4: Tanggal (50%), Completion (50%)
       let t4_p1 = (deliveryDateTask && (deliveryDateTask.value || '').trim() !== '') ? 50 : 0;
       let t4_p2 = (completionTask && completionTask.checked) ? 50 : 0;
       sectionPercent = t4_p1 + t4_p2;
-
-      console.log('Tahap 4 Progress Calc Details:', {
-        completion: t4_p2,
-        deliveryDate: t4_p1,
-        sectionPercent
-      });
     } else {
       sectionPercent = sectionTotal > 0 ? (sectionCompleted / sectionTotal) * 100 : 0;
     }
@@ -5311,7 +5284,6 @@ function updateProgress(rolePage) {
     if (progressFill) progressFill.style.width = sectionPercent + '%';
   });
 
-  // Calculate Tahap 1-3 progress (94% weight)
   if (t13_total > 0) {
     tahap1_3_Progress = (t13_completed / t13_total) * 94;
   }
