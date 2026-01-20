@@ -934,9 +934,6 @@
           <button class="sync-btn combined-btn" type="button">
             <i class="fas fa-sync-alt"></i> Sinkronkan Data
           </button>
-          <button class="btn-add-kavling" type="button">
-            <i class="fas fa-plus-circle"></i> Tambah Kavling
-          </button>
         </div>
       </div>
 
@@ -980,7 +977,6 @@
             <button id="btnViewMutationHistory" type="button" class="btn-primary" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #38bdf8, #1d4ed8); border-radius: 12px; font-weight: 700; font-size: 1rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: all 0.3s ease;">
               <i class="fas fa-history"></i> Lihat Data Mutasi
             </button>
-            <div id="mutasiHistoryContainer" style="display: none; margin-top: 15px; padding: 15px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; max-height: 400px; overflow-y: auto;"></div>
           </div>
 
           <!-- Admin Utilitas Tabs -->
@@ -1087,6 +1083,11 @@
               <div class="progress-section detailed" style="border-left: 6px solid #f59e0b;">
                 <h3 style="color: #f59e0b; margin-bottom: 15px;"><i class="fas fa-bolt"></i> Pemasangan Utilitas</h3>
                 
+                <div id="utility-edit-container" style="display:none; margin-bottom: 15px;">
+                    <button id="btn-edit-utility" type="button" class="btn-primary" style="background: #f59e0b; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer;">
+                        <i class="fas fa-edit"></i> EDIT PEMASANGAN LISTRIK & AIR
+                    </button>
+                </div>
 
                 <div class="task-item" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 15px;">
                   <label for="listrikInstallDate" style="font-weight: 600; color: #94a3b8;">Tanggal Pemasangan Listrik:</label>
@@ -1290,8 +1291,8 @@
       </div>
     </div>
 
-    <footer>
-      &copy; BTU KNC — Sistem Pemantauan Progres
+    <footer class="main-footer">
+      &copy; BTU KNC — Sistem Pemantauan Progres - byekalazarus -
     </footer>
   </div>
 
