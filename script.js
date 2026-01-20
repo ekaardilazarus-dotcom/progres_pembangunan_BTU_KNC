@@ -1068,14 +1068,15 @@ function enableAllInputs() {
     }
   });
 
-  // 4. Enable tombol save
-  const saveButtons = page.querySelectorAll('.btn-save-section');
-  saveButtons.forEach(btn => {
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
-    btn.style.pointerEvents = 'auto';
-  });
+    // 4. Enable tombol save
+    const saveButtons = page.querySelectorAll('.btn-save-section');
+    saveButtons.forEach(btn => {
+      if (btn.id === 'btnSaveUtility') return; // Skip specialized admin buttons
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+      btn.style.pointerEvents = 'auto';
+    });
 
   console.log(`✅ Enabled: ${checkboxes.length} checkboxes, ${stateButtons.length} state buttons, ${saveButtons.length} save buttons`);
 
