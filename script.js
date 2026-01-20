@@ -1,6 +1,6 @@
-// versi 0.442
+// versi 0.444
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
-const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzpC_OqLvzKsNTB0ngV6Fte20kx1LWl8NSIpDNVjpP9FV0hdZy2e8gy_q8leycLLgmm_w/exec';
+const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSFK7tTjxYD-Z-UO35ObXnOMIxNdOmiN_YiV4xTvuifuoLY7v4Gs6HMmPn-yHGyJlbmg/exec';
 
 let currentRole = null;
 let selectedKavling = null;
@@ -1055,6 +1055,17 @@ function enableAllInputs() {
     input.style.opacity = '1';
     input.style.cursor = 'text';
     input.style.pointerEvents = 'auto';
+
+    // Tambahkan listener untuk input agar update progress saat mengetik/memilih tanggal
+    if (!input.hasAttribute('data-listener-added')) {
+      const updateFn = () => {
+        console.log(`Input ${input.id || input.getAttribute('data-task')} changed`);
+        updateProgress(pageId);
+      };
+      input.addEventListener('input', updateFn);
+      input.addEventListener('change', updateFn);
+      input.setAttribute('data-listener-added', 'true');
+    }
   });
 
   // 4. Enable tombol save
@@ -2128,43 +2139,34 @@ function enableAllInputs() {
 
 // ===== FUNGSI TAMBAHAN UNTUK FORMAT TANGGAL =====
 function formatDateForInput(dateValue) {
-  try {
-    if (!dateValue) return '';
-
-    let date;
-    if (dateValue instanceof Date) {
-      date = dateValue;
-    } else if (typeof dateValue === 'string') {
-      // Coba parse berbagai format tanggal
-      const parsed = new Date(dateValue);
-      if (!isNaN(parsed.getTime())) {
-        date = parsed;
-      } else {
-        // Coba format dd/mm/yyyy atau dd-mm-yyyy
-        const parts = dateValue.split(/[\/\-]/);
-        if (parts.length === 3) {
-          const day = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10) - 1;
-          const year = parseInt(parts[2], 10);
-          date = new Date(year, month, day);
-        } else {
-          return '';
-        }
-      }
-    } else {
-      return '';
+  if (!dateValue) return '';
+  
+  let date;
+  if (dateValue instanceof Date) {
+    date = dateValue;
+  } else if (typeof dateValue === 'string') {
+    const dateStr = dateValue.trim();
+    // Jika sudah format dd/mm/yyyy
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return dateStr;
+    
+    // Jika format yyyy-mm-dd (dari DB/Spreadsheet ISO)
+    if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+      const parts = dateStr.split('T')[0].split('-');
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
-
-    // ⭐ PERUBAHAN: Format ke dd/mm/yyyy (bukan yyyy-MM-dd)
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-
-    return `${day}/${month}/${year}`;
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return '';
+    
+    date = new Date(dateStr);
+  } else {
+    date = new Date(dateValue);
   }
+
+  if (isNaN(date.getTime())) return String(dateValue);
+  
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${day}/${month}/${year}`;
 }
 
 //
@@ -4168,8 +4170,47 @@ function setupDynamicEventListeners() {
   console.log('Dynamic event listeners setup complete');
 }
 
+// ========== INITIALIZING DATEPICKERS ==========
+function initDatePickers() {
+  console.log('Initializing Flatpickr...');
+  const config = {
+    dateFormat: "d/m/Y",
+    allowInput: true,
+    locale: "id",
+    theme: "dark",
+    disableMobile: true
+  };
+
+  // Initialize all date inputs
+  const dateInputs = document.querySelectorAll('.key-delivery-date, .input-mutasi-masuk-tgl, .input-mutasi-keluar-tgl, .input-mutasi-ho-tgl, .utility-date-input');
+  dateInputs.forEach(input => {
+    const fp = flatpickr(input, config);
+    
+    // Find associated "Hari Ini" button
+    // The button could be a sibling or inside a parent div
+    let parent = input.parentElement;
+    if (parent) {
+      let todayBtn = parent.querySelector('.btn-today, .btn-today-admin');
+      if (!todayBtn && parent.parentElement) {
+        todayBtn = parent.parentElement.querySelector('.btn-today, .btn-today-admin');
+      }
+      
+      if (todayBtn) {
+        todayBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          fp.setDate(new Date());
+        });
+      }
+    }
+  });
+}
+
 function initApp() {
   console.log('=== INITIALIZING APP ===');
+  
+  // Initialize DatePickers
+  initDatePickers();
+
   console.log('DOM ready state:', document.readyState);
 
   // 1. Setup dasar yang tidak bergantung pada DOM kompleks
@@ -4406,9 +4447,20 @@ function setupViewMutationButton() {
     btnViewMutation.addEventListener('click', function(e) {
       e.preventDefault();
       const container = document.getElementById('mutasiHistoryContainer');
+      if (!container) return;
       
       if (container.style.display === 'none' || container.style.display === '') {
-        loadMutationHistory();
+        if (typeof loadMutationHistory === 'function') {
+          loadMutationHistory();
+        } else if (typeof loadAdminUtilitasData === 'function') {
+          const kavling = selectedKavling || (document.querySelector('#kavlingInfoUser4 .val-name')?.textContent !== '-' ? document.querySelector('#kavlingInfoUser4 .val-name')?.textContent : null);
+          if (kavling) {
+             loadAdminUtilitasData(kavling);
+             container.style.display = 'block';
+          } else {
+             showToast('warning', 'Pilih kavling terlebih dahulu!');
+          }
+        }
       } else {
         container.style.display = 'none';
       }
@@ -5183,53 +5235,90 @@ function updateProgress(rolePage) {
   if (!pageElement) return;
 
   const progressSections = pageElement.querySelectorAll('.progress-section[data-tahap]');
-  let totalWeightedProgress = 0;
   
-  // Bobot per tahap
-  const tahapWeights = { 
-    '1': 0.40,  // 40%
-    '2': 0.30,  // 30%
-    '3': 0.20,  // 20%
-    '4': 0.10   // 10%
-  };
+  // Progress values for specific components
+  let tahap1_3_Progress = 0; // Max 94
+  let completionProgress = 0; // Max 4 (Total 98)
+  let deliveryToProgress = 0; // Max 1 (Total 99)
+  let deliveryDateProgress = 0; // Max 1 (Total 100)
+
+  // Tahap 1-3 tasks count
+  let t13_total = 0;
+  let t13_completed = 0;
 
   progressSections.forEach(section => {
     const tahap = section.getAttribute('data-tahap');
     const tasks = section.querySelectorAll('.sub-task, [data-task]');
-    let completedCount = 0;
-    let totalTasks = 0;
+    let sectionCompleted = 0;
+    let sectionTotal = 0;
 
     tasks.forEach(task => {
-      totalTasks++;
-      
-      if (task.type === 'checkbox') {
-        if (task.checked) completedCount++;
-      } else if (task.type === 'hidden' || task.type === 'text') {
-        if (task.value && task.value.trim() !== '') completedCount++;
+      // Abaikan isian Kondisi Property / Keterangan Tambahan
+      if (task.classList.contains('tahap-comments') || task.id === 'utilityPropertyNotes' || task.id === 'propertyNotesManager') {
+        return;
       }
+
+      sectionTotal++;
+      
+      let isCompleted = false;
+      if (task.type === 'checkbox') {
+        if (task.checked) isCompleted = true;
+      } else if (task.type === 'hidden' || task.type === 'text') {
+        if (task.value && task.value.trim() !== '') isCompleted = true;
+      }
+
+      if (isCompleted) {
+        sectionCompleted++;
+        if (tahap === '1' || tahap === '2' || tahap === '3') t13_completed++;
+      }
+      
+      if (tahap === '1' || tahap === '2' || tahap === '3') t13_total++;
     });
 
-    const sectionPercent = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0;
-    
-    // Update tampilan per tahap
-    const subPercentEl = section.querySelector('.sub-percent');
-    if (subPercentEl) {
-      subPercentEl.textContent = Math.round(sectionPercent) + '%';
+    // Specific Tahap 4 components
+    if (tahap === '4') {
+      const completionTask = section.querySelector('[data-task^="COMPLETION"]');
+      const deliveryToTask = section.querySelector('.key-delivery-input');
+      const deliveryDateTask = section.querySelector('.key-delivery-date');
+
+      if (completionTask && completionTask.checked) {
+        completionProgress = 5; // Updated to 5% for overall (Total 94 + 5 + 1 = 100)
+      }
+      if (deliveryDateTask && deliveryDateTask.value.trim() !== '') {
+        deliveryDateProgress = 1;
+      }
+      
+      // Set section percent logic
+      // Tahap 4: Tanggal (50%), Completion (50%)
+      let t4_p1 = (deliveryDateTask && (deliveryDateTask.value || '').trim() !== '') ? 50 : 0;
+      let t4_p2 = (completionTask && completionTask.checked) ? 50 : 0;
+      sectionPercent = t4_p1 + t4_p2;
+
+      console.log('Tahap 4 Progress Calc Details:', {
+        completion: t4_p2,
+        deliveryDate: t4_p1,
+        sectionPercent
+      });
+    } else {
+      sectionPercent = sectionTotal > 0 ? (sectionCompleted / sectionTotal) * 100 : 0;
     }
+    
+    const subPercentEl = section.querySelector('.sub-percent');
+    if (subPercentEl) subPercentEl.textContent = Math.round(sectionPercent) + '%';
 
     const progressFill = section.querySelector('.progress-fill');
-    if (progressFill) {
-      progressFill.style.width = sectionPercent + '%';
-    }
-
-    // Tambah ke total dengan bobot
-    totalWeightedProgress += sectionPercent * (tahapWeights[tahap] || 0.25);
+    if (progressFill) progressFill.style.width = sectionPercent + '%';
   });
 
-  const roundedProgress = Math.round(totalWeightedProgress);
-  updateTotalProgressDisplay(roundedProgress + '%', rolePage);
+  // Calculate Tahap 1-3 progress (94% weight)
+  if (t13_total > 0) {
+    tahap1_3_Progress = (t13_completed / t13_total) * 94;
+  }
+
+  const totalProgress = Math.round(tahap1_3_Progress + completionProgress + deliveryDateProgress);
+  updateTotalProgressDisplay(totalProgress + '%', rolePage);
   
-  return roundedProgress;
+  return totalProgress;
 }
 
 //--------------
