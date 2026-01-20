@@ -17,6 +17,12 @@
       </p>
     </header>
 
+    <!-- Flatpickr CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
+
     <div class="main-content">
       <!-- Section Pelaksana Lapangan -->
       <div class="section-container">
@@ -465,7 +471,9 @@
               <div class="progress-section detailed" data-tahap="4">
                 <div class="section-header-flex">
                   <h3>Tahap 4: Serah Terima & Kondisi Akhir</h3>
+                  <span class="sub-percent">0%</span>
                 </div>
+                <div class="progress-bar"><div class="progress-fill tahap4" style="width: 0%"></div></div>
                 
                 <div class="notes-section" style="margin-top: 10px;">
                   <label style="display: block; margin-bottom: 8px; color: #38bdf8; font-weight: 600;">
@@ -486,25 +494,27 @@
     <i class="fas fa-calendar-alt"></i> Tanggal Penyerahan Kunci dari Pelaksana ke Penanggung Jawab :
   </label>
   
-<div style="display: flex; gap: 10px; align-items: center;">
-  <!-- Input tanggal -->
-  <input 
-    type="text" 
-    class="key-delivery-date sub-task-text" 
-    placeholder="dd/mm/yyyy" 
-    style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;" 
-    maxlength="10"
-  >
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <!-- Input tanggal -->
+    <input 
+      type="text" 
+      class="key-delivery-date sub-ta" 
+      placeholder="dd/mm/yyyy" 
+      style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;" 
+      maxlength="10"
+    >
+  </div>
   
-  <!-- Tombol Hari Ini -->
-  <button 
-    type="button" 
-    class="btn-today"
-    style="background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: white; border: none; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; white-space: nowrap;"
-  >
-    <i class="fas fa-calendar-check"></i> Hari Ini
-  </button>
-</div>
+  <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+    <!-- Tombol Hari Ini -->
+    <button 
+      type="button" 
+      class="btn-today"
+      style="background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: white; border: none; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; white-space: nowrap;"
+    >
+      <i class="fas fa-calendar-check"></i> Hari Ini
+    </button>
+  </div>
   
   <small style="color: #94a3b8; font-size: 0.8rem; display: block; margin-top: 5px;">
     Klik ikon kalender untuk pilih tanggal, atau "Hari Ini" untuk tanggal sekarang.
@@ -703,7 +713,7 @@
               <label style="display: block; margin-bottom: 8px; color: #38bdf8; font-weight: 600;">
                 <i class="fas fa-calendar-alt"></i> Tanggal Penyerahan Kunci :
               </label>
-              <input type="date" class="key-delivery-date sub-task-text" data-task="TANGGAL_PENYERAHAN_KUNCI" style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;" autocomplete="off">
+              <input type="text" class="key-delivery-date sub-task-text" data-task="TANGGAL_PENYERAHAN_KUNCI" style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off">
             </div>
 
             <div style="margin-top: 20px;">
@@ -894,7 +904,7 @@
               <label style="display: block; margin-bottom: 8px; color: #38bdf8; font-weight: 600;">
                 <i class="fas fa-calendar-alt"></i> Tanggal Penyerahan Kunci :
               </label>
-              <input type="date" class="key-delivery-date sub-task-text" data-task="TANGGAL_PENYERAHAN_KUNCI" style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;" autocomplete="off">
+              <input type="text" class="key-delivery-date sub-task-text" data-task="TANGGAL_PENYERAHAN_KUNCI" style="width: 100%; padding: 14px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off">
             </div>
 
             <div style="margin-top: 20px;">
@@ -970,6 +980,7 @@
             <button id="btnViewMutationHistory" type="button" class="btn-primary" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #38bdf8, #1d4ed8); border-radius: 12px; font-weight: 700; font-size: 1rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: all 0.3s ease;">
               <i class="fas fa-history"></i> Lihat Data Mutasi
             </button>
+            <div id="mutasiHistoryContainer" style="display: none; margin-top: 15px; padding: 15px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; max-height: 400px; overflow-y: auto;"></div>
           </div>
 
           <!-- Admin Utilitas Tabs -->
@@ -985,10 +996,6 @@
             </button>
             <button class="admin-tab-btn" data-tab="utility-install">
               <i class="fas fa-bolt"></i> Pemasangan Listrik & Air
-            </button>
-            <!-- TAB BARU: Penyerahan Kunci -->
-            <button class="admin-tab-btn" data-tab="delivery">
-              <i class="fas fa-key"></i> Penyerahan Kunci
             </button>
           </div>
 
@@ -1007,7 +1014,10 @@
                 </div>
                 <div class="form-group" style="margin-bottom: 15px;">
                   <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Tanggal:</label>
-                  <input type="date" class="input-mutasi-masuk-tgl" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+                  <div style="display: flex; gap: 10px;">
+                    <input type="text" class="input-mutasi-masuk-tgl" placeholder="dd/mm/yyyy" maxlength="10" style="flex: 1; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+                    <button type="button" class="btn-today-admin" style="background: #38bdf8; color: white; border: none; padding: 0 15px; border-radius: 8px; cursor: pointer;">Hari Ini</button>
+                  </div>
                 </div>
                 <div class="form-group" style="margin-bottom: 15px; padding: 12px; background: rgba(56, 189, 248, 0.1); border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.3);">
                   <label style="display: block; margin-bottom: 5px; color: #38bdf8; font-weight: 600; font-size: 0.85rem;">Data Mutasi Sebelumnya:</label>
@@ -1031,7 +1041,10 @@
                 </div>
                 <div class="form-group" style="margin-bottom: 15px;">
                   <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Tanggal:</label>
-                  <input type="date" class="input-mutasi-keluar-tgl" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+                  <div style="display: flex; gap: 10px;">
+                    <input type="text" class="input-mutasi-keluar-tgl" placeholder="dd/mm/yyyy" maxlength="10" style="flex: 1; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+                    <button type="button" class="btn-today-admin" style="background: #38bdf8; color: white; border: none; padding: 0 15px; border-radius: 8px; cursor: pointer;">Hari Ini</button>
+                  </div>
                 </div>
                 <div class="form-group" style="margin-bottom: 15px; padding: 12px; background: rgba(244, 63, 94, 0.1); border-radius: 8px; border: 1px solid rgba(244, 63, 94, 0.3);">
                   <label style="display: block; margin-bottom: 5px; color: #f43f5e; font-weight: 600; font-size: 0.85rem;">Data Mutasi Sebelumnya:</label>
@@ -1045,6 +1058,11 @@
             <div id="tab-ho-user" class="tab-content-item">
               <div class="progress-section detailed" style="border-left: 6px solid #8b5cf6;">
                 <h3 style="color: #8b5cf6; margin-bottom: 15px;"><i class="fas fa-user-check"></i> Mutasi HO Ke User</h3>
+                <div id="ho-edit-container" style="display:none; margin-bottom: 15px;">
+                    <button id="btn-edit-ho" type="button" class="btn-primary" style="background: #8b5cf6; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer;">
+                        <i class="fas fa-edit"></i> EDIT MUTASI HO
+                    </button>
+                </div>
                 <div class="form-group" style="margin-bottom: 15px;">
                   <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Diberikan Oleh:</label>
                   <input type="text" class="input-mutasi-ho-dari" placeholder="Nama Pemberi" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
@@ -1055,7 +1073,10 @@
                 </div>
                 <div class="form-group" style="margin-bottom: 15px;">
                   <label style="display: block; margin-bottom: 8px; color: #94a3b8;">Tanggal:</label>
-                  <input type="date" class="input-mutasi-ho-tgl" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+                  <div style="display: flex; gap: 10px;">
+                    <input type="text" class="input-mutasi-ho-tgl" placeholder="dd/mm/yyyy" maxlength="10" style="flex: 1; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
+                    <button type="button" class="btn-today-admin" style="background: #38bdf8; color: white; border: none; padding: 0 15px; border-radius: 8px; cursor: pointer;">Hari Ini</button>
+                  </div>
                 </div>
                 <button class="btn-save-section" type="button" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);"><i class="fas fa-save"></i> Simpan Mutasi HO</button>
               </div>
@@ -1066,56 +1087,27 @@
               <div class="progress-section detailed" style="border-left: 6px solid #f59e0b;">
                 <h3 style="color: #f59e0b; margin-bottom: 15px;"><i class="fas fa-bolt"></i> Pemasangan Utilitas</h3>
                 
-                <div style="margin-bottom: 20px;">
-                  <button class="btn-save-section" id="btnFetchMutasiData" type="button" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
-                    <i class="fas fa-download"></i> Ambil Data Mutasi
-                  </button>
-                </div>
 
                 <div class="task-item" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 15px;">
                   <label for="listrikInstallDate" style="font-weight: 600; color: #94a3b8;">Tanggal Pemasangan Listrik:</label>
-                  <input type="date" id="listrikInstallDate" class="utility-date-input" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155;">
+                  <div style="display: flex; gap: 10px; width: 100%;">
+                    <input type="text" id="listrikInstallDate" class="utility-date-input" placeholder="dd/mm/yyyy" maxlength="10" style="flex: 1; padding: 12px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155;">
+                    <button type="button" class="btn-today-admin" style="background: #f59e0b; color: white; border: none; padding: 0 15px; border-radius: 8px; cursor: pointer;">Hari Ini</button>
+                  </div>
                 </div>
 
                 <div class="task-item" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px;">
                   <label for="airInstallDate" style="font-weight: 600; color: #94a3b8;">Tanggal Pemasangan Air:</label>
-                  <input type="date" id="airInstallDate" class="utility-date-input" style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155;">
+                  <div style="display: flex; gap: 10px; width: 100%;">
+                    <input type="text" id="airInstallDate" class="utility-date-input" placeholder="dd/mm/yyyy" maxlength="10" style="flex: 1; padding: 12px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155;">
+                    <button type="button" class="btn-today-admin" style="background: #f59e0b; color: white; border: none; padding: 0 15px; border-radius: 8px; cursor: pointer;">Hari Ini</button>
+                  </div>
                 </div>
 
                 <button class="btn-save-section" id="btnSaveUtility" type="button" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fas fa-save"></i> Simpan Data Utilitas</button>
               </div>
             </div>
 
-            <!-- TAB BARU: Penyerahan Kunci -->
-            <div id="tab-delivery" class="tab-content-item">
-              <div class="progress-section detailed" style="border-left: 6px solid #8b5cf6;">
-                <h3 style="color: #8b5cf6; margin-bottom: 15px;">
-                  <i class="fas fa-key"></i> Penyerahan Kunci ke User
-                </h3>
-                
-                <div class="form-group" style="margin-bottom: 15px;">
-                  <label style="display: block; margin-bottom: 8px; color: #94a3b8;">
-                    <i class="fas fa-user-check"></i> Penyerahan Kunci Ke:
-                  </label>
-                  <input type="text" class="delivery-section" 
-                         placeholder="Nama penerima kunci" 
-                         style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
-                </div>
-                
-                <div class="form-group" style="margin-bottom: 15px;">
-                  <label style="display: block; margin-bottom: 8px; color: #94a3b8;">
-                    <i class="fas fa-calendar-alt"></i> Tanggal Penyerahan:
-                  </label>
-                  <input type="date" class="key-delivery-date" 
-                         style="width: 100%; padding: 12px; border-radius: 8px; background: #0f172a; border: 1px solid #334155; color: white;">
-                </div>
-                
-                <button class="btn-save-section" type="button" 
-                        style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); width: 100%;">
-                  <i class="fas fa-save"></i> Simpan Data Penyerahan Kunci
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
