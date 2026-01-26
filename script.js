@@ -2950,11 +2950,14 @@ function parseProgressValue(progressStr) {
   if (!progressStr && progressStr !== 0) return 0;
 
   if (typeof progressStr === 'number') {
-    // Untuk angka < 1, biarkan 2 digit desimal, untuk >= 1 bulatkan ke 1 digit
-    if (progressStr < 1) {
-      return Math.round(progressStr * 100) / 100;
+    // Angka dalam bentuk desimal (0-1) atau persentase (0-100)
+    if (progressStr <= 1) {
+      // Desimal, konversi ke persentase
+      return Math.round(progressStr * 10000) / 100;
+    } else {
+      // Sudah persentase, bulatkan ke 1 digit
+      return Math.round(progressStr * 10) / 10;
     }
-    return Math.round(progressStr * 10) / 10;
   }
 
   if (typeof progressStr === 'string') {
@@ -2962,26 +2965,40 @@ function parseProgressValue(progressStr) {
     if (match) {
       let num = parseFloat(match[1]);
       
-      if (progressStr.includes('%') && num <= 1) {
-        num = num * 100;
+      // Jika string mengandung %, artinya sudah dalam bentuk persentase
+      // Tapi masih dalam format string dengan %
+      if (progressStr.includes('%')) {
+        // num sudah dalam 0-100
+        if (num < 1) {
+          // Contoh: "0.06%" → 0.06 → 6
+          return Math.round(num * 10000) / 100;
+        }
+        // Contoh: "99.56%" → 99.6
+        return Math.round(num * 10) / 10;
+      } else {
+        // Tanpa %, bisa desimal atau sudah persentase
+        if (num <= 1) {
+          // Desimal, konversi ke persentase
+          return Math.round(num * 10000) / 100;
+        } else {
+          // Sudah persentase
+          return Math.round(num * 10) / 10;
+        }
       }
-      
-      // Aturan khusus: angka < 1 tetap 2 digit, >= 1 dibulatkan ke 1 digit
-      if (num < 1) {
-        return Math.round(num * 100) / 100;
-      }
-      return Math.round(num * 10) / 10;
     }
   }
 
   return 0;
 }
 
-// Test cases baru
-console.log(parseProgressValue('0.99%'));   // 0.99
-console.log(parseProgressValue(0.99));      // 0.99
-console.log(parseProgressValue('0.56%'));   // 0.56
+// Test cases
+console.log(parseProgressValue('0.06%'));   // 6
+console.log(parseProgressValue('1%'));      // 100
+console.log(parseProgressValue('0.99%'));   // 99
 console.log(parseProgressValue('99.56%'));  // 99.6
+console.log(parseProgressValue('99.52%'));  // 99.5
+console.log(parseProgressValue('100%'));    // 100
+console.log(parseProgressValue('6.23333')); // 6.2
 
 function renderKavlingSection(title, kavlings) {
   if (!kavlings || kavlings.length === 0) {
