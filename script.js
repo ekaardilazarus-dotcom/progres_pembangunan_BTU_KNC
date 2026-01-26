@@ -2947,51 +2947,41 @@ function displaySummaryReport(summaryData) {
 }
 
 function parseProgressValue(progressStr) {
-  if (!progressStr) return 0;
-  
-  // Backup untuk debug
-  console.log('parseProgressValue input:', progressStr, typeof progressStr);
+  if (!progressStr && progressStr !== 0) return 0;
 
   if (typeof progressStr === 'number') {
-    // Potong 1 digit di belakang koma
-    const str = progressStr.toString();
-    const dotIndex = str.indexOf('.');
-    
-    if (dotIndex !== -1 && str.length > dotIndex + 2) {
-      // Ambil 1 digit setelah koma: "6.266666666666667" → "6.2"
-      const trimmed = str.substring(0, dotIndex + 2);
-      const num = parseFloat(trimmed);
-      
-      // Konversi jika < 1 (0.0626 → 6.2%)
-      return num < 1 ? Math.round(num * 100) : Math.round(num);
+    // Untuk angka < 1, biarkan 2 digit desimal, untuk >= 1 bulatkan ke 1 digit
+    if (progressStr < 1) {
+      return Math.round(progressStr * 100) / 100;
     }
-    
-    // Jika tidak ada koma atau sudah 1 digit
-    return progressStr < 1 ? Math.round(progressStr * 100) : Math.round(progressStr);
+    return Math.round(progressStr * 10) / 10;
   }
 
   if (typeof progressStr === 'string') {
-    // Hapus % dan trim
-    const cleanStr = progressStr.replace('%', '').trim();
-    
-    // Potong 1 digit di belakang koma
-    const dotIndex = cleanStr.indexOf('.');
-    let trimmedStr = cleanStr;
-    
-    if (dotIndex !== -1 && cleanStr.length > dotIndex + 2) {
-      trimmedStr = cleanStr.substring(0, dotIndex + 2);
+    const match = progressStr.match(/(\d+(\.\d+)?)%?/);
+    if (match) {
+      let num = parseFloat(match[1]);
+      
+      if (progressStr.includes('%') && num <= 1) {
+        num = num * 100;
+      }
+      
+      // Aturan khusus: angka < 1 tetap 2 digit, >= 1 dibulatkan ke 1 digit
+      if (num < 1) {
+        return Math.round(num * 100) / 100;
+      }
+      return Math.round(num * 10) / 10;
     }
-    
-    const num = parseFloat(trimmedStr);
-    
-    if (isNaN(num)) return 0;
-    
-    // Konversi jika < 1 (0.0626 → 6.2%)
-    return num < 1 ? Math.round(num * 100) : Math.round(num);
   }
 
   return 0;
 }
+
+// Test cases baru
+console.log(parseProgressValue('0.99%'));   // 0.99
+console.log(parseProgressValue(0.99));      // 0.99
+console.log(parseProgressValue('0.56%'));   // 0.56
+console.log(parseProgressValue('99.56%'));  // 99.6
 
 function renderKavlingSection(title, kavlings) {
   if (!kavlings || kavlings.length === 0) {
