@@ -2924,14 +2924,6 @@ function displaySummaryReport(summaryData) {
       </div>
     </div>
 
-    <div class="summary-actions">
-      <button onclick="downloadFullReport()" class="btn-save-section" style="background: linear-gradient(135deg, #10b981, #059669);">
-        <i class="fas fa-file-excel"></i> Download Full Report
-      </button>
-      <button onclick="refreshSummary()" class="sync-btn" style="margin-left: 10px;">
-        <i class="fas fa-sync-alt"></i> Refresh
-      </button>
-    </div>
 
     <div id="filteredKavlingSection">
       <div class="summary-section">
