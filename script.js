@@ -2946,22 +2946,42 @@ function displaySummaryReport(summaryData) {
   addTableStyles();
 }
 
-// Helper function untuk parse progress value
+// Ganti fungsi ini di frontend
 function parseProgressValue(progressStr) {
   if (!progressStr) return 0;
-
+  
+  // Jika sudah angka (dari backend)
   if (typeof progressStr === 'number') {
-    return Math.round(progressStr); // BULATKAN DI SINI
-  }
-
-  if (typeof progressStr === 'string') {
-    const match = progressStr.match(/(\d+(\.\d+)?)%?/);
-    if (match) {
-      const num = parseFloat(match[1]);
-      return Math.round(num); // BULATKAN DI SINI
+    // Jika angka < 1 (0.99), konversi ke persentase
+    if (progressStr < 1 && progressStr > 0) {
+      return Math.round(progressStr * 100);
     }
+    // Jika angka >= 1 (99), langsung bulatkan
+    return Math.round(progressStr);
   }
-
+  
+  // Jika string
+  if (typeof progressStr === 'string') {
+    const cleanStr = progressStr.replace('%', '').trim();
+    const num = parseFloat(cleanStr);
+    
+    if (isNaN(num)) return 0;
+    
+    // PERBAIKAN: Deteksi apakah ini angka desimal (<1) atau persentase
+    if (num < 1 && num > 0) {
+      // Contoh: 0.99 → 99%
+      return Math.round(num * 100);
+    } else if (num >= 1 && num <= 100) {
+      // Contoh: 99.5 → 100%
+      return Math.round(num);
+    } else if (num > 100) {
+      // Contoh: 9950 (mungkin kesalahan format)
+      return Math.round(num / 100);
+    }
+    
+    return Math.round(num);
+  }
+  
   return 0;
 }
 
