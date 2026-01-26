@@ -3170,12 +3170,16 @@ window.currentFilteredKavlings = [];
 
 function filterKavlingByProgress(filter) {
   const summaryData = window.lastSummaryData;
-  if (!summaryData) return;
+  if (!summaryData) {
+    console.log('filterKavlingByProgress: No summary data available');
+    return;
+  }
 
   let kavlings = [];
   let title = '';
 
   const allItems = summaryData.items || summaryData.allKavlings || [];
+  console.log('filterKavlingByProgress: filter =', filter, ', allItems count =', allItems.length);
 
   switch(filter) {
     case 'all':
@@ -3213,6 +3217,9 @@ function filterKavlingByProgress(filter) {
   }
 
   window.currentFilteredKavlings = kavlings;
+  window.currentFilteredTitle = title;
+  console.log('filterKavlingByProgress: Set currentFilteredKavlings count =', kavlings.length);
+  
   const filteredSection = document.getElementById('filteredKavlingSection');
   if (filteredSection) {
     filteredSection.innerHTML = renderKavlingSection(title, kavlings);
@@ -3221,9 +3228,17 @@ function filterKavlingByProgress(filter) {
 
 // Update download function to use stored data
 async function downloadSummaryToExcel(title) {
-  const kavlings = window.currentFilteredKavlings;
+  // Try to get data from currentFilteredKavlings first, then fallback to lastSummaryData
+  let kavlings = window.currentFilteredKavlings;
+  
+  // Fallback: if currentFilteredKavlings is empty but we have lastSummaryData, use all items
+  if ((!kavlings || kavlings.length === 0) && window.lastSummaryData) {
+    kavlings = window.lastSummaryData.items || window.lastSummaryData.allKavlings || [];
+    console.log('downloadSummaryToExcel: Using fallback from lastSummaryData, count =', kavlings.length);
+  }
+  
   if (!kavlings || kavlings.length === 0) {
-    showToast('warning', 'Tidak ada data untuk didownload');
+    showToast('warning', 'Tidak ada data untuk didownload. Silakan pilih kategori terlebih dahulu.');
     return;
   }
 
@@ -3329,7 +3344,10 @@ function formatExcelDate(value) {
   try {
     const date = new Date(value);
     if (!isNaN(date.getTime())) {
-      return Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy');
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
     }
   } catch (e) {
     // Jika parsing gagal, return as is
