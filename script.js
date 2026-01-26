@@ -2784,6 +2784,53 @@ async function saveTahap4() {
 }
 
 // ========== SUMMARY REPORT FUNCTIONS ==========
+function showProcessingProgress(duration = 3500) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('loadingModal');
+    const modalContent = modal.querySelector('.modal-content');
+    
+    if (!modalContent) {
+      resolve();
+      return;
+    }
+    
+    modalContent.innerHTML = `
+      <i class="fas fa-cogs fa-spin" style="font-size: 3rem; color: #38bdf8; margin-bottom: 20px;"></i>
+      <h2 style="font-size: 1.25rem; margin-top: 10px;">Mohon Tunggu</h2>
+      <p style="color: #94a3b8; margin-top: 5px;">Sedang memproses data</p>
+      <div style="width: 100%; max-width: 300px; margin: 20px auto 0; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; height: 20px;">
+        <div id="processingProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981); border-radius: 10px; transition: width 0.05s linear;"></div>
+      </div>
+      <p id="processingProgressText" style="color: #38bdf8; margin-top: 10px; font-weight: bold;">0%</p>
+    `;
+    
+    modal.style.display = 'flex';
+    
+    const progressBar = document.getElementById('processingProgressBar');
+    const progressText = document.getElementById('processingProgressText');
+    const startTime = Date.now();
+    const interval = 50;
+    
+    const updateProgress = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / duration) * 100, 100);
+      
+      if (progressBar) progressBar.style.width = progress + '%';
+      if (progressText) progressText.textContent = Math.round(progress) + '%';
+      
+      if (progress < 100) {
+        setTimeout(updateProgress, interval);
+      } else {
+        setTimeout(() => {
+          resolve();
+        }, 200);
+      }
+    };
+    
+    updateProgress();
+  });
+}
+
 async function loadSummaryReport() {
   try {
     showGlobalLoading('Mengambil laporan summary...');
@@ -2793,18 +2840,19 @@ async function loadSummaryReport() {
     });
 
     if (result.success) {
+      await showProcessingProgress(3500);
+      hideGlobalLoading();
       displaySummaryReport(result);
-      // Auto-filter to 'all' to show the list immediately
       setTimeout(() => filterKavlingByProgress('all'), 100);
     } else {
+      hideGlobalLoading();
       showToast('error', result.message || 'Gagal mengambil laporan');
     }
 
   } catch (error) {
     console.error('Error loading summary report:', error);
-    showToast('error', 'Gagal mengambil laporan');
-  } finally {
     hideGlobalLoading();
+    showToast('error', 'Gagal mengambil laporan');
   }
 }
 
@@ -3059,9 +3107,15 @@ function renderKavlingSection(title, kavlings) {
     <div class="summary-section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <h4><i class="fas fa-list"></i> ${title} (${kavlings.length} kavling)</h4>
-        <button onclick="showDownloadCategoryPopup()" class="btn-save-section" style="width: auto; margin-top: 0; padding: 8px 15px; font-size: 0.9rem; background: linear-gradient(135deg, #10b981, #059669);">
-          <i class="fas fa-file-excel"></i> Download Excel
-        </button>
+        <div style="display: flex; align-items: center; gap: 0;">
+          <button onclick="showDownloadCategoryPopup()" class="btn-save-section" style="width: auto; margin-top: 0; padding: 8px 15px; font-size: 0.9rem; background: linear-gradient(135deg, #10b981, #059669); border-radius: 8px 0 0 8px;">
+            <i class="fas fa-file-excel"></i> Download Excel
+          </button>
+          <div style="width: 2px; height: 36px; background: rgba(255,255,255,0.3);"></div>
+          <button onclick="showDownloadPDFCategoryPopup()" class="btn-save-section" style="width: auto; margin-top: 0; padding: 8px 15px; font-size: 0.9rem; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 0 8px 8px 0;">
+            <i class="fas fa-file-pdf"></i> Download PDF
+          </button>
+        </div>
       </div>
 
       <div class="kavling-table-container">
@@ -3322,6 +3376,338 @@ function downloadByCategory(category) {
   }
   
   downloadSummaryToExcelWithData(title, kavlings);
+}
+
+// ========== PDF DOWNLOAD FUNCTIONS ==========
+function showDownloadPDFCategoryPopup() {
+  const popupHtml = `
+    <div id="downloadPDFCategoryPopup" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 9999;">
+      <div style="background: #1e293b; border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <h3 style="color: #f1f5f9; margin: 0 0 20px 0; text-align: center; font-size: 1.2rem;">
+          <i class="fas fa-file-pdf" style="color: #ef4444; margin-right: 8px;"></i>
+          Pilih Kategori Download PDF
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button onclick="downloadPDFByCategory('all')" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-th-large"></i> Semua Kavling
+          </button>
+          <button onclick="downloadPDFByCategory('completed')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-check-circle"></i> Sudah Selesai (100%)
+          </button>
+          <button onclick="downloadPDFByCategory('almostCompleted')" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-clock"></i> Hampir Selesai (89-99%)
+          </button>
+          <button onclick="downloadPDFByCategory('inProgress')" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-spinner"></i> Sedang Berjalan (60-88%)
+          </button>
+          <button onclick="downloadPDFByCategory('lowProgress')" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-exclamation-triangle"></i> Progress Rendah (&lt;60%)
+          </button>
+        </div>
+        <button onclick="closeDownloadPDFCategoryPopup()" style="background: #475569; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; width: 100%; margin-top: 16px;">
+          <i class="fas fa-times"></i> Batal
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', popupHtml);
+}
+
+function closeDownloadPDFCategoryPopup() {
+  const popup = document.getElementById('downloadPDFCategoryPopup');
+  if (popup) popup.remove();
+}
+
+function downloadPDFByCategory(category) {
+  closeDownloadPDFCategoryPopup();
+  
+  if (!window.lastSummaryData) {
+    showToast('warning', 'Tidak ada data. Silakan muat ulang halaman.');
+    return;
+  }
+  
+  const summaryData = window.lastSummaryData;
+  const categories = summaryData.categories || {};
+  let kavlings = [];
+  let title = '';
+  let categoryLabel = '';
+  
+  function getCategoryItems(cat) {
+    if (!cat) return [];
+    return cat.items || cat.kavlings || [];
+  }
+  
+  switch(category) {
+    case 'all':
+      kavlings = summaryData.items || summaryData.allKavlings || [
+        ...getCategoryItems(categories.completed),
+        ...getCategoryItems(categories.almostCompleted),
+        ...getCategoryItems(categories.inProgress),
+        ...getCategoryItems(categories.lowProgress)
+      ];
+      title = 'Semua_Kavling';
+      categoryLabel = 'Semua Kavling';
+      break;
+    case 'completed':
+      kavlings = getCategoryItems(categories.completed) || summaryData.topCompleted || [];
+      title = 'Sudah_Selesai';
+      categoryLabel = 'Sudah Selesai (100%)';
+      break;
+    case 'almostCompleted':
+      kavlings = getCategoryItems(categories.almostCompleted) || summaryData.topAlmost || [];
+      title = 'Hampir_Selesai';
+      categoryLabel = 'Hampir Selesai (89-99%)';
+      break;
+    case 'inProgress':
+      kavlings = getCategoryItems(categories.inProgress) || [];
+      title = 'Sedang_Berjalan';
+      categoryLabel = 'Sedang Berjalan (60-88%)';
+      break;
+    case 'lowProgress':
+      kavlings = getCategoryItems(categories.lowProgress) || summaryData.needAttention || [];
+      title = 'Progress_Rendah';
+      categoryLabel = 'Progress Rendah (<60%)';
+      break;
+    default:
+      kavlings = summaryData.items || summaryData.allKavlings || [];
+      title = 'Data_Kavling';
+      categoryLabel = 'Data Kavling';
+  }
+  
+  console.log('Download PDF category:', category, 'Count:', kavlings.length);
+  
+  if (!kavlings || kavlings.length === 0) {
+    showToast('warning', 'Tidak ada data untuk kategori ini.');
+    return;
+  }
+  
+  generateAndDownloadPDF(title, categoryLabel, kavlings);
+}
+
+function generateAndDownloadPDF(title, categoryLabel, kavlings) {
+  showGlobalLoading('Membuat file PDF...');
+  
+  const dateStr = new Date().toLocaleDateString('id-ID', { 
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+  });
+  const timeStr = new Date().toLocaleTimeString('id-ID');
+  
+  let htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Laporan ${categoryLabel}</title>
+      <style>
+        @media print {
+          @page { size: landscape; margin: 10mm; }
+        }
+        body { 
+          font-family: Arial, sans-serif; 
+          font-size: 9px; 
+          margin: 0; 
+          padding: 15px;
+          background: white;
+        }
+        .header { 
+          text-align: center; 
+          margin-bottom: 15px; 
+          border-bottom: 2px solid #333;
+          padding-bottom: 10px;
+        }
+        .header h1 { 
+          margin: 0; 
+          font-size: 16px; 
+          color: #1a365d;
+        }
+        .header h2 { 
+          margin: 5px 0; 
+          font-size: 12px; 
+          color: #2d3748;
+        }
+        .header p { 
+          margin: 3px 0; 
+          font-size: 10px; 
+          color: #718096;
+        }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          font-size: 8px;
+        }
+        th { 
+          background: #2d3748; 
+          color: white; 
+          padding: 6px 3px; 
+          text-align: center; 
+          border: 1px solid #1a202c;
+          font-size: 7px;
+        }
+        td { 
+          padding: 4px 3px; 
+          border: 1px solid #cbd5e0; 
+          text-align: center;
+        }
+        tr:nth-child(even) { background: #f7fafc; }
+        tr:hover { background: #edf2f7; }
+        .progress-high { background: #c6f6d5 !important; color: #22543d; font-weight: bold; }
+        .progress-medium { background: #fefcbf !important; color: #744210; }
+        .progress-low { background: #fed7d7 !important; color: #742a2a; }
+        .footer { 
+          margin-top: 15px; 
+          text-align: center; 
+          font-size: 9px; 
+          color: #718096;
+          border-top: 1px solid #e2e8f0;
+          padding-top: 10px;
+        }
+        .summary-box {
+          display: inline-block;
+          padding: 5px 15px;
+          background: #ebf8ff;
+          border: 1px solid #90cdf4;
+          border-radius: 5px;
+          margin: 10px 0;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>DATA PROGRES & KONDISI KAVLING BTU KNC</h1>
+        <h2>Laporan: ${categoryLabel}</h2>
+        <p>Tanggal: ${dateStr} | Jam: ${timeStr}</p>
+        <div class="summary-box">
+          <strong>Total Data: ${kavlings.length} Kavling</strong>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>BLOK</th>
+            <th>TOTAL</th>
+            <th>LT</th>
+            <th>LB</th>
+            <th>Type</th>
+            <th>LAND CLEARING</th>
+            <th>PONDASI</th>
+            <th>SLOOF</th>
+            <th>DDG CANOPY</th>
+            <th>DDG RING</th>
+            <th>CONDUIT</th>
+            <th>PIPA KOTOR</th>
+            <th>PIPA BERSIH</th>
+            <th>PEMBUANGAN</th>
+            <th>PLESTER</th>
+            <th>ACIAN</th>
+            <th>MEJA DAPUR</th>
+            <th>RANGKA ATAP</th>
+            <th>GENTENG</th>
+            <th>PLAFOND</th>
+            <th>KERAMIK DDNG</th>
+            <th>LISTRIK</th>
+            <th>KERAMIK LT</th>
+            <th>KUSEN</th>
+            <th>DAUN P&J</th>
+            <th>CAT DASAR</th>
+            <th>FITTING</th>
+            <th>SANITER</th>
+            <th>CAT INT</th>
+            <th>CAT EXT</th>
+            <th>BAK KONTROL</th>
+            <th>PAVING</th>
+            <th>MTR LISTRIK</th>
+            <th>MTR AIR</th>
+            <th>CLEANING</th>
+            <th>COMPLETION</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+  
+  kavlings.forEach((kavling, index) => {
+    const totalProgress = parseProgressValue(kavling.total_progress || kavling.total || kavling.aj);
+    const progressClass = totalProgress >= 89 ? 'progress-high' : 
+                         (totalProgress >= 60 ? 'progress-medium' : 'progress-low');
+    
+    const getValue = (keys) => {
+      for (const key of keys) {
+        if (kavling[key] !== undefined && kavling[key] !== null && kavling[key] !== '') {
+          return kavling[key];
+        }
+      }
+      return '-';
+    };
+    
+    htmlContent += `
+      <tr>
+        <td>${index + 1}</td>
+        <td><strong>${kavling.kavling || '-'}</strong></td>
+        <td class="${progressClass}">${kavling.total_progress || kavling.total || kavling.aj || '0%'}</td>
+        <td>${kavling.lt || '-'}</td>
+        <td>${kavling.lb || '-'}</td>
+        <td>${kavling.type || '-'}</td>
+        <td>${getValue(['LAND CLEARING', 'land_clearing'])}</td>
+        <td>${getValue(['PONDASI', 'pondasi'])}</td>
+        <td>${getValue(['SLOOF', 'sloof'])}</td>
+        <td>${getValue(['PAS.DDG S/D2 CANOPY', 'pas_ddg_sd2_canopy'])}</td>
+        <td>${getValue(['PAS.DDG S/D RING BLK', 'pas_ddg_sd_ring_blk'])}</td>
+        <td>${getValue(['CONDUIT+INBOW DOOS', 'conduit_inbow_doos'])}</td>
+        <td>${getValue(['PIPA AIR KOTOR', 'pipa_air_kotor'])}</td>
+        <td>${getValue(['PIPA AIR BERSIH', 'pipa_air_bersih'])}</td>
+        <td>${getValue(['SISTEM PEMBUANGAN', 'sistem_pembuangan'])}</td>
+        <td>${getValue(['PLESTER', 'plester'])}</td>
+        <td>${getValue(['ACIAN & BENANGAN', 'acian_benangan'])}</td>
+        <td>${getValue(['COR MEJA DAPUR', 'cor_meja_dapur'])}</td>
+        <td>${getValue(['RANGKA ATAP', 'rangka_atap'])}</td>
+        <td>${getValue(['GENTENG', 'genteng'])}</td>
+        <td>${getValue(['PLAFOND', 'plafond'])}</td>
+        <td>${getValue(['KERAMIK DINDING TOILET & DAPUR', 'keramik_dinding_toilet_dapur'])}</td>
+        <td>${getValue(['INSTALASI LISTRIK', 'instalasi_listrik'])}</td>
+        <td>${getValue(['KERAMIK LANTAI', 'keramik_lantai'])}</td>
+        <td>${getValue(['KUSEN PINTU & JENDELA', 'kusen_pintu_jendela'])}</td>
+        <td>${getValue(['DAUN PINTU & JENDELA', 'daun_pintu_jendela'])}</td>
+        <td>${getValue(['CAT DASAR + LAPIS AWAL', 'cat_dasar_lapis_awal'])}</td>
+        <td>${getValue(['FITTING LAMPU', 'fitting_lampu'])}</td>
+        <td>${getValue(['FIXTURE & SANITER', 'fixture_saniter'])}</td>
+        <td>${getValue(['CAT FINISH INTERIOR', 'cat_finish_interior'])}</td>
+        <td>${getValue(['CAT FINISH EXTERIOR', 'cat_finish_exterior'])}</td>
+        <td>${getValue(['BAK KONTROL & BATAS CARPORT', 'bak_kontrol_batas_carport'])}</td>
+        <td>${getValue(['PAVING HALAMAN', 'paving_halaman'])}</td>
+        <td>${getValue(['METERAN LISTRIK', 'meteran_listrik'])}</td>
+        <td>${getValue(['METERAN AIR', 'meteran_air'])}</td>
+        <td>${getValue(['GENERAL CLEANING', 'general_cleaning'])}</td>
+        <td>${getValue(['COMPLETION / Penyelesaian akhir', 'completion_penyelesaian_akhir'])}</td>
+      </tr>
+    `;
+  });
+  
+  htmlContent += `
+        </tbody>
+      </table>
+      <div class="footer">
+        <p>Dokumen ini digenerate secara otomatis oleh Sistem Monitoring Kavling BTU KNC</p>
+        <p>© ${new Date().getFullYear()} - BTU KNC Property</p>
+      </div>
+      <script>
+        window.onload = function() {
+          window.print();
+        }
+      </script>
+    </body>
+    </html>
+  `;
+  
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    hideGlobalLoading();
+    showToast('success', `PDF untuk ${kavlings.length} kavling siap dicetak`);
+  } else {
+    hideGlobalLoading();
+    showToast('error', 'Popup diblokir. Silakan izinkan popup untuk download PDF.');
+  }
 }
 
 function downloadSummaryToExcelWithData(title, kavlings) {
