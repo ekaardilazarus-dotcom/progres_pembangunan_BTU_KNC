@@ -2946,42 +2946,50 @@ function displaySummaryReport(summaryData) {
   addTableStyles();
 }
 
-// Ganti fungsi ini di frontend
 function parseProgressValue(progressStr) {
   if (!progressStr) return 0;
   
-  // Jika sudah angka (dari backend)
+  // Backup untuk debug
+  console.log('parseProgressValue input:', progressStr, typeof progressStr);
+
   if (typeof progressStr === 'number') {
-    // Jika angka < 1 (0.99), konversi ke persentase
-    if (progressStr < 1 && progressStr > 0) {
-      return Math.round(progressStr * 100);
+    // Potong 1 digit di belakang koma
+    const str = progressStr.toString();
+    const dotIndex = str.indexOf('.');
+    
+    if (dotIndex !== -1 && str.length > dotIndex + 2) {
+      // Ambil 1 digit setelah koma: "6.266666666666667" → "6.2"
+      const trimmed = str.substring(0, dotIndex + 2);
+      const num = parseFloat(trimmed);
+      
+      // Konversi jika < 1 (0.0626 → 6.2%)
+      return num < 1 ? Math.round(num * 100) : Math.round(num);
     }
-    // Jika angka >= 1 (99), langsung bulatkan
-    return Math.round(progressStr);
+    
+    // Jika tidak ada koma atau sudah 1 digit
+    return progressStr < 1 ? Math.round(progressStr * 100) : Math.round(progressStr);
   }
-  
-  // Jika string
+
   if (typeof progressStr === 'string') {
+    // Hapus % dan trim
     const cleanStr = progressStr.replace('%', '').trim();
-    const num = parseFloat(cleanStr);
+    
+    // Potong 1 digit di belakang koma
+    const dotIndex = cleanStr.indexOf('.');
+    let trimmedStr = cleanStr;
+    
+    if (dotIndex !== -1 && cleanStr.length > dotIndex + 2) {
+      trimmedStr = cleanStr.substring(0, dotIndex + 2);
+    }
+    
+    const num = parseFloat(trimmedStr);
     
     if (isNaN(num)) return 0;
     
-    // PERBAIKAN: Deteksi apakah ini angka desimal (<1) atau persentase
-    if (num < 1 && num > 0) {
-      // Contoh: 0.99 → 99%
-      return Math.round(num * 100);
-    } else if (num >= 1 && num <= 100) {
-      // Contoh: 99.5 → 100%
-      return Math.round(num);
-    } else if (num > 100) {
-      // Contoh: 9950 (mungkin kesalahan format)
-      return Math.round(num / 100);
-    }
-    
-    return Math.round(num);
+    // Konversi jika < 1 (0.0626 → 6.2%)
+    return num < 1 ? Math.round(num * 100) : Math.round(num);
   }
-  
+
   return 0;
 }
 
