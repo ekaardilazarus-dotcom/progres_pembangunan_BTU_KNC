@@ -2863,13 +2863,13 @@ function displaySummaryReport(summaryData) {
                    }).length || 0;
 
   let html = `
-    <div class="summary-header">
+    <div class="summary-header" style="margin-bottom: 30px; border-bottom: 2px solid rgba(255, 255, 255, 0.1); padding-bottom: 20px;">
       <h3><i class="fas fa-chart-bar"></i> Laporan Summary Progress Kavling</h3>
       <p class="summary-timestamp">Diperbarui: ${timestamp}</p>
     </div>
 
-    <div class="summary-stats">
-      <div class="stat-card stat-total" onclick="filterKavlingByProgress('all')" style="cursor: pointer;">
+    <div class="summary-stats" style="margin-bottom: 35px; padding-bottom: 25px; border-bottom: 2px dashed rgba(255, 255, 255, 0.1);">
+      <div class="stat-card stat-total" onclick="filterKavlingByProgress('all')" style="cursor: pointer; margin-bottom: 10px;" onmouseover="this.style.filter='brightness(1.2)';" onmouseout="this.style.filter='brightness(1)';" title="Klik untuk melihat semua">
         <div class="stat-icon">
           <i class="fas fa-home"></i>
         </div>
@@ -2879,7 +2879,7 @@ function displaySummaryReport(summaryData) {
         </div>
       </div>
 
-      <div class="stat-card stat-completed" onclick="filterKavlingByProgress('completed')" style="cursor: pointer;">
+      <div class="stat-card stat-completed" onclick="filterKavlingByProgress('completed')" style="cursor: pointer; margin-bottom: 10px;" onmouseover="this.style.filter='brightness(1.2)';" onmouseout="this.style.filter='brightness(1)';" title="Klik untuk melihat detail selesai">
         <div class="stat-icon">
           <i class="fas fa-check-circle"></i>
         </div>
@@ -2890,7 +2890,7 @@ function displaySummaryReport(summaryData) {
         </div>
       </div>
 
-      <div class="stat-card stat-almost" onclick="filterKavlingByProgress('almostCompleted')" style="cursor: pointer;">
+      <div class="stat-card stat-almost" onclick="filterKavlingByProgress('almostCompleted')" style="cursor: pointer; margin-bottom: 10px;" onmouseover="this.style.filter='brightness(1.2)';" onmouseout="this.style.filter='brightness(1)';" title="Klik untuk melihat detail hampir selesai">
         <div class="stat-icon">
           <i class="fas fa-hourglass-half"></i>
         </div>
@@ -2901,7 +2901,7 @@ function displaySummaryReport(summaryData) {
         </div>
       </div>
 
-      <div class="stat-card stat-progress" onclick="filterKavlingByProgress('inProgress')" style="cursor: pointer;">
+      <div class="stat-card stat-progress" onclick="filterKavlingByProgress('inProgress')" style="cursor: pointer; margin-bottom: 10px;" onmouseover="this.style.filter='brightness(1.2)';" onmouseout="this.style.filter='brightness(1)';" title="Klik untuk melihat detail sedang berjalan">
         <div class="stat-icon">
           <i class="fas fa-tools"></i>
         </div>
@@ -2912,7 +2912,7 @@ function displaySummaryReport(summaryData) {
         </div>
       </div>
 
-      <div class="stat-card stat-low" onclick="filterKavlingByProgress('lowProgress')" style="cursor: pointer;">
+      <div class="stat-card stat-low" onclick="filterKavlingByProgress('lowProgress')" style="cursor: pointer; margin-bottom: 10px;" onmouseover="this.style.filter='brightness(1.2)';" onmouseout="this.style.filter='brightness(1)';" title="Klik untuk melihat detail progress rendah">
         <div class="stat-icon">
           <i class="fas fa-exclamation-triangle"></i>
         </div>
