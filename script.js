@@ -3059,7 +3059,7 @@ function renderKavlingSection(title, kavlings) {
     <div class="summary-section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <h4><i class="fas fa-list"></i> ${title} (${kavlings.length} kavling)</h4>
-        <button onclick="downloadSummaryToExcel('${title}')" class="btn-save-section" style="width: auto; margin-top: 0; padding: 8px 15px; font-size: 0.9rem; background: linear-gradient(135deg, #10b981, #059669);">
+        <button onclick="showDownloadCategoryPopup()" class="btn-save-section" style="width: auto; margin-top: 0; padding: 8px 15px; font-size: 0.9rem; background: linear-gradient(135deg, #10b981, #059669);">
           <i class="fas fa-file-excel"></i> Download Excel
         </button>
       </div>
@@ -3224,6 +3224,180 @@ function filterKavlingByProgress(filter) {
   if (filteredSection) {
     filteredSection.innerHTML = renderKavlingSection(title, kavlings);
   }
+}
+
+function showDownloadCategoryPopup() {
+  const popupHtml = `
+    <div id="downloadCategoryPopup" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 9999;">
+      <div style="background: #1e293b; border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <h3 style="color: #f1f5f9; margin: 0 0 20px 0; text-align: center; font-size: 1.2rem;">
+          <i class="fas fa-file-excel" style="color: #10b981; margin-right: 8px;"></i>
+          Pilih Kategori Download
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button onclick="downloadByCategory('all')" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-th-large"></i> Semua Kavling
+          </button>
+          <button onclick="downloadByCategory('completed')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-check-circle"></i> Sudah Selesai (100%)
+          </button>
+          <button onclick="downloadByCategory('almostCompleted')" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-clock"></i> Hampir Selesai (89-99%)
+          </button>
+          <button onclick="downloadByCategory('inProgress')" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-spinner"></i> Sedang Berjalan (60-88%)
+          </button>
+          <button onclick="downloadByCategory('lowProgress')" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-exclamation-triangle"></i> Progress Rendah (&lt;60%)
+          </button>
+        </div>
+        <button onclick="closeDownloadCategoryPopup()" style="background: #475569; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; width: 100%; margin-top: 16px;">
+          <i class="fas fa-times"></i> Batal
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', popupHtml);
+}
+
+function closeDownloadCategoryPopup() {
+  const popup = document.getElementById('downloadCategoryPopup');
+  if (popup) popup.remove();
+}
+
+function downloadByCategory(category) {
+  closeDownloadCategoryPopup();
+  
+  if (!window.lastSummaryData) {
+    showToast('warning', 'Tidak ada data. Silakan muat ulang halaman.');
+    return;
+  }
+  
+  const summaryData = window.lastSummaryData;
+  const categories = summaryData.categories || {};
+  let kavlings = [];
+  let title = '';
+  
+  function getCategoryItems(cat) {
+    if (!cat) return [];
+    return cat.items || cat.kavlings || [];
+  }
+  
+  switch(category) {
+    case 'all':
+      kavlings = summaryData.items || summaryData.allKavlings || [
+        ...getCategoryItems(categories.completed),
+        ...getCategoryItems(categories.almostCompleted),
+        ...getCategoryItems(categories.inProgress),
+        ...getCategoryItems(categories.lowProgress)
+      ];
+      title = 'Semua_Kavling';
+      break;
+    case 'completed':
+      kavlings = getCategoryItems(categories.completed) || summaryData.topCompleted || [];
+      title = 'Sudah_Selesai';
+      break;
+    case 'almostCompleted':
+      kavlings = getCategoryItems(categories.almostCompleted) || summaryData.topAlmost || [];
+      title = 'Hampir_Selesai';
+      break;
+    case 'inProgress':
+      kavlings = getCategoryItems(categories.inProgress) || [];
+      title = 'Sedang_Berjalan';
+      break;
+    case 'lowProgress':
+      kavlings = getCategoryItems(categories.lowProgress) || summaryData.needAttention || [];
+      title = 'Progress_Rendah';
+      break;
+    default:
+      kavlings = summaryData.items || summaryData.allKavlings || [];
+      title = 'Data_Kavling';
+  }
+  
+  console.log('Download category:', category, 'Count:', kavlings.length);
+  
+  if (!kavlings || kavlings.length === 0) {
+    showToast('warning', 'Tidak ada data untuk kategori ini.');
+    return;
+  }
+  
+  downloadSummaryToExcelWithData(title, kavlings);
+}
+
+function downloadSummaryToExcelWithData(title, kavlings) {
+  const headers = [
+    'BLOK', 'TOTAL', 'LT', 'LB', 'Type', 
+    'LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 'PAS.DDG S/D RING BLK', 
+    'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 'PIPA AIR BERSIH', 'Sistem Pembuangan', 
+    'PLESTER', 'ACIAN & BENANGAN', 'COR MEJA DAPUR', 
+    'RANGKA ATAP', 'GENTENG', 'PLAFOND', 'KERAMIK DINDING TOILET & DAPUR', 
+    'INSTS LISTRIK', 'KERAMIK LANTAI', 
+    'KUSEN PINTU & JENDELA', 'DAUN PINTU & JENDELA', 'CAT DASAR + LAPIS AWAL', 
+    'FITTING LAMPU', 'FIXTURE & SANITER', 'CAT FINISH INTERIOR', 'CAT FINISH EXTERIOR', 
+    'BAK KONTROL & BATAS CARPORT', 'PAVING HALAMAN', 'Meteran Listrik', 'Meteran Air', 
+    'GENERAL CLEANING', 'COMPLETION / Penyelesaian akhir', 'Keterangan', 
+    'Penyerahan Kunci dari Pelaksana Ke', 'Tanggal Penyerahan Kunci dari Pelaksana'
+  ];
+
+  let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+  csvContent += headers.join(';') + "\n";
+
+  kavlings.forEach((kavling) => {
+    const rowData = [
+      kavling.kavling || '',
+      kavling.total_progress || kavling.total || kavling.aj || '0%',
+      kavling.lt || '',
+      kavling.lb || '',
+      kavling.type || '',
+      formatExcelValue(kavling['LAND CLEARING'] || kavling.land_clearing),
+      formatExcelValue(kavling.PONDASI || kavling.pondasi),
+      formatExcelValue(kavling.SLOOF || kavling.sloof),
+      formatExcelValue(kavling['PAS.DDG S/D2 CANOPY'] || kavling.pas_ddg_sd2_canopy),
+      formatExcelValue(kavling['PAS.DDG S/D RING BLK'] || kavling.pas_ddg_sd_ring_blk),
+      formatExcelValue(kavling['CONDUIT+INBOW DOOS'] || kavling.conduit_inbow_doos),
+      formatExcelValue(kavling['PIPA AIR KOTOR'] || kavling.pipa_air_kotor),
+      formatExcelValue(kavling['PIPA AIR BERSIH'] || kavling.pipa_air_bersih),
+      formatExcelValue(kavling['SISTEM PEMBUANGAN'] || kavling.sistem_pembuangan || kavling.sistemPembuangan),
+      formatExcelValue(kavling.PLESTER || kavling.plester),
+      formatExcelValue(kavling['ACIAN & BENANGAN'] || kavling.acian_benangan),
+      formatExcelValue(kavling['COR MEJA DAPUR'] || kavling.cor_meja_dapur || kavling.corMejaDapur),
+      formatExcelValue(kavling['RANGKA ATAP'] || kavling.rangka_atap),
+      formatExcelValue(kavling.GENTENG || kavling.genteng),
+      formatExcelValue(kavling.PLAFOND || kavling.plafond),
+      formatExcelValue(kavling['KERAMIK DINDING TOILET & DAPUR'] || kavling.keramik_dinding_toilet_dapur || kavling.keramikDinding),
+      formatExcelValue(kavling['INSTALASI LISTRIK'] || kavling.instalasi_listrik),
+      formatExcelValue(kavling['KERAMIK LANTAI'] || kavling.keramik_lantai),
+      formatExcelValue(kavling['KUSEN PINTU & JENDELA'] || kavling.kusen_pintu_jendela),
+      formatExcelValue(kavling['DAUN PINTU & JENDELA'] || kavling.daun_pintu_jendela),
+      formatExcelValue(kavling['CAT DASAR + LAPIS AWAL'] || kavling.cat_dasar_lapis_awal),
+      formatExcelValue(kavling['FITTING LAMPU'] || kavling.fitting_lampu),
+      formatExcelValue(kavling['FIXTURE & SANITER'] || kavling.fixture_saniter),
+      formatExcelValue(kavling['CAT FINISH INTERIOR'] || kavling.cat_finish_interior),
+      formatExcelValue(kavling['CAT FINISH EXTERIOR'] || kavling.cat_finish_exterior),
+      formatExcelValue(kavling['BAK KONTROL & BATAS CARPORT'] || kavling.bak_kontrol_batas_carport),
+      formatExcelValue(kavling['PAVING HALAMAN'] || kavling.paving_halaman),
+      formatExcelValue(kavling['METERAN LISTRIK'] || kavling.meteran_listrik),
+      formatExcelValue(kavling['METERAN AIR'] || kavling.meteran_air),
+      formatExcelValue(kavling['GENERAL CLEANING'] || kavling.general_cleaning),
+      formatExcelValue(kavling['COMPLETION / Penyelesaian akhir'] || kavling.completion_penyelesaian_akhir),
+      kavling.keterangan || '',
+      kavling['PENYERAHAN KUNCI'] || kavling.penyerahan_kunci_dari_pelaksana_ke || '',
+      formatExcelDate(kavling['TANGGAL_PENYERAHAN_KUNCI'] || kavling.tanggal_penyerahan_kunci_dari_pelaksana || kavling.keyDeliveryDate)
+    ];
+
+    csvContent += rowData.join(';') + "\n";
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  const dateStr = new Date().toISOString().split('T')[0];
+  link.setAttribute("download", `${title}_${dateStr}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  showToast('success', `Berhasil download ${kavlings.length} data kavling`);
 }
 
 // Update download function to use stored data
