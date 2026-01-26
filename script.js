@@ -2951,14 +2951,14 @@ function parseProgressValue(progressStr) {
   if (!progressStr) return 0;
 
   if (typeof progressStr === 'number') {
-    return progressStr <= 1 ? progressStr * 100 : progressStr;
+    return Math.round(progressStr); // BULATKAN DI SINI
   }
 
   if (typeof progressStr === 'string') {
     const match = progressStr.match(/(\d+(\.\d+)?)%?/);
     if (match) {
       const num = parseFloat(match[1]);
-      return num <= 1 ? num * 100 : num;
+      return Math.round(num); // BULATKAN DI SINI
     }
   }
 
