@@ -5,7 +5,7 @@
     console.log('=== ADMIN UTILITAS SCRIPT LOADING ===');
     
     // ========== KONFIGURASI ==========
-    const ADMIN_UTILITAS_URL = 'https://script.google.com/macros/s/AKfycbzSFK7tTjxYD-Z-UO35ObXnOMIxNdOmiN_YiV4xTvuifuoLY7v4Gs6HMmPn-yHGyJlbmg/exec';
+    const ADMIN_UTILITAS_URL = 'https://script.google.com/macros/s/AKfycbxdn4gEn2DdgLYRyVy8QVfF4QMVwL2gs7O7cFIfisvKdfFCPkiOlLTYpJpVGt-w3-q4Vg/exec';
     
     // ========== VARIABEL ==========
     let adminData = {
