@@ -1,4 +1,4 @@
-// versi 0.56
+// versi 0.57
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdn4gEn2DdgLYRyVy8QVfF4QMVwL2gs7O7cFIfisvKdfFCPkiOlLTYpJpVGt-w3-q4Vg/exec';
 
@@ -2911,7 +2911,7 @@ function displaySummaryReport(summaryData) {
                    }).length || 0;
 
   let html = `
-    <div class="summary-header" style="margin-bottom: 30px; border-bottom: 2px solid rgba(255, 255, 255, 0.1); padding-bottom: 20px;">
+    <div class="summary-header" style="margin-top: 25px; margin-bottom: 30px; border-bottom: 2px solid rgba(255, 255, 255, 0.1); padding-bottom: 20px;">
       <h3><i class="fas fa-chart-bar"></i> Laporan Summary Progress Kavling</h3>
       <p class="summary-timestamp">Diperbarui: ${timestamp}</p>
     </div>
@@ -3293,13 +3293,13 @@ function showDownloadCategoryPopup() {
             <i class="fas fa-th-large"></i> Semua Kavling
           </button>
           <button onclick="downloadByCategory('completed')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-check-circle"></i> Sudah Selesai (100%)
+            <i class="fas fa-check-circle"></i> Selesai (89-100%)
           </button>
           <button onclick="downloadByCategory('almostCompleted')" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-clock"></i> Hampir Selesai (89-99%)
+            <i class="fas fa-clock"></i> Hampir Selesai (60-88%)
           </button>
           <button onclick="downloadByCategory('inProgress')" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-spinner"></i> Sedang Berjalan (60-88%)
+            <i class="fas fa-spinner"></i> Sedang Berjalan (10-59%)
           </button>
           <button onclick="downloadByCategory('lowProgress')" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
             <i class="fas fa-exclamation-triangle"></i> Progress Rendah (&lt;60%)
@@ -3392,13 +3392,13 @@ function showDownloadPDFCategoryPopup() {
             <i class="fas fa-th-large"></i> Semua Kavling
           </button>
           <button onclick="downloadPDFByCategory('completed')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-check-circle"></i> Sudah Selesai (100%)
+            <i class="fas fa-check-circle"></i> Selesai (89-100%)
           </button>
           <button onclick="downloadPDFByCategory('almostCompleted')" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-clock"></i> Hampir Selesai (89-99%)
+            <i class="fas fa-clock"></i> Hampir Selesai (60-88%)
           </button>
           <button onclick="downloadPDFByCategory('inProgress')" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-spinner"></i> Sedang Berjalan (60-88%)
+            <i class="fas fa-spinner"></i> Sedang Berjalan (10-59%)
           </button>
           <button onclick="downloadPDFByCategory('lowProgress')" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 10px;">
             <i class="fas fa-exclamation-triangle"></i> Progress Rendah (&lt;60%)
@@ -3451,22 +3451,22 @@ function downloadPDFByCategory(category) {
     case 'completed':
       kavlings = getCategoryItems(categories.completed) || summaryData.topCompleted || [];
       title = 'Sudah_Selesai';
-      categoryLabel = 'Sudah Selesai (100%)';
+      categoryLabel = 'Selesai (89-100%)';
       break;
     case 'almostCompleted':
       kavlings = getCategoryItems(categories.almostCompleted) || summaryData.topAlmost || [];
       title = 'Hampir_Selesai';
-      categoryLabel = 'Hampir Selesai (89-99%)';
+      categoryLabel = 'Hampir Selesai (60-88%)';
       break;
     case 'inProgress':
       kavlings = getCategoryItems(categories.inProgress) || [];
       title = 'Sedang_Berjalan';
-      categoryLabel = 'Sedang Berjalan (60-88%)';
+      categoryLabel = 'Sedang Berjalan (10-59%)';
       break;
     case 'lowProgress':
       kavlings = getCategoryItems(categories.lowProgress) || summaryData.needAttention || [];
       title = 'Progress_Rendah';
-      categoryLabel = 'Progress Rendah (<60%)';
+      categoryLabel = 'Progress Rendah (0-9%)';
       break;
     default:
       kavlings = summaryData.items || summaryData.allKavlings || [];
@@ -3589,37 +3589,8 @@ function generateAndDownloadPDF(title, categoryLabel, kavlings) {
             <th>LT</th>
             <th>LB</th>
             <th>Type</th>
-            <th>LAND CLEARING</th>
-            <th>PONDASI</th>
-            <th>SLOOF</th>
-            <th>DDG CANOPY</th>
-            <th>DDG RING</th>
-            <th>CONDUIT</th>
-            <th>PIPA KOTOR</th>
-            <th>PIPA BERSIH</th>
-            <th>PEMBUANGAN</th>
-            <th>PLESTER</th>
-            <th>ACIAN</th>
-            <th>MEJA DAPUR</th>
-            <th>RANGKA ATAP</th>
-            <th>GENTENG</th>
-            <th>PLAFOND</th>
-            <th>KERAMIK DDNG</th>
-            <th>LISTRIK</th>
-            <th>KERAMIK LT</th>
-            <th>KUSEN</th>
-            <th>DAUN P&J</th>
-            <th>CAT DASAR</th>
-            <th>FITTING</th>
-            <th>SANITER</th>
-            <th>CAT INT</th>
-            <th>CAT EXT</th>
-            <th>BAK KONTROL</th>
-            <th>PAVING</th>
-            <th>MTR LISTRIK</th>
-            <th>MTR AIR</th>
-            <th>CLEANING</th>
-            <th>COMPLETION</th>
+            <th>Keterangan</th>
+            <th>Penyerahan Kunci dari Pelaksana Ke</th>
           </tr>
         </thead>
         <tbody>
@@ -3629,6 +3600,11 @@ function generateAndDownloadPDF(title, categoryLabel, kavlings) {
     const totalProgress = parseProgressValue(kavling.total_progress || kavling.total || kavling.aj);
     const progressClass = totalProgress >= 89 ? 'progress-high' : 
                          (totalProgress >= 60 ? 'progress-medium' : 'progress-low');
+    
+    let totalValue = kavling.total_progress || kavling.total || kavling.aj || '0';
+    if (totalValue && !String(totalValue).includes('%')) {
+      totalValue = totalValue + '%';
+    }
     
     const getValue = (keys) => {
       for (const key of keys) {
@@ -3643,41 +3619,12 @@ function generateAndDownloadPDF(title, categoryLabel, kavlings) {
       <tr>
         <td>${index + 1}</td>
         <td><strong>${kavling.kavling || '-'}</strong></td>
-        <td class="${progressClass}">${kavling.total_progress || kavling.total || kavling.aj || '0%'}</td>
+        <td class="${progressClass}">${totalValue}</td>
         <td>${kavling.lt || '-'}</td>
         <td>${kavling.lb || '-'}</td>
         <td>${kavling.type || '-'}</td>
-        <td>${getValue(['LAND CLEARING', 'land_clearing'])}</td>
-        <td>${getValue(['PONDASI', 'pondasi'])}</td>
-        <td>${getValue(['SLOOF', 'sloof'])}</td>
-        <td>${getValue(['PAS.DDG S/D2 CANOPY', 'pas_ddg_sd2_canopy'])}</td>
-        <td>${getValue(['PAS.DDG S/D RING BLK', 'pas_ddg_sd_ring_blk'])}</td>
-        <td>${getValue(['CONDUIT+INBOW DOOS', 'conduit_inbow_doos'])}</td>
-        <td>${getValue(['PIPA AIR KOTOR', 'pipa_air_kotor'])}</td>
-        <td>${getValue(['PIPA AIR BERSIH', 'pipa_air_bersih'])}</td>
-        <td>${getValue(['SISTEM PEMBUANGAN', 'sistem_pembuangan'])}</td>
-        <td>${getValue(['PLESTER', 'plester'])}</td>
-        <td>${getValue(['ACIAN & BENANGAN', 'acian_benangan'])}</td>
-        <td>${getValue(['COR MEJA DAPUR', 'cor_meja_dapur'])}</td>
-        <td>${getValue(['RANGKA ATAP', 'rangka_atap'])}</td>
-        <td>${getValue(['GENTENG', 'genteng'])}</td>
-        <td>${getValue(['PLAFOND', 'plafond'])}</td>
-        <td>${getValue(['KERAMIK DINDING TOILET & DAPUR', 'keramik_dinding_toilet_dapur'])}</td>
-        <td>${getValue(['INSTALASI LISTRIK', 'instalasi_listrik'])}</td>
-        <td>${getValue(['KERAMIK LANTAI', 'keramik_lantai'])}</td>
-        <td>${getValue(['KUSEN PINTU & JENDELA', 'kusen_pintu_jendela'])}</td>
-        <td>${getValue(['DAUN PINTU & JENDELA', 'daun_pintu_jendela'])}</td>
-        <td>${getValue(['CAT DASAR + LAPIS AWAL', 'cat_dasar_lapis_awal'])}</td>
-        <td>${getValue(['FITTING LAMPU', 'fitting_lampu'])}</td>
-        <td>${getValue(['FIXTURE & SANITER', 'fixture_saniter'])}</td>
-        <td>${getValue(['CAT FINISH INTERIOR', 'cat_finish_interior'])}</td>
-        <td>${getValue(['CAT FINISH EXTERIOR', 'cat_finish_exterior'])}</td>
-        <td>${getValue(['BAK KONTROL & BATAS CARPORT', 'bak_kontrol_batas_carport'])}</td>
-        <td>${getValue(['PAVING HALAMAN', 'paving_halaman'])}</td>
-        <td>${getValue(['METERAN LISTRIK', 'meteran_listrik'])}</td>
-        <td>${getValue(['METERAN AIR', 'meteran_air'])}</td>
-        <td>${getValue(['GENERAL CLEANING', 'general_cleaning'])}</td>
-        <td>${getValue(['COMPLETION / Penyelesaian akhir', 'completion_penyelesaian_akhir'])}</td>
+        <td>${kavling.keterangan || '-'}</td>
+        <td>${getValue(['PENYERAHAN KUNCI', 'penyerahan_kunci_dari_pelaksana_ke'])}</td>
       </tr>
     `;
   });
@@ -3729,9 +3676,13 @@ function downloadSummaryToExcelWithData(title, kavlings) {
   csvContent += headers.join(';') + "\n";
 
   kavlings.forEach((kavling) => {
+    let totalValue = kavling.total_progress || kavling.total || kavling.aj || '0';
+    if (totalValue && !String(totalValue).includes('%')) {
+      totalValue = totalValue + '%';
+    }
     const rowData = [
       kavling.kavling || '',
-      kavling.total_progress || kavling.total || kavling.aj || '0%',
+      totalValue,
       kavling.lt || '',
       kavling.lb || '',
       kavling.type || '',
@@ -3821,10 +3772,14 @@ async function downloadSummaryToExcel(title) {
   csvContent += headers.join(';') + "\n";
 
   kavlings.forEach((kavling, index) => {
+    let totalValue = kavling.total_progress || kavling.total || kavling.aj || '0';
+    if (totalValue && !String(totalValue).includes('%')) {
+      totalValue = totalValue + '%';
+    }
     const rowData = [
       // Data dasar
       kavling.kavling || '',
-      kavling.total_progress || kavling.total || kavling.aj || '0%',
+      totalValue,
       kavling.lt || '',
       kavling.lb || '',
       kavling.type || '',
