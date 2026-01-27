@@ -1,4 +1,4 @@
-// versi 0.58
+// versi 0.585
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdn4gEn2DdgLYRyVy8QVfF4QMVwL2gs7O7cFIfisvKdfFCPkiOlLTYpJpVGt-w3-q4Vg/exec';
 
@@ -6722,19 +6722,15 @@ function updateTotalProgressDisplay(progress, pageId) {
     else if (percentValue >= 10) totalBarEl.classList.add('bar-low');
     else totalBarEl.classList.add('bar-very-low');
 
-    // Update Supervisor Stages if on manager page
-    if (pageId === 'managerPage') {
-      updateSupervisorStagesUI(percentValue);
-    }
   }
 }
 
 function updateSupervisorStagesUI(totalPercent, progressData = null) {
   const stages = [
-    { id: 1, gridId: 'gridTahap1', tasks: ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 'PIPA AIR BERSIH', 'Sistem Pembuangan', 'PLESTER', 'ACIAN & BENANGAN', 'COR MEJA DAPUR'] },
-    { id: 2, gridId: 'gridTahap2', tasks: ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'KERAMIK DINDING TOILET & DAPUR', 'INSTS LISTRIK', 'KERAMIK LANTAI'] },
-    { id: 3, gridId: 'gridTahap3', tasks: ['KUSEN PINTU & JENDELA', 'DAUN PINTU & JENDELA', 'CAT DASAR + LAPIS AWAL', 'FITTING LAMPU', 'FIXTURE & SANITER', 'CAT FINISH INTERIOR', 'CAT FINISH EXTERIOR'] },
-    { id: 4, gridId: 'gridTahap4', tasks: ['BAK KONTROL & BATAS CARPORT', 'PAVING HALAMAN', 'Meteran Listrik', 'Meteran Air', 'GENERAL CLEANING', 'COMPLETION / Penyelesaian akhir'] }
+    { id: 1, gridId: 'gridTahap1', tasks: ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 'PIPA AIR BERSIH', 'SISTEM PEMBUANGAN', 'PLESTER', 'ACIAN & BENANGAN', 'COR MEJA DAPUR'] },
+    { id: 2, gridId: 'gridTahap2', tasks: ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'KERAMIK DINDING TOILET & DAPUR', 'INSTALASI LISTRIK', 'KERAMIK LANTAI'] },
+    { id: 3, gridId: 'gridTahap3', tasks: ['KUSEN PINTU & JENDELA', 'DAUN PINTU & JENDELA', 'CAT DASAR + LAPIS AWAL', 'FITTING LAMPU', 'FIXTURE & SANITER', 'CAT FINISH INTERIOR', 'CAT FINISH EXTERIOR', 'BAK KONTROL & BATAS CARPORT', 'PAVING HALAMAN', 'METERAN LISTRIK', 'METERAN AIR', 'GENERAL CLEANING'] },
+    { id: 4, gridId: 'gridTahap4', tasks: ['COMPLETION / Penyelesaian akhir'] }
   ];
 
   const taskDisplayNames = {
@@ -6746,7 +6742,7 @@ function updateSupervisorStagesUI(totalPercent, progressData = null) {
     'CONDUIT+INBOW DOOS': 'Conduit + Inbow Doos',
     'PIPA AIR KOTOR': 'Pipa Air Kotor',
     'PIPA AIR BERSIH': 'Pipa Air Bersih',
-    'Sistem Pembuangan': 'Sistem Pembuangan',
+    'SISTEM PEMBUANGAN': 'Sistem Pembuangan',
     'PLESTER': 'Plester',
     'ACIAN & BENANGAN': 'Acian & Benangan',
     'COR MEJA DAPUR': 'Cor Meja Dapur',
@@ -6754,7 +6750,7 @@ function updateSupervisorStagesUI(totalPercent, progressData = null) {
     'GENTENG': 'Genteng',
     'PLAFOND': 'Plafond',
     'KERAMIK DINDING TOILET & DAPUR': 'Keramik Dinding Toilet & Dapur',
-    'INSTS LISTRIK': 'Insts Listrik',
+    'INSTALASI LISTRIK': 'Instalasi Listrik',
     'KERAMIK LANTAI': 'Keramik Lantai',
     'KUSEN PINTU & JENDELA': 'Kusen Pintu & Jendela',
     'DAUN PINTU & JENDELA': 'Daun Pintu & Jendela',
@@ -6765,8 +6761,8 @@ function updateSupervisorStagesUI(totalPercent, progressData = null) {
     'CAT FINISH EXTERIOR': 'Cat Finish Exterior',
     'BAK KONTROL & BATAS CARPORT': 'Bak Kontrol & Batas Carport',
     'PAVING HALAMAN': 'Paving Halaman',
-    'Meteran Listrik': 'Meteran Listrik',
-    'Meteran Air': 'Meteran Air',
+    'METERAN LISTRIK': 'Meteran Listrik',
+    'METERAN AIR': 'Meteran Air',
     'GENERAL CLEANING': 'General Cleaning',
     'COMPLETION / Penyelesaian akhir': 'Completion / Penyelesaian Akhir'
   };
@@ -6779,7 +6775,7 @@ function updateSupervisorStagesUI(totalPercent, progressData = null) {
     
     let completedCount = 0;
     
-    const specialTasks = ['Sistem Pembuangan', 'COR MEJA DAPUR', 'KERAMIK DINDING TOILET & DAPUR'];
+    const specialTasks = ['SISTEM PEMBUANGAN', 'COR MEJA DAPUR', 'KERAMIK DINDING TOILET & DAPUR'];
     
     stage.tasks.forEach(taskName => {
       let taskValue = null;
