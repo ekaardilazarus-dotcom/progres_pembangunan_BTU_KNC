@@ -1,4 +1,4 @@
-// versi 0.57
+// versi 0.575
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdn4gEn2DdgLYRyVy8QVfF4QMVwL2gs7O7cFIfisvKdfFCPkiOlLTYpJpVGt-w3-q4Vg/exec';
 
@@ -6703,12 +6703,14 @@ function updateTotalProgressDisplay(progress, pageId) {
   const pageElement = document.getElementById(pageId);
   if (!pageElement) return;
 
-  const totalPercentEl = pageElement.querySelector('.total-percent');
+  // For managerPage, we use specific IDs for percent and bar
+  const totalPercentEl = pageId === 'managerPage' ? document.getElementById('managerOverallPercent') : pageElement.querySelector('.total-percent');
+  const totalBarEl = pageId === 'managerPage' ? document.getElementById('managerOverallBar') : pageElement.querySelector('.total-bar');
+
   if (totalPercentEl) {
     totalPercentEl.textContent = progress;
   }
 
-  const totalBarEl = pageElement.querySelector('.total-bar');
   if (totalBarEl) {
     totalBarEl.style.width = progress;
     
@@ -6719,7 +6721,121 @@ function updateTotalProgressDisplay(progress, pageId) {
     else if (percentValue >= 60) totalBarEl.classList.add('bar-medium');
     else if (percentValue >= 10) totalBarEl.classList.add('bar-low');
     else totalBarEl.classList.add('bar-very-low');
+
+    // Update Supervisor Stages if on manager page
+    if (pageId === 'managerPage') {
+      updateSupervisorStagesUI(percentValue);
+    }
   }
+}
+
+function updateSupervisorStagesUI(totalPercent, progressData = null) {
+  const stages = [
+    { id: 1, gridId: 'gridTahap1', tasks: ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 'PIPA AIR BERSIH', 'Sistem Pembuangan'] },
+    { id: 2, gridId: 'gridTahap2', tasks: ['PLESTER', 'ACIAN & BENANGAN', 'COR MEJA DAPUR', 'RANGKA ATAP', 'GENTENG', 'PLAFOND', 'KERAMIK DINDING TOILET & DAPUR', 'INSTS LISTRIK', 'KERAMIK LANTAI'] },
+    { id: 3, gridId: 'gridTahap3', tasks: ['KUSEN PINTU & JENDELA', 'DAUN PINTU & JENDELA', 'CAT DASAR + LAPIS AWAL', 'FITTING LAMPU', 'FIXTURE & SANITER', 'CAT FINISH INTERIOR', 'CAT FINISH EXTERIOR'] },
+    { id: 4, gridId: 'gridTahap4', tasks: ['BAK KONTROL & BATAS CARPORT', 'PAVING HALAMAN', 'Meteran Listrik', 'Meteran Air', 'GENERAL CLEANING', 'COMPLETION / Penyelesaian akhir'] }
+  ];
+
+  stages.forEach(stage => {
+    const gridEl = document.getElementById(stage.gridId);
+    if (!gridEl) return;
+    
+    gridEl.innerHTML = '';
+    
+    stage.tasks.forEach(taskName => {
+      const box = document.createElement('div');
+      box.title = taskName;
+      
+      let isCompleted = false;
+      if (progressData && progressData[`tahap${stage.id}`]) {
+        const val = progressData[`tahap${stage.id}`][taskName];
+        isCompleted = (val === 'Selesai' || val === true || val === '100%');
+      }
+
+      box.style.cssText = `
+        aspect-ratio: 1;
+        background: ${isCompleted ? '#10b981' : '#334155'};
+        border-radius: 2px;
+        border: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        color: white;
+      `;
+      
+      if (isCompleted) {
+        box.innerHTML = '<i class="fas fa-check"></i>';
+      }
+      
+      gridEl.appendChild(box);
+    });
+  });
+
+  const checks = [
+    document.getElementById('checkTahap1'),
+    document.getElementById('checkTahap2'),
+    document.getElementById('checkTahap3'),
+    document.getElementById('checkTahap4')
+  ];
+  
+  const percents = [
+    document.getElementById('supervisorTahap1Percent'),
+    document.getElementById('supervisorTahap2Percent'),
+    document.getElementById('supervisorTahap3Percent'),
+    document.getElementById('supervisorTahap4Percent')
+  ];
+
+  // Distribute total percent across 4 stages (25% each)
+  for (let i = 0; i < 4; i++) {
+    const stageMax = (i + 1) * 25;
+    const stageMin = i * 25;
+    
+    let stagePercent = 0;
+    if (totalPercent >= stageMax) {
+      stagePercent = 100;
+    } else if (totalPercent > stageMin) {
+      stagePercent = Math.round(((totalPercent - stageMin) / 25) * 100);
+    }
+
+    if (percents[i]) percents[i].textContent = stagePercent + '%';
+    if (checks[i]) {
+      checks[i].checked = stagePercent === 100;
+      checks[i].disabled = false;
+    }
+  }
+}
+
+// Update loadProgressData to also pass data to Supervisor UI
+const originalLoadProgressData = loadProgressData;
+loadProgressData = function(data) {
+  originalLoadProgressData(data);
+  if (currentRole === 'manager') {
+    const totalPercent = parseInt(currentKavlingData.totalAH) || 0;
+    updateSupervisorStagesUI(totalPercent, data);
+  }
+};
+
+// Initial setup for supervisor stage checks
+document.addEventListener('change', function(e) {
+  if (e.target.classList.contains('supervisor-stage-check')) {
+    calculateSupervisorOverallFromChecks();
+  }
+});
+
+function calculateSupervisorOverallFromChecks() {
+  const checks = [
+    document.getElementById('checkTahap1'),
+    document.getElementById('checkTahap2'),
+    document.getElementById('checkTahap3'),
+    document.getElementById('checkTahap4')
+  ];
+  let checkedCount = 0;
+  checks.forEach(c => { if (c && c.checked) checkedCount++; });
+  
+  const newTotal = (checkedCount / checks.length) * 100;
+  updateTotalProgressDisplay(newTotal + '%', 'managerPage');
 }
 
 // Photo Upload variables for Revision
