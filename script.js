@@ -1,4 +1,4 @@
-// versi 0.575
+// versi 0.58
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdn4gEn2DdgLYRyVy8QVfF4QMVwL2gs7O7cFIfisvKdfFCPkiOlLTYpJpVGt-w3-q4Vg/exec';
 
@@ -6731,11 +6731,45 @@ function updateTotalProgressDisplay(progress, pageId) {
 
 function updateSupervisorStagesUI(totalPercent, progressData = null) {
   const stages = [
-    { id: 1, gridId: 'gridTahap1', tasks: ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 'PIPA AIR BERSIH', 'Sistem Pembuangan'] },
-    { id: 2, gridId: 'gridTahap2', tasks: ['PLESTER', 'ACIAN & BENANGAN', 'COR MEJA DAPUR', 'RANGKA ATAP', 'GENTENG', 'PLAFOND', 'KERAMIK DINDING TOILET & DAPUR', 'INSTS LISTRIK', 'KERAMIK LANTAI'] },
+    { id: 1, gridId: 'gridTahap1', tasks: ['LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 'PAS.DDG S/D RING BLK', 'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 'PIPA AIR BERSIH', 'Sistem Pembuangan', 'PLESTER', 'ACIAN & BENANGAN', 'COR MEJA DAPUR'] },
+    { id: 2, gridId: 'gridTahap2', tasks: ['RANGKA ATAP', 'GENTENG', 'PLAFOND', 'KERAMIK DINDING TOILET & DAPUR', 'INSTS LISTRIK', 'KERAMIK LANTAI'] },
     { id: 3, gridId: 'gridTahap3', tasks: ['KUSEN PINTU & JENDELA', 'DAUN PINTU & JENDELA', 'CAT DASAR + LAPIS AWAL', 'FITTING LAMPU', 'FIXTURE & SANITER', 'CAT FINISH INTERIOR', 'CAT FINISH EXTERIOR'] },
     { id: 4, gridId: 'gridTahap4', tasks: ['BAK KONTROL & BATAS CARPORT', 'PAVING HALAMAN', 'Meteran Listrik', 'Meteran Air', 'GENERAL CLEANING', 'COMPLETION / Penyelesaian akhir'] }
   ];
+
+  const taskDisplayNames = {
+    'LAND CLEARING': 'Land Clearing',
+    'PONDASI': 'Pondasi',
+    'SLOOF': 'Sloof',
+    'PAS.DDG S/D2 CANOPY': 'Pas.Ddg S/D Canopy',
+    'PAS.DDG S/D RING BLK': 'Pas.Ddg S/D Ring Blk',
+    'CONDUIT+INBOW DOOS': 'Conduit + Inbow Doos',
+    'PIPA AIR KOTOR': 'Pipa Air Kotor',
+    'PIPA AIR BERSIH': 'Pipa Air Bersih',
+    'Sistem Pembuangan': 'Sistem Pembuangan',
+    'PLESTER': 'Plester',
+    'ACIAN & BENANGAN': 'Acian & Benangan',
+    'COR MEJA DAPUR': 'Cor Meja Dapur',
+    'RANGKA ATAP': 'Rangka Atap',
+    'GENTENG': 'Genteng',
+    'PLAFOND': 'Plafond',
+    'KERAMIK DINDING TOILET & DAPUR': 'Keramik Dinding Toilet & Dapur',
+    'INSTS LISTRIK': 'Insts Listrik',
+    'KERAMIK LANTAI': 'Keramik Lantai',
+    'KUSEN PINTU & JENDELA': 'Kusen Pintu & Jendela',
+    'DAUN PINTU & JENDELA': 'Daun Pintu & Jendela',
+    'CAT DASAR + LAPIS AWAL': 'Cat Dasar + Lapis Awal',
+    'FITTING LAMPU': 'Fitting Lampu',
+    'FIXTURE & SANITER': 'Fixture & Saniter',
+    'CAT FINISH INTERIOR': 'Cat Finish Interior',
+    'CAT FINISH EXTERIOR': 'Cat Finish Exterior',
+    'BAK KONTROL & BATAS CARPORT': 'Bak Kontrol & Batas Carport',
+    'PAVING HALAMAN': 'Paving Halaman',
+    'Meteran Listrik': 'Meteran Listrik',
+    'Meteran Air': 'Meteran Air',
+    'GENERAL CLEANING': 'General Cleaning',
+    'COMPLETION / Penyelesaian akhir': 'Completion / Penyelesaian Akhir'
+  };
 
   stages.forEach(stage => {
     const gridEl = document.getElementById(stage.gridId);
@@ -6743,68 +6777,122 @@ function updateSupervisorStagesUI(totalPercent, progressData = null) {
     
     gridEl.innerHTML = '';
     
-    stage.tasks.forEach(taskName => {
-      const box = document.createElement('div');
-      box.title = taskName;
-      
-      let isCompleted = false;
-      if (progressData && progressData[`tahap${stage.id}`]) {
-        const val = progressData[`tahap${stage.id}`][taskName];
-        isCompleted = (val === 'Selesai' || val === true || val === '100%');
-      }
-
-      box.style.cssText = `
-        aspect-ratio: 1;
-        background: ${isCompleted ? '#10b981' : '#334155'};
-        border-radius: 2px;
-        border: 1px solid rgba(255,255,255,0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 8px;
-        color: white;
-      `;
-      
-      if (isCompleted) {
-        box.innerHTML = '<i class="fas fa-check"></i>';
-      }
-      
-      gridEl.appendChild(box);
-    });
-  });
-
-  const checks = [
-    document.getElementById('checkTahap1'),
-    document.getElementById('checkTahap2'),
-    document.getElementById('checkTahap3'),
-    document.getElementById('checkTahap4')
-  ];
-  
-  const percents = [
-    document.getElementById('supervisorTahap1Percent'),
-    document.getElementById('supervisorTahap2Percent'),
-    document.getElementById('supervisorTahap3Percent'),
-    document.getElementById('supervisorTahap4Percent')
-  ];
-
-  // Distribute total percent across 4 stages (25% each)
-  for (let i = 0; i < 4; i++) {
-    const stageMax = (i + 1) * 25;
-    const stageMin = i * 25;
+    let completedCount = 0;
     
-    let stagePercent = 0;
-    if (totalPercent >= stageMax) {
-      stagePercent = 100;
-    } else if (totalPercent > stageMin) {
-      stagePercent = Math.round(((totalPercent - stageMin) / 25) * 100);
+    const specialTasks = ['Sistem Pembuangan', 'COR MEJA DAPUR', 'KERAMIK DINDING TOILET & DAPUR'];
+    
+    stage.tasks.forEach(taskName => {
+      let taskValue = null;
+      let isCompleted = false;
+      
+      if (progressData && progressData[`tahap${stage.id}`]) {
+        taskValue = progressData[`tahap${stage.id}`][taskName];
+        isCompleted = (taskValue === 'Selesai' || taskValue === true || taskValue === '100%' || 
+                       (taskValue && taskValue !== '' && specialTasks.includes(taskName)));
+      }
+      
+      if (isCompleted) completedCount++;
+      
+      const isSpecialTask = specialTasks.includes(taskName);
+      
+      if (isSpecialTask) {
+        const taskContainer = document.createElement('div');
+        taskContainer.className = 'supervisor-task-item-special' + (isCompleted ? ' task-completed' : '');
+        taskContainer.style.cssText = `
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          padding: 6px 8px;
+          background: ${isCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(51, 65, 85, 0.5)'};
+          border-radius: 4px;
+          border: 1px solid ${isCompleted ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.1)'};
+          font-size: 0.7rem;
+          grid-column: span 2;
+        `;
+        
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'item-title';
+        titleSpan.textContent = (taskDisplayNames[taskName] || taskName) + ' =';
+        titleSpan.style.cssText = `
+          color: #94a3b8;
+          font-weight: 600;
+        `;
+        
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'item-value';
+        valueSpan.style.cssText = `
+          color: ${isCompleted ? '#10b981' : '#64748b'};
+          font-weight: 500;
+          padding: 3px 8px;
+          background: rgba(0,0,0,0.2);
+          border-radius: 3px;
+          text-align: center;
+        `;
+        
+        if (taskValue && taskValue !== '' && taskValue !== true && taskValue !== 'Selesai') {
+          valueSpan.textContent = taskValue;
+        } else {
+          valueSpan.textContent = '- Belum dipilih -';
+          valueSpan.style.color = '#64748b';
+          valueSpan.style.fontStyle = 'italic';
+        }
+        
+        taskContainer.appendChild(titleSpan);
+        taskContainer.appendChild(valueSpan);
+        gridEl.appendChild(taskContainer);
+      } else {
+        const taskLabel = document.createElement('label');
+        taskLabel.className = 'supervisor-task-item' + (isCompleted ? ' task-completed' : '');
+        taskLabel.style.cssText = `
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 6px;
+          background: ${isCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(51, 65, 85, 0.5)'};
+          border-radius: 4px;
+          border: 1px solid ${isCompleted ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.1)'};
+          cursor: default;
+          font-size: 0.7rem;
+          color: ${isCompleted ? '#10b981' : '#94a3b8'};
+          transition: all 0.2s ease;
+        `;
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = isCompleted;
+        checkbox.disabled = true;
+        checkbox.style.cssText = `
+          width: 14px;
+          height: 14px;
+          accent-color: #10b981;
+          cursor: default;
+          flex-shrink: 0;
+        `;
+        
+        const labelText = document.createElement('span');
+        labelText.textContent = taskDisplayNames[taskName] || taskName;
+        labelText.style.cssText = `
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        `;
+        
+        taskLabel.appendChild(checkbox);
+        taskLabel.appendChild(labelText);
+        gridEl.appendChild(taskLabel);
+      }
+    });
+    
+    const stagePercent = stage.tasks.length > 0 ? Math.round((completedCount / stage.tasks.length) * 100) : 0;
+    const percentEl = document.getElementById(`supervisorTahap${stage.id}Percent`);
+    if (percentEl) percentEl.textContent = stagePercent + '%';
+    
+    const checkEl = document.getElementById(`checkTahap${stage.id}`);
+    if (checkEl) {
+      checkEl.checked = stagePercent === 100;
+      checkEl.disabled = true;
     }
-
-    if (percents[i]) percents[i].textContent = stagePercent + '%';
-    if (checks[i]) {
-      checks[i].checked = stagePercent === 100;
-      checks[i].disabled = false;
-    }
-  }
+  });
 }
 
 // Update loadProgressData to also pass data to Supervisor UI
