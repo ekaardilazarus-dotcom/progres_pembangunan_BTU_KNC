@@ -1,4 +1,4 @@
-<!--  versi 0.455 -->
+<!--  versi 0.46 -->
 <!doctype html>
 <html lang="id">
   <head>
@@ -3546,12 +3546,13 @@
                         padding: 15px;
                         background: rgba(0, 0, 0, 0.2);
                         border-radius: 12px;
-                        display: none;
+                        display: block;
                       "
                     >
                       <div class="info-item" style="margin-bottom: 10px">
                         <span class="info-label">Progres Keseluruhan:</span>
                         <span
+                          id="managerOverallPercent"
                           class="info-value val-overall"
                           style="font-size: 1.2rem"
                           >0%</span
@@ -3559,9 +3560,74 @@
                       </div>
                       <div class="progress-bar main">
                         <div
+                          id="managerOverallBar"
                           class="progress-fill total-bar"
                           style="width: 0%"
                         ></div>
+                      </div>
+                      
+                      <!-- New Stage Progress Grid -->
+                      <div class="supervisor-stages-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px;">
+                        <!-- Tahap 1 -->
+                        <div class="stage-card" style="background: rgba(15, 23, 42, 0.5); padding: 10px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.2);">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">TAHAP 1</span>
+                            <span id="supervisorTahap1Percent" style="font-size: 0.85rem; color: #38bdf8; font-weight: 700;">0%</span>
+                          </div>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="checkTahap1" class="supervisor-stage-check" data-tahap="1" style="width: 18px; height: 18px; accent-color: #38bdf8; cursor: pointer;">
+                            <label for="checkTahap1" style="font-size: 0.8rem; color: #f1f5f9; cursor: pointer;">Struktur & Infras</label>
+                          </div>
+                          <!-- Sub-tasks Grid 5x5 Tahap 1 -->
+                          <div class="supervisor-subtask-grid" id="gridTahap1" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 10px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 4px;">
+                            <!-- Will be populated by JS -->
+                          </div>
+                        </div>
+                        <!-- Tahap 2 -->
+                        <div class="stage-card" style="background: rgba(15, 23, 42, 0.5); padding: 10px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">TAHAP 2</span>
+                            <span id="supervisorTahap2Percent" style="font-size: 0.85rem; color: #10b981; font-weight: 700;">0%</span>
+                          </div>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="checkTahap2" class="supervisor-stage-check" data-tahap="2" style="width: 18px; height: 18px; accent-color: #10b981; cursor: pointer;">
+                            <label for="checkTahap2" style="font-size: 0.8rem; color: #f1f5f9; cursor: pointer;">Atap, Dinding & Lnt</label>
+                          </div>
+                          <!-- Sub-tasks Grid 5x5 Tahap 2 -->
+                          <div class="supervisor-subtask-grid" id="gridTahap2" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 10px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 4px;">
+                            <!-- Will be populated by JS -->
+                          </div>
+                        </div>
+                        <!-- Tahap 3 -->
+                        <div class="stage-card" style="background: rgba(15, 23, 42, 0.5); padding: 10px; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.2);">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">TAHAP 3</span>
+                            <span id="supervisorTahap3Percent" style="font-size: 0.85rem; color: #fbbf24; font-weight: 700;">0%</span>
+                          </div>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="checkTahap3" class="supervisor-stage-check" data-tahap="3" style="width: 18px; height: 18px; accent-color: #fbbf24; cursor: pointer;">
+                            <label for="checkTahap3" style="font-size: 0.8rem; color: #f1f5f9; cursor: pointer;">Finishing & HO</label>
+                          </div>
+                          <!-- Sub-tasks Grid 5x5 Tahap 3 -->
+                          <div class="supervisor-subtask-grid" id="gridTahap3" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 10px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 4px;">
+                            <!-- Will be populated by JS -->
+                          </div>
+                        </div>
+                        <!-- Tahap 4 -->
+                        <div class="stage-card" style="background: rgba(15, 23, 42, 0.5); padding: 10px; border-radius: 8px; border: 1px solid rgba(129, 140, 248, 0.2);">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">TAHAP 4</span>
+                            <span id="supervisorTahap4Percent" style="font-size: 0.85rem; color: #818cf8; font-weight: 700;">0%</span>
+                          </div>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="checkTahap4" class="supervisor-stage-check" data-tahap="4" style="width: 18px; height: 18px; accent-color: #818cf8; cursor: pointer;">
+                            <label for="checkTahap4" style="font-size: 0.8rem; color: #f1f5f9; cursor: pointer;">HO & Kondisi Akhir</label>
+                          </div>
+                          <!-- Sub-tasks Grid 5x5 Tahap 4 -->
+                          <div class="supervisor-subtask-grid" id="gridTahap4" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 10px; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 4px;">
+                            <!-- Will be populated by JS -->
+                          </div>
+                        </div>
                       </div>
                     </div>
 
