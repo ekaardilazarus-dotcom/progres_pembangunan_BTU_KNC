@@ -1,4 +1,4 @@
-// versi 0.585
+// versi 0.59
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdn4gEn2DdgLYRyVy8QVfF4QMVwL2gs7O7cFIfisvKdfFCPkiOlLTYpJpVGt-w3-q4Vg/exec';
 
@@ -6767,6 +6767,11 @@ function updateSupervisorStagesUI(totalPercent, progressData = null) {
     'COMPLETION / Penyelesaian akhir': 'Completion / Penyelesaian Akhir'
   };
 
+  let t13_total = 0;
+  let t13_completed = 0;
+  let completionProgress = 0;
+  let deliveryDateProgress = 0;
+
   stages.forEach(stage => {
     const gridEl = document.getElementById(stage.gridId);
     if (!gridEl) return;
@@ -6788,6 +6793,15 @@ function updateSupervisorStagesUI(totalPercent, progressData = null) {
       }
       
       if (isCompleted) completedCount++;
+      
+      if (stage.id === 1 || stage.id === 2 || stage.id === 3) {
+        t13_total++;
+        if (isCompleted) t13_completed++;
+      }
+      
+      if (stage.id === 4 && taskName === 'COMPLETION / Penyelesaian akhir' && isCompleted) {
+        completionProgress = 5;
+      }
       
       const isSpecialTask = specialTasks.includes(taskName);
       
@@ -6889,6 +6903,69 @@ function updateSupervisorStagesUI(totalPercent, progressData = null) {
       checkEl.disabled = true;
     }
   });
+  
+  if (progressData && progressData.tahap4 && progressData.tahap4['PENYERAHAN KUNCI'] && progressData.tahap4['PENYERAHAN KUNCI'].trim() !== '') {
+    deliveryDateProgress = 1;
+  }
+  
+  const gridTahap4 = document.getElementById('gridTahap4');
+  if (gridTahap4 && progressData && progressData.tahap4) {
+    const penyerahanKunci = progressData.tahap4['PENYERAHAN KUNCI'] || '';
+    const tanggalPenyerahan = progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'] || '';
+    
+    const keyInfoContainer = document.createElement('div');
+    keyInfoContainer.style.cssText = `
+      grid-column: span 2;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+      background: rgba(56, 189, 248, 0.1);
+      border-radius: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      margin-top: 6px;
+    `;
+    
+    const keyTitle = document.createElement('div');
+    keyTitle.style.cssText = 'font-size: 0.75rem; color: #38bdf8; font-weight: 600; margin-bottom: 4px;';
+    keyTitle.innerHTML = '<i class="fas fa-key" style="margin-right: 6px;"></i>Info Penyerahan Kunci';
+    keyInfoContainer.appendChild(keyTitle);
+    
+    const penyerahanRow = document.createElement('div');
+    penyerahanRow.style.cssText = 'display: flex; justify-content: space-between; font-size: 0.7rem;';
+    penyerahanRow.innerHTML = `
+      <span style="color: #94a3b8;">Diserahkan Ke:</span>
+      <span style="color: ${penyerahanKunci ? '#10b981' : '#64748b'}; font-weight: 500;">${penyerahanKunci || '- Belum diisi -'}</span>
+    `;
+    keyInfoContainer.appendChild(penyerahanRow);
+    
+    const tanggalRow = document.createElement('div');
+    tanggalRow.style.cssText = 'display: flex; justify-content: space-between; font-size: 0.7rem;';
+    let formattedDate = '- Belum diisi -';
+    if (tanggalPenyerahan) {
+      try {
+        const dateObj = new Date(tanggalPenyerahan);
+        formattedDate = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+      } catch(e) {
+        formattedDate = tanggalPenyerahan;
+      }
+    }
+    tanggalRow.innerHTML = `
+      <span style="color: #94a3b8;">Tanggal Penyerahan:</span>
+      <span style="color: ${tanggalPenyerahan ? '#10b981' : '#64748b'}; font-weight: 500;">${formattedDate}</span>
+    `;
+    keyInfoContainer.appendChild(tanggalRow);
+    
+    gridTahap4.appendChild(keyInfoContainer);
+  }
+  
+  let tahap1_3_Progress = 0;
+  if (t13_total > 0) {
+    tahap1_3_Progress = (t13_completed / t13_total) * 94;
+  }
+  
+  const supervisorTotalProgress = Math.round(tahap1_3_Progress + completionProgress + deliveryDateProgress);
+  updateTotalProgressDisplay(supervisorTotalProgress + '%', 'managerPage');
 }
 
 // Update loadProgressData to also pass data to Supervisor UI
