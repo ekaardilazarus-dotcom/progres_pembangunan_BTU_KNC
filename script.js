@@ -5753,6 +5753,163 @@ function setupViewMutationButton() {
       }
     });
   }
+
+  // Setup tombol View Mutation History untuk Supervisor
+  const btnViewMutationSupervisor = document.getElementById('btnViewMutationHistorySupervisor');
+  if (btnViewMutationSupervisor) {
+    btnViewMutationSupervisor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const container = document.getElementById('mutasiHistoryContainerSupervisor');
+      if (!container) return;
+
+      if (container.style.display === 'none' || container.style.display === '') {
+        if (typeof loadMutationHistorySupervisor === 'function') {
+          loadMutationHistorySupervisor();
+        } else {
+          const kavling = selectedKavling || (document.querySelector('#kavlingInfoManager .val-name')?.textContent !== '-' ? document.querySelector('#kavlingInfoManager .val-name')?.textContent : null);
+          if (kavling) {
+            loadMutationHistoryForSupervisor(kavling);
+            container.style.display = 'block';
+          } else {
+            showToast('warning', 'Pilih kavling terlebih dahulu!');
+          }
+        }
+      } else {
+        container.style.display = 'none';
+      }
+    });
+  }
+}
+
+// Fungsi untuk parse mutasi data dari string (sama seperti di Admin Utilitas)
+function parseMutasiDataFromStringSupervisor(mutasiString) {
+  if (!mutasiString || mutasiString.trim() === '') {
+    return [];
+  }
+  
+  const entries = [];
+  const entryStrings = mutasiString.split('|').map(entry => entry.trim());
+  
+  entryStrings.forEach((entryStr, index) => {
+    if (entryStr.trim() === '') return;
+    
+    const parts = entryStr.split(',');
+    
+    if (parts.length >= 3) {
+      entries.push({
+        dari: parts[0]?.trim() || '',
+        ke: parts[1]?.trim() || '',
+        tanggal: parts[2]?.trim() || '',
+        jenis: ''
+      });
+    }
+  });
+  
+  return entries;
+}
+
+// URL Admin Utilitas untuk Supervisor (sama dengan Admin Utilitas)
+const ADMIN_UTILITAS_URL_SUPERVISOR = 'https://script.google.com/macros/s/AKfycbxdn4gEn2DdgLYRyVy8QVfF4QMVwL2gs7O7cFIfisvKdfFCPkiOlLTYpJpVGt-w3-q4Vg/exec';
+
+// Fungsi untuk load mutation history di Supervisor (sama seperti Admin Utilitas)
+async function loadMutationHistoryForSupervisor(kavling) {
+  const container = document.getElementById('mutasiHistoryContainerSupervisor');
+  if (!container) return;
+
+  try {
+    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Memuat data mutasi...</div>';
+    container.style.display = 'block';
+
+    // Gunakan API yang sama dengan Admin Utilitas
+    const result = await getDataFromServer(ADMIN_UTILITAS_URL_SUPERVISOR, {
+      action: 'getHandoverData',
+      kavling: kavling
+    });
+
+    if (result.success) {
+      // Parse data mutasi sama seperti Admin Utilitas
+      const mutasiMasukEntries = parseMutasiDataFromStringSupervisor(result.mutasiMasuk || '');
+      const mutasiKeluarEntries = parseMutasiDataFromStringSupervisor(result.mutasiKeluar || '');
+      
+      mutasiMasukEntries.forEach(entry => entry.jenis = 'MASUK');
+      mutasiKeluarEntries.forEach(entry => entry.jenis = 'KELUAR');
+      
+      const allMutasi = [...mutasiMasukEntries, ...mutasiKeluarEntries];
+      
+      if (allMutasi.length > 0) {
+        let html = `<div class="progress-section detailed" style="border-left: 6px solid #8b5cf6; margin-bottom: 15px;">
+          <h3 style="color: #8b5cf6; margin-bottom: 15px;"><i class="fas fa-history"></i> Riwayat Mutasi Kunci</h3>`;
+        
+        // Tampilkan Mutasi Masuk
+        if (mutasiMasukEntries.length > 0) {
+          html += `<div style="margin-bottom: 15px;">
+            <h4 style="color: #10b981; margin-bottom: 10px; font-size: 0.95rem;"><i class="fas fa-sign-in-alt"></i> Mutasi Kunci Masuk</h4>
+            <div style="display: grid; gap: 8px;">`;
+          
+          mutasiMasukEntries.forEach((item, index) => {
+            html += `
+              <div style="padding: 10px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <span style="color: #94a3b8; font-size: 0.8rem;">Entry #${index + 1}</span>
+                    <div style="margin-top: 2px;">
+                      <span style="font-weight: 500; color: #f1f5f9;">${item.dari || '-'}</span>
+                      <i class="fas fa-arrow-right" style="margin: 0 8px; font-size: 0.8rem; opacity: 0.5; color: #94a3b8;"></i>
+                      <span style="font-weight: 500; color: #f1f5f9;">${item.ke || '-'}</span>
+                    </div>
+                  </div>
+                  <span style="color: #10b981; font-size: 0.85rem;">${item.tanggal || '-'}</span>
+                </div>
+              </div>`;
+          });
+          
+          html += `</div></div>`;
+        }
+        
+        // Tampilkan Mutasi Keluar
+        if (mutasiKeluarEntries.length > 0) {
+          html += `<div style="margin-bottom: 15px;">
+            <h4 style="color: #f59e0b; margin-bottom: 10px; font-size: 0.95rem;"><i class="fas fa-sign-out-alt"></i> Mutasi Kunci Keluar</h4>
+            <div style="display: grid; gap: 8px;">`;
+          
+          mutasiKeluarEntries.forEach((item, index) => {
+            html += `
+              <div style="padding: 10px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <span style="color: #94a3b8; font-size: 0.8rem;">Entry #${index + 1}</span>
+                    <div style="margin-top: 2px;">
+                      <span style="font-weight: 500; color: #f1f5f9;">${item.dari || '-'}</span>
+                      <i class="fas fa-arrow-right" style="margin: 0 8px; font-size: 0.8rem; opacity: 0.5; color: #94a3b8;"></i>
+                      <span style="font-weight: 500; color: #f1f5f9;">${item.ke || '-'}</span>
+                    </div>
+                  </div>
+                  <span style="color: #f59e0b; font-size: 0.85rem;">${item.tanggal || '-'}</span>
+                </div>
+              </div>`;
+          });
+          
+          html += `</div></div>`;
+        }
+        
+        html += `</div>`;
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = `<div class="progress-section detailed" style="border-left: 6px solid #8b5cf6; margin-bottom: 15px;">
+          <h3 style="color: #8b5cf6; margin-bottom: 15px;"><i class="fas fa-history"></i> Riwayat Mutasi Kunci</h3>
+          <p style="color: #94a3b8; text-align: center; padding: 20px;">Belum ada data mutasi</p>
+        </div>`;
+      }
+    } else {
+      container.innerHTML = `<div class="progress-section detailed" style="border-left: 6px solid #8b5cf6; margin-bottom: 15px;">
+        <h3 style="color: #8b5cf6; margin-bottom: 15px;"><i class="fas fa-history"></i> Riwayat Mutasi Kunci</h3>
+        <p style="color: #94a3b8; text-align: center; padding: 20px;">Belum ada data mutasi</p>
+      </div>`;
+    }
+  } catch (error) {
+    console.error('Error loading mutation history:', error);
+    container.innerHTML = `<div style="text-align: center; padding: 20px; color: #f87171;"><i class="fas fa-exclamation-triangle"></i> Gagal memuat data mutasi</div>`;
+  }
 }
 
 // ========== FUNGSI LOAD UTILITAS DATA ==========
