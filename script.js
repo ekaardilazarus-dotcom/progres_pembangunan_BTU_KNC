@@ -611,11 +611,13 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
           updateKavlingInfo(currentKavlingData, currentRole + 'Page');
           loadProgressData(data.data);
           
-          // Fix: Ensure total progress bar and notes are updated for manager
+          // Fix: Ensure notes are updated for manager (progress handled by updateSupervisorStagesUI)
           if (currentRole === 'manager') {
-            updateTotalProgressDisplay(currentKavlingData.totalAH, currentRole + 'Page');
             loadPropertyNotesFromData(currentKavlingData);
             loadRevisionPhotos(selectedKavling);
+            // Update supervisor stages UI with calculated progress
+            const totalPercent = parseInt(currentKavlingData.totalAH) || 0;
+            updateSupervisorStagesUI(totalPercent, data.data);
           } else if (currentRole === 'user1' || currentRole === 'user2' || currentRole === 'user3') {
             loadRevisionPhotosForPelaksana(selectedKavling, currentRole);
           }
@@ -1206,6 +1208,10 @@ async function searchKavling(isSync = false) {
 
         // Update progress display untuk manager menggunakan data AH
         updateManagerProgressDisplay(currentKavlingData.totalAH);
+
+        // Update Supervisor Stages UI dengan progress data dari kavling
+        const totalPercent = parseInt(currentKavlingData.totalAH) || 0;
+        updateSupervisorStagesUI(totalPercent, data.data);
 
         // Jika di tab reports, load laporan
         const activeTab = document.querySelector('#managerPage .admin-tab-btn.active');
@@ -3624,7 +3630,6 @@ function generateAndDownloadPDF(title, categoryLabel, kavlings) {
         <td>${kavling.lb || '-'}</td>
         <td>${kavling.type || '-'}</td>
         <td>${kavling.keterangan || '-'}</td>
-        <td>${getValue(['PENYERAHAN KUNCI', 'penyerahan_kunci_dari_pelaksana_ke'])}</td>
       </tr>
     `;
   });
@@ -6951,7 +6956,7 @@ function updateSupervisorStagesUI(totalPercent, progressData = null) {
       }
     }
     tanggalRow.innerHTML = `
-      <span style="color: #94a3b8;">Tanggal Penyerahan:</span>
+      <span style="color: #94a3b8;">Tanggal Penyerahan Kunci dari Pelaksana:</span>
       <span style="color: ${tanggalPenyerahan ? '#10b981' : '#64748b'}; font-weight: 500;">${formattedDate}</span>
     `;
     keyInfoContainer.appendChild(tanggalRow);
