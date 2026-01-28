@@ -3631,10 +3631,43 @@
                       </div>
                     </div>
 
+                    <!-- Tombol Lihat Data Mutasi Supervisor -->
+                    <div style="margin-top: 20px; margin-bottom: 20px;">
+                      <button
+                        id="btnViewMutationHistorySupervisor"
+                        type="button"
+                        class="btn-primary"
+                        style="
+                          width: 100%;
+                          padding: 15px;
+                          background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+                          border-radius: 12px;
+                          font-weight: 700;
+                          font-size: 1rem;
+                          border: none;
+                          cursor: pointer;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          gap: 10px;
+                          box-shadow:
+                            0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                            0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                          transition: all 0.3s ease;
+                          color: white;
+                        "
+                      >
+                        <i class="fas fa-history"></i> Lihat Data Mutasi
+                      </button>
+                    </div>
+
+                    <!-- Container untuk History Mutasi Supervisor -->
+                    <div id="mutasiHistoryContainerSupervisor" style="display: none; margin-bottom: 20px;"></div>
+
                     <!-- Info Tanggal Hand Over Kunci ke User -->
-                    <div class="handover-info-section" id="supervisorHandoverSection" style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.15)); border-radius: 12px; border: 2px solid rgba(16, 185, 129, 0.3);">
-                      <h3 style="margin-bottom: 12px; color: #10b981; display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-key"></i> Tanggal Hand Over Kunci ke User
+                    <div class="handover-info-section" id="supervisorHandoverSection" style="margin-top: 20px; padding: 15px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(167, 139, 250, 0.15)); border-radius: 12px; border: 2px solid rgba(139, 92, 246, 0.3);">
+                      <h3 style="margin-bottom: 12px; color: #8b5cf6; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-user-check"></i> Mutasi HO Ke User
                       </h3>
                       <div style="display: grid; gap: 10px;">
                         <div class="ho-info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
@@ -3645,9 +3678,9 @@
                           <span style="color: #94a3b8; font-size: 0.9rem;">Diterima Oleh (User):</span>
                           <span id="supervisorHOUser" style="color: #f1f5f9; font-weight: 600;">-</span>
                         </div>
-                        <div class="ho-info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(16, 185, 129, 0.2); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.4);">
-                          <span style="color: #10b981; font-size: 0.95rem; font-weight: 600;"><i class="fas fa-calendar-check"></i> Tanggal HO:</span>
-                          <span id="supervisorHOTanggal" style="color: #10b981; font-weight: 700; font-size: 1.1rem;">-</span>
+                        <div class="ho-info-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(139, 92, 246, 0.2); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.4);">
+                          <span style="color: #8b5cf6; font-size: 0.95rem; font-weight: 600;"><i class="fas fa-calendar-check"></i> Tanggal HO:</span>
+                          <span id="supervisorHOTanggal" style="color: #8b5cf6; font-weight: 700; font-size: 1.1rem;">-</span>
                         </div>
                       </div>
                     </div>
