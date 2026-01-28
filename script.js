@@ -1,4 +1,4 @@
-// versi 0.59
+// versi 0.6
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdn4gEn2DdgLYRyVy8QVfF4QMVwL2gs7O7cFIfisvKdfFCPkiOlLTYpJpVGt-w3-q4Vg/exec';
 
@@ -548,6 +548,11 @@ function clearInputsForNewLoad() {
       display.textContent = '-';
     }
   });
+
+  // 6. Reset Supervisor HO Section
+  if (typeof resetSupervisorHOSection === 'function') {
+    resetSupervisorHOSection();
+  }
 }
 
 function renderSearchList(items, listEl, inputEl, selectEl) {
@@ -1212,6 +1217,9 @@ async function searchKavling(isSync = false) {
         // Update Supervisor Stages UI dengan progress data dari kavling
         const totalPercent = parseInt(currentKavlingData.totalAH) || 0;
         updateSupervisorStagesUI(totalPercent, data.data);
+
+        // Load dan tampilkan data Hand Over Kunci ke User
+        loadSupervisorHandoverData(kavlingName);
 
         // Jika di tab reports, load laporan
         const activeTab = document.querySelector('#managerPage .admin-tab-btn.active');
@@ -7686,6 +7694,214 @@ showPage = function(role) {
 if (window.currentRole === 'user4') {
     setTimeout(loadAdminUtilitasScript, 1000);
 }
+
+// ========== FUNGSI LOAD SUPERVISOR HANDOVER DATA ==========
+const SUPERVISOR_ADMIN_UTILITAS_URL = 'https://script.google.com/macros/s/AKfycbxdn4gEn2DdgLYRyVy8QVfF4QMVwL2gs7O7cFIfisvKdfFCPkiOlLTYpJpVGt-w3-q4Vg/exec';
+
+async function loadSupervisorHandoverData(kavlingName) {
+  if (!kavlingName) {
+    showToast('warning', 'Pilih kavling terlebih dahulu!');
+    console.log('loadSupervisorHandoverData: No kavling name provided');
+    return;
+  }
+  
+  // Get elements
+  const btnContainer = document.getElementById('supervisorHOBtnContainer');
+  const displayMode = document.getElementById('supervisorHODisplayMode');
+  const editMode = document.getElementById('supervisorHOEditMode');
+  const loadingEl = document.getElementById('supervisorHOLoading');
+  const hoUserEl = document.getElementById('supervisorHOUser');
+  const hoDariEl = document.getElementById('supervisorHODari');
+  const hoTanggalEl = document.getElementById('supervisorHOTanggal');
+  
+  if (!loadingEl || !displayMode) {
+    console.log('loadSupervisorHandoverData: Handover section elements not found');
+    return;
+  }
+  
+  // Show loading, hide others
+  if (btnContainer) btnContainer.style.display = 'none';
+  displayMode.style.display = 'none';
+  editMode.style.display = 'none';
+  loadingEl.style.display = 'block';
+  
+  try {
+    console.log('loadSupervisorHandoverData: Fetching data for', kavlingName);
+    
+    const result = await getDataFromServer(SUPERVISOR_ADMIN_UTILITAS_URL, {
+      action: 'getHandoverData',
+      kavling: kavlingName
+    });
+    
+    console.log('loadSupervisorHandoverData: Result', result);
+    
+    // Hide loading
+    loadingEl.style.display = 'none';
+    
+    if (result.success && result.handoverData) {
+      const handover = result.handoverData;
+      
+      // Set data
+      hoUserEl.textContent = handover.keUser || '-';
+      hoDariEl.textContent = handover.dariPelaksana || '-';
+      hoTanggalEl.textContent = handover.tanggal || '-';
+      
+      // Also populate edit fields
+      const inputDari = document.getElementById('inputSupervisorHODari');
+      const inputKe = document.getElementById('inputSupervisorHOKe');
+      const inputTgl = document.getElementById('inputSupervisorHOTgl');
+      if (inputDari) inputDari.value = handover.dariPelaksana || '';
+      if (inputKe) inputKe.value = handover.keUser || '';
+      if (inputTgl) inputTgl.value = handover.tanggal || '';
+      
+      console.log('loadSupervisorHandoverData: Data loaded successfully');
+      showToast('success', 'Data HandOver Kunci berhasil dimuat!');
+      
+    } else {
+      // Tidak ada data handover
+      hoUserEl.textContent = '-';
+      hoDariEl.textContent = '-';
+      hoTanggalEl.textContent = '-';
+      
+      // Clear edit fields
+      const inputDari = document.getElementById('inputSupervisorHODari');
+      const inputKe = document.getElementById('inputSupervisorHOKe');
+      const inputTgl = document.getElementById('inputSupervisorHOTgl');
+      if (inputDari) inputDari.value = '';
+      if (inputKe) inputKe.value = '';
+      if (inputTgl) inputTgl.value = '';
+      
+      console.log('loadSupervisorHandoverData: No handover data found');
+      showToast('info', 'Belum ada data HandOver Kunci untuk kavling ini');
+    }
+    
+    // Show display mode
+    displayMode.style.display = 'block';
+    displayMode.style.animation = 'fadeIn 0.5s ease';
+    
+  } catch (error) {
+    console.error('loadSupervisorHandoverData: Error', error);
+    
+    // Hide loading, show button again
+    loadingEl.style.display = 'none';
+    if (btnContainer) btnContainer.style.display = 'block';
+    
+    showToast('error', 'Gagal memuat data HandOver: ' + error.message);
+  }
+}
+
+function toggleSupervisorHOEditMode(isEdit) {
+  const displayMode = document.getElementById('supervisorHODisplayMode');
+  const editMode = document.getElementById('supervisorHOEditMode');
+  
+  if (isEdit) {
+    displayMode.style.display = 'none';
+    editMode.style.display = 'block';
+    editMode.style.animation = 'fadeIn 0.3s ease';
+  } else {
+    editMode.style.display = 'none';
+    displayMode.style.display = 'block';
+  }
+}
+
+function setSupervisorHOToday() {
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, '0');
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const yyyy = today.getFullYear();
+  const formatted = `${dd}/${mm}/${yyyy}`;
+  
+  const inputTgl = document.getElementById('inputSupervisorHOTgl');
+  if (inputTgl) {
+    inputTgl.value = formatted;
+  }
+}
+
+async function saveSupervisorHandoverData() {
+  if (!selectedKavling) {
+    showToast('warning', 'Pilih kavling terlebih dahulu!');
+    return;
+  }
+  
+  const inputDari = document.getElementById('inputSupervisorHODari');
+  const inputKe = document.getElementById('inputSupervisorHOKe');
+  const inputTgl = document.getElementById('inputSupervisorHOTgl');
+  
+  const dari = inputDari ? inputDari.value.trim() : '';
+  const ke = inputKe ? inputKe.value.trim() : '';
+  const tgl = inputTgl ? inputTgl.value.trim() : '';
+  
+  if (!dari && !ke && !tgl) {
+    showToast('warning', 'Tidak ada data yang diisi!');
+    return;
+  }
+  
+  showGlobalLoading('Menyimpan data HandOver Kunci...');
+  
+  try {
+    const result = await getDataFromServer(SUPERVISOR_ADMIN_UTILITAS_URL, {
+      action: 'saveHandoverKunci',
+      kavling: selectedKavling,
+      tglHandover: tgl,
+      dariPelaksana: dari,
+      keUser: ke
+    });
+    
+    if (result.success) {
+      showToast('success', 'Data HandOver Kunci berhasil disimpan!');
+      
+      // Update display values
+      const hoUserEl = document.getElementById('supervisorHOUser');
+      const hoDariEl = document.getElementById('supervisorHODari');
+      const hoTanggalEl = document.getElementById('supervisorHOTanggal');
+      
+      if (hoUserEl) hoUserEl.textContent = ke || '-';
+      if (hoDariEl) hoDariEl.textContent = dari || '-';
+      if (hoTanggalEl) hoTanggalEl.textContent = tgl || '-';
+      
+      // Switch back to display mode
+      toggleSupervisorHOEditMode(false);
+      
+    } else {
+      showToast('error', 'Gagal menyimpan: ' + (result.message || 'Unknown error'));
+    }
+    
+  } catch (error) {
+    console.error('saveSupervisorHandoverData: Error', error);
+    showToast('error', 'Error: ' + error.message);
+  } finally {
+    hideGlobalLoading();
+  }
+}
+
+function resetSupervisorHOSection() {
+  const btnContainer = document.getElementById('supervisorHOBtnContainer');
+  const displayMode = document.getElementById('supervisorHODisplayMode');
+  const editMode = document.getElementById('supervisorHOEditMode');
+  const loadingEl = document.getElementById('supervisorHOLoading');
+  
+  if (btnContainer) btnContainer.style.display = 'block';
+  if (displayMode) displayMode.style.display = 'none';
+  if (editMode) editMode.style.display = 'none';
+  if (loadingEl) loadingEl.style.display = 'none';
+  
+  // Clear values
+  const hoUserEl = document.getElementById('supervisorHOUser');
+  const hoDariEl = document.getElementById('supervisorHODari');
+  const hoTanggalEl = document.getElementById('supervisorHOTanggal');
+  if (hoUserEl) hoUserEl.textContent = '-';
+  if (hoDariEl) hoDariEl.textContent = '-';
+  if (hoTanggalEl) hoTanggalEl.textContent = '-';
+  
+  // Clear inputs
+  const inputDari = document.getElementById('inputSupervisorHODari');
+  const inputKe = document.getElementById('inputSupervisorHOKe');
+  const inputTgl = document.getElementById('inputSupervisorHOTgl');
+  if (inputDari) inputDari.value = '';
+  if (inputKe) inputKe.value = '';
+  if (inputTgl) inputTgl.value = '';
+}
+
 // Panggil setelah DOM siap
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(debugTahap4Structure, 1000);
