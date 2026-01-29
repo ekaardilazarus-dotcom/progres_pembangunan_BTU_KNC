@@ -1243,6 +1243,15 @@ async function searchKavling(isSync = false) {
         // Load dan tampilkan data Hand Over Kunci ke User
         loadSupervisorHandoverData(kavlingName);
 
+        // Auto load Riwayat Mutasi Kunci 3 detik setelah kavling dipilih
+        setTimeout(async () => {
+          if (selectedKavling === kavlingName) {
+            console.log('⏰ Auto loading mutation history for:', kavlingName);
+            window.supervisorMutationVisible = true;
+            await loadMutationHistoryForSupervisor(kavlingName);
+          }
+        }, 3000);
+
         // Jika di tab reports, load laporan
         const activeTab = document.querySelector('#managerPage .admin-tab-btn.active');
         if (activeTab && activeTab.getAttribute('data-tab') === 'reports') {
