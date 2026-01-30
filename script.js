@@ -643,8 +643,9 @@ function renderSearchList(items, listEl, inputEl, selectEl) {
             const totalPercent = parseInt(currentKavlingData.totalAH) || 0;
             updateSupervisorStagesUI(totalPercent, data.data);
             setTimeout(() => {
-        loadSupervisorHandoverData(selectedKavling);
-    }, 500);
+                loadSupervisorHandoverData(selectedKavling);
+                initSupervisorMutationButton(); // Ensure button is ready when data is loaded
+            }, 500);
           } else if (currentRole === 'user1' || currentRole === 'user2' || currentRole === 'user3') {
             loadRevisionPhotosForPelaksana(selectedKavling, currentRole);
           }
@@ -1247,8 +1248,8 @@ async function searchKavling(isSync = false) {
         setTimeout(async () => {
           if (selectedKavling === kavlingName) {
             console.log('⏰ Auto loading mutation history for:', kavlingName);
-            window.supervisorMutationVisible = true;
-            await loadMutationHistoryForSupervisor(kavlingName);
+            // Non-blocking auto load attempt
+            loadMutationHistoryForSupervisor(kavlingName).catch(err => console.error('Auto-load failed:', err));
           }
         }, 3000);
 
@@ -1664,6 +1665,17 @@ function updateKavlingInfo(data, pageId) {
 
   if (!infoDisplay) return;
 
+  const getHoDateText = (data) => {
+    const hoDate = data.tglHandover || (data.data && data.data.handoverDate);
+    if (hoDate && hoDate !== '-') return hoDate;
+    if (hoDate === '-') return '-';
+    return 'tidak diketahui, cek ulang data';
+  };
+
+  const hoDateText = getHoDateText(data);
+  const hoDateColor = hoDateText === '-' ? '' : (hoDateText === 'tidak diketahui, cek ulang data' ? '#f43f5e' : '#10b981');
+  const hoDateWeight = hoDateText === '-' ? '' : 'bold';
+
   if (role === 'manager') {
     infoDisplay.innerHTML = `
       <div class="info-item">
@@ -1681,6 +1693,10 @@ function updateKavlingInfo(data, pageId) {
       <div class="info-item">
         <span class="info-label">Luas Bangunan (LB):</span>
         <span class="info-value val-lb">${data.lb || '-'}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Tanggal HandOver ke User:</span>
+        <span class="info-value val-ho-date" style="color: ${hoDateColor}; font-weight: ${hoDateWeight}">${hoDateText}</span>
       </div>
     `;
 
@@ -1705,6 +1721,10 @@ function updateKavlingInfo(data, pageId) {
       <div class="info-item">
         <span class="info-label">LB:</span>
         <span class="info-value val-lb">${data.lb || '-'}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Tanggal HandOver ke User:</span>
+        <span class="info-value val-ho-date" style="color: ${hoDateColor}; font-weight: ${hoDateWeight}">${hoDateText}</span>
       </div>
     `;
   }
@@ -5844,9 +5864,80 @@ function setupViewMutationButton() {
         console.log('✅ Container hidden, flag set to false');
       }
     });
-    console.log('✅ Supervisor Mutation Button event listener attached');
+    // Event listener untuk tombol mutasi supervisor
+    const btnMutation = document.getElementById('btnShowMutationSupervisor');
+    if (btnMutation) {
+      console.log('🔧 Setting up manual mutation button...');
+      // Re-attach to avoid any issues with multiple setups
+      btnMutation.onclick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('🔘 Mutasi HO button clicked!');
+        
+        const container = document.getElementById('mutasiHistoryContainerSupervisor');
+        if (!container) {
+            console.error('❌ Container mutasiHistoryContainerSupervisor tidak ditemukan!');
+            return;
+        }
+        
+        const kavling = selectedKavling || (document.querySelector('#kavlingInfoManager .val-name')?.textContent !== '-' ? document.querySelector('#kavlingInfoManager .val-name')?.textContent : null);
+        
+        console.log('📍 Current kavling for mutation:', kavling);
+        
+        if (!kavling || kavling === '-') {
+            showToast('warning', 'Pilih kavling terlebih dahulu!');
+            return;
+        }
+
+        // Always show and load when button is clicked to ensure it works
+        if (container.style.display === 'none') {
+            container.style.display = 'block';
+            window.supervisorMutationVisible = true;
+            await loadMutationHistoryForSupervisor(kavling);
+        } else {
+            container.style.display = 'none';
+            window.supervisorMutationVisible = false;
+        }
+      };
+    } else {
+      console.log('⚠️ Tombol btnShowMutationSupervisor tidak ditemukan di DOM');
+    }
   }
 }
+
+// Function to initialize mutation button separately to ensure it's ready
+function initSupervisorMutationButton() {
+    const btnMutation = document.getElementById('btnShowMutationSupervisor');
+    if (btnMutation && !btnMutation.dataset.setupDone) {
+        console.log('🚀 Manually initializing Supervisor Mutation Button');
+        btnMutation.dataset.setupDone = 'true';
+        btnMutation.onclick = async (e) => {
+            e.preventDefault();
+            const container = document.getElementById('mutasiHistoryContainerSupervisor');
+            const kavling = selectedKavling || (document.querySelector('#kavlingInfoManager .val-name')?.textContent !== '-' ? document.querySelector('#kavlingInfoManager .val-name')?.textContent : null);
+            
+            if (!kavling || kavling === '-') {
+                showToast('warning', 'Pilih kavling terlebih dahulu!');
+                return;
+            }
+
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                window.supervisorMutationVisible = true;
+                await loadMutationHistoryForSupervisor(kavling);
+            } else {
+                container.style.display = 'none';
+                window.supervisorMutationVisible = false;
+            }
+        };
+    }
+}
+
+// Global initialization check
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initSupervisorMutationButton, 1000);
+});
 
 // Fungsi untuk parse mutasi data dari string (sama seperti di Admin Utilitas)
 function parseMutasiDataFromStringSupervisor(mutasiString) {
