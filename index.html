@@ -699,7 +699,7 @@
               <div id="tab-user1-tahap1" class="tab-content-item active">
                 <div class="progress-section detailed" data-tahap="1">
                   <div class="section-header-flex">
-                    <h3>Tahap 1: Struktur & Infrastruktur</h3>
+                    <h3>Tahap 1: Struktur Awal</h3>
                     <span class="sub-percent">0%</span>
                   </div>
                   <div class="progress-bar">
@@ -982,7 +982,7 @@
               <div id="tab-user1-tahap3" class="tab-content-item">
                 <div class="progress-section detailed" data-tahap="3">
                   <div class="section-header-flex">
-                    <h3>Tahap 3: Finishing & Serah Terima</h3>
+                    <h3>Tahap 3: Finishing</h3>
                     <span class="sub-percent">0%</span>
                   </div>
                   <div class="progress-bar">
@@ -1068,7 +1068,7 @@
                         data-weight="1"
                         data-task="PAVING HALAMAN"
                       />
-                      Paving Halaman</label
+                      Paving Halaman/ CARPOT</label
                     >
                     <label class="task-item"
                       ><input
@@ -1086,7 +1086,16 @@
                         data-weight="1"
                         data-task="METERAN AIR"
                       />
-                      Meteran Air</label
+                      Meteran PDAM</label
+                    >
+                 <label class="task-item"
+                      ><input
+                        type="checkbox"
+                        class="sub-task"
+                        data-weight="1"
+                        data-task="Konekting Air Bersih"
+                      />
+                      Konekting Air Bersih</label
                     >
                     <label class="task-item"
                       ><input
@@ -1108,7 +1117,7 @@
               <div id="tab-user1-tahap4" class="tab-content-item">
                 <div class="progress-section detailed" data-tahap="4">
                   <div class="section-header-flex">
-                    <h3>Tahap 4: Serah Terima & Kondisi Akhir</h3>
+                    <h3>Tahap 4: Kondisi Akhir</h3>
                     <span class="sub-percent">0%</span>
                   </div>
                   <div class="progress-bar">
@@ -1145,7 +1154,40 @@
                     ></textarea>
                   </div>
 
-                  <div class="delivery-section" style="margin-top: 20px">
+                  <div class="sub-tasks-grid" style="margin-top: 20px;">
+                    <label class="task-item">
+                      <input
+                        type="checkbox"
+                        class="sub-task"
+                        data-weight="1"
+                        data-task="Gorong-Gorong"
+                        data-tahap="4"
+                      />
+                      Gorong-Gorong
+                    </label>
+                    <label class="task-item">
+                      <input
+                        type="checkbox"
+                        class="sub-task"
+                        data-weight="1"
+                        data-task="Akses Jalan"
+                        data-tahap="4"
+                      />
+                      Akses Jalan
+                    </label>
+                    <label class="task-item">
+                      <input
+                        type="checkbox"
+                        class="sub-task"
+                        data-weight="1"
+                        data-task="COMPLETION / Penyelesaian akhir"
+                        data-tahap="4"
+                      />
+                      Completion
+                    </label>
+                  </div>
+
+                  <div class="delivery-section" style="margin-top: 25px">
                     <label
                       style="
                         display: block;
@@ -1154,8 +1196,7 @@
                         font-weight: 600;
                       "
                     >
-                      <i class="fas fa-key"></i> Penyerahan Kunci Dari Kepada
-                      Siapa :
+                      <i class="fas fa-key"></i> Pengembalian Kunci Setelah Pembangunan diberikan Kepada Siapa?
                     </label>
                     <input
                       type="text"
@@ -1170,7 +1211,7 @@
                         border: 2px solid #334155;
                         font-size: 1rem;
                       "
-                      placeholder="Dari dan Penerima"
+                      placeholder="Contoh: Dari Pelaksana 1 Ke Supervisor"
                       autocomplete="off"
                     />
                   </div>
@@ -1184,18 +1225,15 @@
                         font-weight: 600;
                       "
                     >
-                      <i class="fas fa-calendar-alt"></i> Tanggal Penyerahan
-                      Kunci dari Pelaksana ke Penanggung Jawab :
+                      <i class="fas fa-calendar-alt"></i> Tanggal Pengembalian Kunci setelah Pembangunan, Tanggal Berapa?
                     </label>
-
-                    <div style="display: flex; gap: 10px; align-items: center">
-                      <!-- Input tanggal -->
+                    <div style="display: flex; gap: 10px">
                       <input
                         type="text"
-                        class="key-delivery-date sub-task"
-                        placeholder="dd/mm/yyyy"
+                        class="key-delivery-date flatpickr-input"
+                        data-task="TANGGAL_PENYERAHAN_KUNCI"
                         style="
-                          width: 100%;
+                          flex: 1;
                           padding: 14px;
                           border-radius: 10px;
                           background: #0f172a;
@@ -1203,79 +1241,40 @@
                           border: 2px solid #334155;
                           font-size: 1rem;
                         "
-                        maxlength="10"
+                        placeholder="dd/mm/yyyy"
+                        autocomplete="off"
                       />
-                    </div>
-
-                    <div
-                      style="
-                        display: flex;
-                        gap: 10px;
-                        align-items: center;
-                        margin-top: 10px;
-                      "
-                    >
-                      <!-- Tombol Hari Ini -->
                       <button
                         type="button"
-                        class="btn-today"
+                        class="btn-today-delivery combined-btn"
                         style="
-                          background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-                          color: white;
-                          border: none;
-                          padding: 14px 20px;
+                          padding: 0 20px;
+                          background: #334155;
                           border-radius: 10px;
-                          cursor: pointer;
-                          font-weight: 600;
-                          white-space: nowrap;
                         "
                       >
                         <i class="fas fa-calendar-check"></i> Hari Ini
                       </button>
                     </div>
-
-                    <small
-                      style="
-                        color: #94a3b8;
-                        font-size: 0.8rem;
-                        display: block;
-                        margin-top: 5px;
-                      "
-                    >
-                      Klik ikon kalender untuk pilih tanggal, atau "Hari Ini"
-                      untuk tanggal sekarang. Kosongkan jika belum ada tanggal.
-                    </small>
-                  </div>
-
-                  <div style="margin-top: 20px">
-                    <label
-                      class="task-item"
-                      style="
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                        cursor: pointer;
-                      "
-                    >
-                      <input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="COMPLETION / Penyelesaian akhir"
-                        data-tahap="4"
-                      />
-                      <span class="item-title"
-                        >Completion / Penyelesaian akhir</span
-                      >
-                    </label>
                   </div>
 
                   <button
                     class="btn-save-section"
                     type="button"
                     data-tahap="4"
-                    style="margin-top: 25px"
+                    style="margin-top: 25px; width: 100%;"
                   >
+                    <i class="fas fa-save"></i> Simpan Tahap 4
+                  </button>
+                      <label
+                        style="
+                          display: block;
+                          margin-bottom: 8px;
+                          color: #38bdf8;
+                          font-weight: 600;
+                        "
+                      >
+                       
                     <i class="fas fa-save"></i> Simpan Tahap 4
                   </button>
                 </div>
@@ -1407,7 +1406,7 @@
                 >
                   <div class="section-header-flex">
                     <h3 style="color: #10b981">
-                      Tahap 1: Struktur & Infrastruktur
+                      Tahap 1: Struktur Awal
                     </h3>
                     <span class="sub-percent">0%</span>
                   </div>
@@ -1714,7 +1713,7 @@
                 >
                   <div class="section-header-flex">
                     <h3 style="color: #10b981">
-                      Tahap 3: Finishing & Serah Terima
+                      Tahap 3: Finishing
                     </h3>
                     <span class="sub-percent">0%</span>
                   </div>
@@ -1852,7 +1851,7 @@
                 >
                   <div class="section-header-flex">
                     <h3 style="color: #10b981">
-                      Tahap 4: Serah Terima & Kondisi Akhir
+                      Tahap 4: Kondisi Akhir
                     </h3>
                     <span class="sub-percent">0%</span>
                   </div>
@@ -2157,7 +2156,7 @@
                 >
                   <div class="section-header-flex">
                     <h3 style="color: #8b5cf6">
-                      Tahap 1: Struktur & Infrastruktur
+                      Tahap 1: Struktur Awal
                     </h3>
                     <span class="sub-percent">0%</span>
                   </div>
@@ -2464,7 +2463,7 @@
                 >
                   <div class="section-header-flex">
                     <h3 style="color: #8b5cf6">
-                      Tahap 3: Finishing & Serah Terima
+                      Tahap 3: Finishing
                     </h3>
                     <span class="sub-percent">0%</span>
                   </div>
@@ -2602,7 +2601,7 @@
                 >
                   <div class="section-header-flex">
                     <h3 style="color: #8b5cf6">
-                      Tahap 4: Serah Terima & Kondisi Akhir
+                      Tahap 4: Kondisi Akhir
                     </h3>
                     <span class="sub-percent">0%</span>
                   </div>
@@ -3525,6 +3524,13 @@
                         "
                       >
                         <button
+                          id="btnShowMutationSupervisor"
+                          class="btn-export"
+                          style="background: #8b5cf6; flex: 2; padding: 10px; border-radius: 8px; color: white; cursor: pointer;"
+                        >
+                          <i class="fas fa-history"></i> Mutasi HO
+                        </button>
+                        <button
                           class="btn-export excel"
                           onclick="showToast('info', 'Mengekspor ke Excel...')"
                         >
@@ -3633,6 +3639,12 @@
 
                     <!-- Container untuk History Mutasi Supervisor (auto load 3 detik setelah pilih kavling) -->
                     <div id="mutasiHistoryContainerSupervisor" style="display: none; margin-bottom: 20px;"></div>
+
+                    <div style="margin-bottom: 20px;">
+                        <button id="btnShowMutationSupervisor" class="combined-btn" style="background: #8b5cf6; width: 100%; padding: 12px; border-radius: 12px; font-weight: 600;">
+                            <i class="fas fa-history"></i> Mutasi HO
+                        </button>
+                    </div>
 
                     <div class="notes-section" style="margin-top: 20px">
                       <h3 style="margin-bottom: 10px; color: #38bdf8">
