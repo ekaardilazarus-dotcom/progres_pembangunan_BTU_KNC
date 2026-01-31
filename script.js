@@ -1,4 +1,4 @@
-// versi 0.6
+// versi 0.65
 const USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 const PROGRESS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdn4gEn2DdgLYRyVy8QVfF4QMVwL2gs7O7cFIfisvKdfFCPkiOlLTYpJpVGt-w3-q4Vg/exec';
 
@@ -1518,6 +1518,60 @@ function setupStateButtons(pageId) {
       toggleTableButton(this, this.getAttribute('data-state'));
     };
   });
+
+  // 4. Revisi Buttons (50%, 90%, 100%)
+  const revisiBtns = page.querySelectorAll('.revisi-btn');
+  revisiBtns.forEach(btn => {
+    btn.onclick = function(e) {
+      e.preventDefault();
+      toggleRevisiButton(this);
+    };
+  });
+}
+
+// Toggle Revisi Button - similar to system button but for revisi inputs
+function toggleRevisiButton(btn) {
+  const revisiNum = btn.getAttribute('data-revisi');
+  const stateValue = btn.getAttribute('data-state');
+  const container = btn.closest('.revisi-item');
+  
+  if (!container) return;
+  
+  // Find all buttons in the same revisi group
+  const allBtns = container.querySelectorAll('.revisi-btn');
+  
+  // Check if this button is already active
+  const isActive = btn.getAttribute('data-active') === 'true';
+  
+  if (isActive) {
+    // Deactivate this button
+    btn.setAttribute('data-active', 'false');
+    btn.classList.remove('active');
+    
+    // Clear the hidden input value
+    const hiddenInput = container.querySelector('input[type="hidden"]');
+    if (hiddenInput) {
+      hiddenInput.value = '';
+    }
+  } else {
+    // Deactivate all buttons in this group first
+    allBtns.forEach(b => {
+      b.setAttribute('data-active', 'false');
+      b.classList.remove('active');
+    });
+    
+    // Activate this button
+    btn.setAttribute('data-active', 'true');
+    btn.classList.add('active');
+    
+    // Set the hidden input value to the percentage
+    const hiddenInput = container.querySelector('input[type="hidden"]');
+    if (hiddenInput) {
+      hiddenInput.value = stateValue + '%';
+    }
+  }
+  
+  console.log(`Revisi ${revisiNum} set to: ${stateValue}%`);
 }
 //----------------------------------------------
 function updateManagerProgressDisplay(totalProgress) {
@@ -1769,6 +1823,16 @@ function updateKavlingInfo(data, pageId) {
         <span class="info-value val-ho-date" style="color: ${hoDateColor}; font-weight: ${hoDateWeight}">${hoDateText}</span>
       </div>
     `;
+  }
+
+  // Populate handover kunci input for user1
+  if (role === 'user1') {
+    const handoverInput = document.getElementById('handoverKunciUserInput1');
+    if (handoverInput) {
+      // Get handover date from Column AQ data (tglHandoverKunci or similar)
+      const handoverKunci = data.tglHandoverKunci || data.data?.tglHandoverKunci || data.data?.handoverKunci || hoDateText;
+      handoverInput.value = handoverKunci !== '-' && handoverKunci !== 'tidak diketahui, cek ulang data' ? handoverKunci : '';
+    }
   }
 }
 
