@@ -659,6 +659,10 @@
                 <div class="info-item">
                   <span class="info-label">Luas Bangunan (LB):</span>
                   <span class="info-value val-lb">-</span>
+              </div>
+                <div class="info-item">
+                  <span class="info-label">Tanggal HANDOVER KUNCI:</span>
+                  <span class="info-value val-handover">-</span>
                 </div>
               </div>
             </div>
@@ -699,89 +703,332 @@
               <div id="tab-user1-tahap1" class="tab-content-item active">
                 <div class="progress-section detailed" data-tahap="1">
                   <div class="section-header-flex">
-                    <h3>Tahap 1: Struktur Awal</h3>
+                    <h3>Tahap 1: Progres Kerja Struktur Awal</h3>
                     <span class="sub-percent">0%</span>
                   </div>
                   <div class="progress-bar">
                     <div class="progress-fill tahap1" style="width: 0%"></div>
                   </div>
                   <div class="sub-tasks-grid">
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
+                    
+                    <!-- LAND CLEARING dengan pilihan 50%, 90%, 100% -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">LAND CLEARING</span>
+                      <div class="progress-buttons">
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="LAND CLEARING"
+                          data-value="50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="LAND CLEARING"
+                          data-value="90%"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="LAND CLEARING"
+                          data-value="100%"
+                        >
+                          100%
+                        </button>
+                      </div>
+                      <input
+                        type="hidden"
+                        name="land-clearing-progress"
+                        value=""
                         class="sub-task"
                         data-weight="1"
                         data-task="LAND CLEARING"
+                        id="landClearingInputUser1"
                       />
-                      Land Clearing</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
+                    </div>
+
+                    <!-- PONDASI dengan pilihan 50%, 90%, 100% -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">PONDASI</span>
+                      <div class="progress-buttons">
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PONDASI"
+                          data-value="50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PONDASI"
+                          data-value="90%"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PONDASI"
+                          data-value="100%"
+                        >
+                          100%
+                        </button>
+                      </div>
+                      <input
+                        type="hidden"
+                        name="pondasi-progress"
+                        value=""
                         class="sub-task"
                         data-weight="1"
                         data-task="PONDASI"
+                        id="pondasiInputUser1"
                       />
-                      Pondasi</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
+                    </div>
+
+                    <!-- SLOOF dengan pilihan 50%, 90%, 100% -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">SLOOF</span>
+                      <div class="progress-buttons">
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="SLOOF"
+                          data-value="50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="SLOOF"
+                          data-value="90%"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="SLOOF"
+                          data-value="100%"
+                        >
+                          100%
+                        </button>
+                      </div>
+                      <input
+                        type="hidden"
+                        name="sloof-progress"
+                        value=""
                         class="sub-task"
                         data-weight="1"
                         data-task="SLOOF"
+                        id="sloofInputUser1"
                       />
-                      Sloof</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
+                    </div>
+
+                    <!-- PASANG DINDING S/D CANOPY -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">PASANG DINDING SAMPAI DENGAN CANOPY</span>
+                      <div class="progress-buttons">
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PAS.DDG S/D2 CANOPY"
+                          data-value="50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PAS.DDG S/D2 CANOPY"
+                          data-value="90%"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PAS.DDG S/D2 CANOPY"
+                          data-value="100%"
+                        >
+                          100%
+                        </button>
+                      </div>
+                      <input
+                        type="hidden"
+                        value=""
                         class="sub-task"
                         data-weight="1"
                         data-task="PAS.DDG S/D2 CANOPY"
+                        id="pasDdgCanopyInputUser1"
                       />
-                      Pas.Ddg S/D Canopy</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
+                    </div>
+
+                    <!-- PASANG DINDING S/D RING BALK -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">PASANG DINDING SAMPAI DENGAN RING BALK</span>
+                      <div class="progress-buttons">
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PAS.DDG S/D RING BLK"
+                          data-value="50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PAS.DDG S/D RING BLK"
+                          data-value="90%"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PAS.DDG S/D RING BLK"
+                          data-value="100%"
+                        >
+                          100%
+                        </button>
+                      </div>
+                      <input
+                        type="hidden"
+                        value=""
                         class="sub-task"
                         data-weight="1"
                         data-task="PAS.DDG S/D RING BLK"
+                        id="pasDdgRingBlkInputUser1"
                       />
-                      Pas.Ddg S/D Ring Blk</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
+                    </div>
+
+                    <!-- CONDUIT+INBOW DOOS -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">CONDUIT+INBOW DOOS</span>
+                      <div class="progress-buttons">
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="CONDUIT+INBOW DOOS"
+                          data-value="50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="CONDUIT+INBOW DOOS"
+                          data-value="90%"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="CONDUIT+INBOW DOOS"
+                          data-value="100%"
+                        >
+                          100%
+                        </button>
+                      </div>
+                      <input
+                        type="hidden"
+                        value=""
                         class="sub-task"
                         data-weight="1"
                         data-task="CONDUIT+INBOW DOOS"
+                        id="conduitInputUser1"
                       />
-                      Conduit + Inbow Doos</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
+                    </div>
+
+                    <!-- PIPA AIR KOTOR -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">PIPA AIR KOTOR</span>
+                      <div class="progress-buttons">
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PIPA AIR KOTOR"
+                          data-value="50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PIPA AIR KOTOR"
+                          data-value="90%"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PIPA AIR KOTOR"
+                          data-value="100%"
+                        >
+                          100%
+                        </button>
+                      </div>
+                      <input
+                        type="hidden"
+                        value=""
                         class="sub-task"
                         data-weight="1"
                         data-task="PIPA AIR KOTOR"
+                        id="pipaAirKotorInputUser1"
                       />
-                      Pipa Air Kotor</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
+                    </div>
+
+                    <!-- PIPA AIR BERSIH -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">PIPA AIR BERSIH</span>
+                      <div class="progress-buttons">
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PIPA AIR BERSIH"
+                          data-value="50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PIPA AIR BERSIH"
+                          data-value="90%"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PIPA AIR BERSIH"
+                          data-value="100%"
+                        >
+                          100%
+                        </button>
+                      </div>
+                      <input
+                        type="hidden"
+                        value=""
                         class="sub-task"
                         data-weight="1"
                         data-task="PIPA AIR BERSIH"
+                        id="pipaAirBersihInputUser1"
                       />
-                      Pipa Air Bersih</label
-                    >
+                    </div>
 
-                    <!-- SISTEM PEMBUANGAN -->
+                    <!-- SISTEM PEMBUANGAN (pilihan Biotank/Ipal/Septictank) -->
                     <div class="task-item-standalone waste-system">
-                      <span class="item-title">Sistem Pembuangan =</span>
+                      <span class="item-title">Sistem Pembuangan</span>
                       <div class="dual-state-buttons">
                         <button
                           type="button"
@@ -821,28 +1068,87 @@
                       />
                     </div>
 
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
+                    <!-- PLESTER -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">PLESTER</span>
+                      <div class="progress-buttons">
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PLESTER"
+                          data-value="50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PLESTER"
+                          data-value="90%"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="PLESTER"
+                          data-value="100%"
+                        >
+                          100%
+                        </button>
+                      </div>
+                      <input
+                        type="hidden"
+                        value=""
                         class="sub-task"
                         data-weight="1"
                         data-task="PLESTER"
+                        id="plesterInputUser1"
                       />
-                      Plester</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
+                    </div>
+
+                    <!-- ACIAN & BENANGAN -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">ACIAN & BENANGAN</span>
+                      <div class="progress-buttons">
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="ACIAN & BENANGAN"
+                          data-value="50%"
+                        >
+                          50%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="ACIAN & BENANGAN"
+                          data-value="90%"
+                        >
+                          90%
+                        </button>
+                        <button
+                          type="button"
+                          class="progress-btn"
+                          data-task="ACIAN & BENANGAN"
+                          data-value="100%"
+                        >
+                          100%
+                        </button>
+                      </div>
+                      <input
+                        type="hidden"
+                        value=""
                         class="sub-task"
                         data-weight="1"
                         data-task="ACIAN & BENANGAN"
+                        id="acianBenInputUser1"
                       />
-                      Acian & Benangan</label
-                    >
+                    </div>
 
-                    <!-- COR MEJA DAPUR -->
+                    <!-- COR MEJA DAPUR (pilihan Dengan/Tanpa) -->
                     <div class="task-item-standalone table-kitchen">
-                      <span class="item-title">Cor Meja Dapur =</span>
+                      <span class="item-title">Cor Meja Dapur</span>
                       <div class="dual-state-buttons">
                         <button
                           type="button"
@@ -872,6 +1178,7 @@
                         id="tableKitchenInputUser1"
                       />
                     </div>
+
                   </div>
                   <button class="btn-save-section" type="button" data-tahap="1">
                     <i class="fas fa-save"></i> Simpan Tahap 1
@@ -879,98 +1186,84 @@
                 </div>
               </div>
 
-              <!-- TAHAP 2 - USER 1 -->
+           <!-- TAHAP 2 - USER 1 -->
               <div id="tab-user1-tahap2" class="tab-content-item">
                 <div class="progress-section detailed" data-tahap="2">
                   <div class="section-header-flex">
-                    <h3>Tahap 2: Atap, Dinding & Lantai</h3>
+                    <h3>Tahap 2: Progres Kerja Atap, Dinding & Lantai</h3>
                     <span class="sub-percent">0%</span>
                   </div>
                   <div class="progress-bar">
                     <div class="progress-fill tahap2" style="width: 0%"></div>
                   </div>
                   <div class="sub-tasks-grid">
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="RANGKA ATAP"
-                      />
-                      Rangka Atap</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="GENTENG"
-                      />
-                      Genteng</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PLAFOND"
-                      />
-                      Plafond</label
-                    >
-
-                    <!-- KERAMIK DINDING -->
-                    <div class="task-item-standalone bathroom-tiles">
-                      <span class="item-title"
-                        >Keramik Dinding Toilet & Dapur =</span
-                      >
-                      <div class="dual-state-buttons">
-                        <button
-                          type="button"
-                          class="state-btn tiles-btn"
-                          data-state="include"
-                          data-active="false"
-                        >
-                          Dengan Keramik Dinding
-                        </button>
-                        <div class="vertical-divider">|</div>
-                        <button
-                          type="button"
-                          class="state-btn tiles-btn"
-                          data-state="exclude"
-                          data-active="false"
-                        >
-                          Tanpa Keramik Dinding
-                        </button>
+                    
+                    <!-- RANGKA ATAP -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">RANGKA ATAP</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="RANGKA ATAP" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="RANGKA ATAP" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="RANGKA ATAP" data-value="100%">100%</button>
                       </div>
-                      <input
-                        type="hidden"
-                        name="bathroom-tiles"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="KERAMIK DINDING TOILET & DAPUR"
-                        id="bathroomTilesInputUser1"
-                      />
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="RANGKA ATAP" id="rangkaAtapInputUser1" />
                     </div>
 
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="INSTALASI LISTRIK"
-                      />
-                      Instalasi Listrik</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="KERAMIK LANTAI"
-                      />
-                      Keramik Lantai</label
-                    >
+                    <!-- GENTENG -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">GENTENG</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="GENTENG" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="GENTENG" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="GENTENG" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="GENTENG" id="gentengInputUser1" />
+                    </div>
+
+                    <!-- PLAFOND -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">PLAFOND</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="PLAFOND" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="PLAFOND" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="PLAFOND" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="PLAFOND" id="plafondInputUser1" />
+                    </div>
+
+                    <!-- KERAMIK DINDING (pilihan Dengan/Tanpa) -->
+                    <div class="task-item-standalone bathroom-tiles">
+                      <span class="item-title">Keramik Dinding Toilet & Dapur</span>
+                      <div class="dual-state-buttons">
+                        <button type="button" class="state-btn tiles-btn" data-state="include" data-active="false">Dengan Keramik Dinding</button>
+                        <div class="vertical-divider">|</div>
+                        <button type="button" class="state-btn tiles-btn" data-state="exclude" data-active="false">Tanpa Keramik Dinding</button>
+                      </div>
+                      <input type="hidden" name="bathroom-tiles" value="" class="sub-task" data-weight="1" data-task="KERAMIK DINDING TOILET & DAPUR" id="bathroomTilesInputUser1" />
+                    </div>
+
+                    <!-- INSTALASI LISTRIK -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">INSTALASI LISTRIK</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="INSTALASI LISTRIK" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="INSTALASI LISTRIK" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="INSTALASI LISTRIK" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="INSTALASI LISTRIK" id="instalasiListrikInputUser1" />
+                    </div>
+
+                    <!-- KERAMIK LANTAI -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">KERAMIK LANTAI</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="KERAMIK LANTAI" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="KERAMIK LANTAI" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="KERAMIK LANTAI" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="KERAMIK LANTAI" id="keramikLantaiInputUser1" />
+                    </div>
+
                   </div>
                   <button class="btn-save-section" type="button" data-tahap="2">
                     <i class="fas fa-save"></i> Simpan Tahap 2
@@ -982,130 +1275,146 @@
               <div id="tab-user1-tahap3" class="tab-content-item">
                 <div class="progress-section detailed" data-tahap="3">
                   <div class="section-header-flex">
-                    <h3>Tahap 3: Finishing</h3>
+                    <h3>Tahap 3: Progres Kerja Pemasangan Fasilitas</h3>
                     <span class="sub-percent">0%</span>
                   </div>
                   <div class="progress-bar">
                     <div class="progress-fill tahap3" style="width: 0%"></div>
                   </div>
                   <div class="sub-tasks-grid">
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="KUSEN PINTU & JENDELA"
-                      />
-                      Kusen Pintu & Jendela</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="DAUN PINTU & JENDELA"
-                      />
-                      Daun Pintu & Jendela</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="CAT DASAR + LAPIS AWAL"
-                      />
-                      Cat Dasar + Lapis Awal</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="FITTING LAMPU"
-                      />
-                      Fitting Lampu</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="FIXTURE & SANITER"
-                      />
-                      Fixture & Saniter</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="CAT FINISH INTERIOR"
-                      />
-                      Cat Finish Interior</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="CAT FINISH EXTERIOR"
-                      />
-                      Cat Finish Exterior</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="BAK KONTROL & BATAS CARPORT"
-                      />
-                      Bak Kontrol & Batas Carport</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PAVING HALAMAN"
-                      />
-                      Paving Halaman/ CARPOT</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="METERAN LISTRIK"
-                      />
-                      Meteran Listrik</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="METERAN AIR"
-                      />
-                      Meteran PDAM</label
-                    >
-                 <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="Konekting Air Bersih"
-                      />
-                      Konekting Air Bersih</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="GENERAL CLEANING"
-                      />
-                      General Cleaning</label
-                    >
+                    
+                    <!-- KUSEN PINTU & JENDELA -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">KUSEN PINTU & JENDELA</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="KUSEN PINTU & JENDELA" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="KUSEN PINTU & JENDELA" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="KUSEN PINTU & JENDELA" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="KUSEN PINTU & JENDELA" />
+                    </div>
+
+                    <!-- DAUN PINTU & JENDELA -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">DAUN PINTU & JENDELA</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="DAUN PINTU & JENDELA" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="DAUN PINTU & JENDELA" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="DAUN PINTU & JENDELA" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="DAUN PINTU & JENDELA" />
+                    </div>
+
+                    <!-- CAT DASAR + LAPIS AWAL -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">CAT DASAR + LAPIS AWAL</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="CAT DASAR + LAPIS AWAL" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="CAT DASAR + LAPIS AWAL" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="CAT DASAR + LAPIS AWAL" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="CAT DASAR + LAPIS AWAL" />
+                    </div>
+
+                    <!-- FITTING LAMPU -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">FITTING LAMPU</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="FITTING LAMPU" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="FITTING LAMPU" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="FITTING LAMPU" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="FITTING LAMPU" />
+                    </div>
+
+                    <!-- FIXTURE & SANITER -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">FIXTURE & SANITER</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="FIXTURE & SANITER" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="FIXTURE & SANITER" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="FIXTURE & SANITER" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="FIXTURE & SANITER" />
+                    </div>
+
+                    <!-- CAT FINISH INTERIOR -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">CAT FINISH INTERIOR</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="CAT FINISH INTERIOR" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="CAT FINISH INTERIOR" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="CAT FINISH INTERIOR" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="CAT FINISH INTERIOR" />
+                    </div>
+
+                    <!-- CAT FINISH EXTERIOR -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">CAT FINISH EXTERIOR</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="CAT FINISH EXTERIOR" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="CAT FINISH EXTERIOR" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="CAT FINISH EXTERIOR" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="CAT FINISH EXTERIOR" />
+                    </div>
+
+                    <!-- BAK KONTROL & BATAS CARPORT -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">BAK KONTROL & BATAS CARPORT</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="BAK KONTROL & BATAS CARPORT" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="BAK KONTROL & BATAS CARPORT" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="BAK KONTROL & BATAS CARPORT" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="BAK KONTROL & BATAS CARPORT" />
+                    </div>
+
+                    <!-- PAVING HALAMAN / CARPOT -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">PAVING HALAMAN / Carpot</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="PAVING HALAMAN" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="PAVING HALAMAN" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="PAVING HALAMAN" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="PAVING HALAMAN" />
+                    </div>
+
+                    <!-- METERAN LISTRIK -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">Meteran Listrik</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="METERAN LISTRIK" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="METERAN LISTRIK" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="METERAN LISTRIK" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="METERAN LISTRIK" />
+                    </div>
+
+                    <!-- METERAN PDAM -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">Meteran PDAM</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="METERAN AIR" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="METERAN AIR" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="METERAN AIR" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="METERAN AIR" />
+                    </div>
+
+                    <!-- KONEKTING PIPA AIR BERSIH -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">Konekting Pipa Air Bersih</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="Konekting Air Bersih" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="Konekting Air Bersih" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="Konekting Air Bersih" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="Konekting Air Bersih" />
+                    </div>
+
                   </div>
                   <button class="btn-save-section" type="button" data-tahap="3">
                     <i class="fas fa-save"></i> Simpan Tahap 3
@@ -1113,187 +1422,129 @@
                 </div>
               </div>
 
-              <!-- TAHAP 4 - USER 1 -->
+
+            <!-- TAHAP 4 - USER 1 -->
               <div id="tab-user1-tahap4" class="tab-content-item">
                 <div class="progress-section detailed" data-tahap="4">
                   <div class="section-header-flex">
-                    <h3>Tahap 4: Kondisi Akhir</h3>
+                    <h3>Tahap 4: Progres Kerja Penyelesaian Akhir</h3>
                     <span class="sub-percent">0%</span>
                   </div>
                   <div class="progress-bar">
                     <div class="progress-fill tahap4" style="width: 0%"></div>
                   </div>
+                  <div class="sub-tasks-grid">
+                    
+                    <!-- KONEKTING PIPA AIR KOTOR -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">Konekting Pipa Air Kotor</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="Konekting Air Kotor" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="Konekting Air Kotor" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="Konekting Air Kotor" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="Konekting Air Kotor" />
+                    </div>
 
-                  <div class="notes-section" style="margin-top: 10px">
-                    <label
-                      style="
-                        display: block;
-                        margin-bottom: 8px;
-                        color: #38bdf8;
-                        font-weight: 600;
-                      "
-                    >
-                      <i class="fas fa-comment-dots"></i> Kondisi Property /
-                      Keterangan Tambahan
+                    <!-- GORONG-GORONG -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">Gorong-Gorong</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="Gorong-gorong" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="Gorong-gorong" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="Gorong-gorong" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="Gorong-gorong" />
+                    </div>
+
+                    <!-- AKSES JALAN -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">Akses Jalan</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="Akses Jalan" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="Akses Jalan" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="Akses Jalan" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="Akses Jalan" />
+                    </div>
+
+                    <!-- GENERAL CLEANING -->
+                    <div class="task-item-standalone progress-choice">
+                      <span class="item-title">GENERAL CLEANING</span>
+                      <div class="progress-buttons">
+                        <button type="button" class="progress-btn" data-task="GENERAL CLEANING" data-value="50%">50%</button>
+                        <button type="button" class="progress-btn" data-task="GENERAL CLEANING" data-value="90%">90%</button>
+                        <button type="button" class="progress-btn" data-task="GENERAL CLEANING" data-value="100%">100%</button>
+                      </div>
+                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="GENERAL CLEANING" />
+                    </div>
+
+                  </div>
+
+                  <!-- Catatan Keterangan -->
+                  <div style="margin-top: 20px;">
+                    <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
+                      <i class="fas fa-sticky-note"></i> Keterangan
                     </label>
                     <textarea
-                      class="tahap-comments"
-                      data-task="KETERANGAN"
-                      style="
-                        width: 100%;
-                        height: 100px;
-                        padding: 15px;
-                        border-radius: 12px;
-                        background: #0f172a;
-                        color: white;
-                        border: 2px solid #334155;
-                        font-size: 1rem;
-                        resize: none;
-                      "
-                      placeholder="Masukkan kondisi property atau keterangan tambahan..."
+                      id="keteranganTahap4User1"
+                      style="width: 100%; height: 100px; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: vertical;"
+                      placeholder="Masukkan keterangan tambahan di sini..."
                     ></textarea>
                   </div>
 
-                  <div class="sub-tasks-grid" style="margin-top: 20px;">
-                    <label class="task-item">
-                      <input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="Gorong-Gorong"
-                        data-tahap="4"
-                      />
-                      Gorong-Gorong
-                    </label>
-                    <label class="task-item">
-                      <input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="Akses Jalan"
-                        data-tahap="4"
-                      />
-                      Akses Jalan
-                    </label>
-                    <label class="task-item">
-                      <input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="COMPLETION / Penyelesaian akhir"
-                        data-tahap="4"
-                      />
-                      Completion
-                    </label>
-                  </div>
-
-                  <div class="delivery-section" style="margin-top: 25px">
-                    <label
-                      style="
-                        display: block;
-                        margin-bottom: 8px;
-                        color: #38bdf8;
-                        font-weight: 600;
-                      "
-                    >
-                      <i class="fas fa-key"></i> Pengembalian Kunci Setelah Pembangunan diberikan Kepada Siapa?
-                    </label>
-                    <input
-                      type="text"
-                      class="key-delivery-input sub-task-text"
-                      data-task="PENYERAHAN KUNCI"
-                      style="
-                        width: 100%;
-                        padding: 14px;
-                        border-radius: 10px;
-                        background: #0f172a;
-                        color: white;
-                        border: 2px solid #334155;
-                        font-size: 1rem;
-                      "
-                      placeholder="Contoh: Dari Pelaksana 1 Ke Supervisor"
-                      autocomplete="off"
-                    />
-                  </div>
-
-                  <div style="margin-top: 20px">
-                    <label
-                      style="
-                        display: block;
-                        margin-bottom: 8px;
-                        color: #38bdf8;
-                        font-weight: 600;
-                      "
-                    >
-                      <i class="fas fa-calendar-alt"></i> Tanggal Pengembalian Kunci setelah Pembangunan, Tanggal Berapa?
-                    </label>
-                    <div style="display: flex; gap: 10px">
+                  <!-- Info Pengembalian Kunci -->
+                  <div style="margin-top: 20px; padding: 15px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3);">
+                    <h4 style="margin-bottom: 12px; color: #38bdf8;">
+                      <i class="fas fa-key"></i> Pengembalian Kunci Setelah Pembangunan
+                    </h4>
+                    
+                    <div style="margin-bottom: 15px;">
+                      <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
+                        Diberikan Kepada Siapa?
+                      </label>
                       <input
                         type="text"
-                        class="key-delivery-date flatpickr-input"
-                        data-task="TANGGAL_PENYERAHAN_KUNCI"
-                        style="
-                          flex: 1;
-                          padding: 14px;
-                          border-radius: 10px;
-                          background: #0f172a;
-                          color: white;
-                          border: 2px solid #334155;
-                          font-size: 1rem;
-                        "
-                        placeholder="dd/mm/yyyy"
-                        autocomplete="off"
+                        id="keyReturnRecipientUser1"
+                        placeholder="Nama penerima kunci"
+                        style="width: 100%; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
                       />
-                      <button
-                        type="button"
-                        class="btn-today-delivery combined-btn"
-                        style="
-                          padding: 0 20px;
-                          background: #334155;
-                          border-radius: 10px;
-                        "
-                      >
-                        <i class="fas fa-calendar-check"></i> Hari Ini
-                      </button>
+                    </div>
+
+                    <div>
+                      <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
+                        Tanggal Pengembalian Kunci
+                      </label>
+                      <input
+                        type="date"
+                        id="keyReturnDateUser1"
+                        style="width: 100%; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
+                      />
                     </div>
                   </div>
 
-                  <button
-                    class="btn-save-section"
-                    type="button"
-                    data-tahap="4"
-                    style="margin-top: 25px; width: 100%;"
-                  >
-                    <i class="fas fa-save"></i> Simpan Tahap 4
-                  </button>
-                      <label
-                        style="
-                          display: block;
-                          margin-bottom: 8px;
-                          color: #38bdf8;
-                          font-weight: 600;
-                        "
-                      >
-                       
+                  <button class="btn-save-section" type="button" data-tahap="4">
                     <i class="fas fa-save"></i> Simpan Tahap 4
                   </button>
                 </div>
               </div>
 
-              <!-- FOTO REVISI - USER 1 -->
+              <!-- TAB REVISI PHOTOS -->
               <div id="tab-user1-revision-photos" class="tab-content-item">
-                <div class="progress-section detailed">
-                  <h3 style="margin-bottom: 15px; color: #38bdf8">
-                    <i class="fas fa-images"></i> Foto Catatan Revisi (Supervisor)
+                <div class="revision-photos-container">
+                  <h3 style="margin-bottom: 20px; color: #38bdf8;">
+                    <i class="fas fa-images"></i> Foto Revisi dari Supervisor
                   </h3>
-                  <div id="revisionPhotoGalleryUser1" class="revision-gallery-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                    <div class="loading-placeholder" style="grid-column: span 2; text-align: center; color: #94a3b8; padding: 20px; border: 2px dashed #334155; border-radius: 12px;">
-                      <i class="fas fa-cloud-download-alt" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
-                      Belum ada foto revisi untuk kavling ini
-                    </div>
+                  <div id="revisionPhotosGalleryUser1" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                    <!-- Photos will be loaded here -->
+                  </div>
+                  <div id="noRevisionPhotosUser1" style="text-align: center; padding: 40px; color: #94a3b8; display: none;">
+                    <i class="fas fa-images" style="font-size: 3rem; opacity: 0.3; margin-bottom: 15px;"></i>
+                    <p>Belum ada foto revisi dari supervisor</p>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
