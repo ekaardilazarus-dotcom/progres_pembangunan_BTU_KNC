@@ -386,6 +386,48 @@ function setupUser4Tabs() {
   });
 }
 
+function setupProgressButtons(page) {
+  const progressBtns = page.querySelectorAll('.progress-btn');
+  progressBtns.forEach(btn => {
+    // Hapus listener lama
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+
+    newBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const value = this.getAttribute('data-value');
+      const taskName = this.getAttribute('data-task');
+      const parent = this.closest('.progress-choice');
+      
+      if (!parent) return;
+
+      const input = parent.querySelector('input[type="hidden"].sub-task');
+      if (!input) return;
+
+      // Hapus active dari semua tombol di grup ini
+      const siblings = parent.querySelectorAll('.progress-btn');
+      siblings.forEach(s => s.classList.remove('active'));
+
+      // Jika klik yang sudah aktif, batalkan (toggle)
+      if (input.value === value) {
+        input.value = '';
+      } else {
+        input.value = value;
+        this.classList.add('active');
+      }
+
+      console.log(`Progress button clicked: ${taskName} = ${input.value}`);
+      
+      // Trigger update progress UI
+      const tahapSection = this.closest('.progress-section');
+      if (tahapSection) {
+        const tahap = tahapSection.getAttribute('data-tahap');
+        updateTahapProgressUI(tahapSection, tahap);
+      }
+    });
+  });
+}
+
 function loadPropertyNotesFromData(data) {
     const notesEl = document.getElementById('propertyNotesManager');
     if (notesEl && data) {
