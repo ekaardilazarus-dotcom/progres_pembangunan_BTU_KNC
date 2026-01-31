@@ -5585,6 +5585,15 @@ function initApp() {
   setTimeout(() => {
     console.log('Delayed setup after DOM ready...');
 
+    // Setup progress buttons untuk semua user pages
+    console.log('Setting up progress buttons...');
+    ['user1Page', 'user2Page', 'user3Page'].forEach(pageId => {
+      const page = document.getElementById(pageId);
+      if (page) {
+        setupProgressButtons(page);
+      }
+    });
+
     // Setup tombol hari ini (setelah semua element ada)
     console.log('Setting up today buttons...');
     setupTodayButtons();
