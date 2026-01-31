@@ -1,4 +1,4 @@
-<!--  versi 0.47 -->
+<!--  versi 0.5 -->
 <!doctype html>
 <html lang="id">
   <head>
@@ -661,6 +661,17 @@
                   <span class="info-value val-lb">-</span>
               </div>
                 <div class="info-item">
+                  <span class="info-label">Tanggal HandOver Kunci ke User:</span>
+                  <input 
+                    type="text" 
+                    id="handoverKunciUserInput1" 
+                    class="handover-kunci-input"
+                    placeholder="DD/MM/YYYY"
+                    readonly
+                    style="background: #1e293b; color: #f1f5f9; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; width: 150px;"
+                  />
+                </div>
+                <div class="info-item">
                   <span class="info-label">Tanggal HANDOVER KUNCI:</span>
                   <span class="info-value val-handover">-</span>
                 </div>
@@ -692,6 +703,9 @@
               </button>
               <button class="admin-tab-btn" data-tab="user1-tahap4">
                 <i class="fas fa-layer-group"></i> Tahap 4
+              </button>
+              <button class="admin-tab-btn" data-tab="user1-tahap-revisi">
+                <i class="fas fa-tools"></i> Tahap Revisi
               </button>
               <button class="admin-tab-btn" data-tab="user1-revision-photos">
                 <i class="fas fa-images"></i> Revisi dari Supervisor
@@ -1377,6 +1391,107 @@
 
                   <button class="btn-save-section" type="button" data-tahap="4">
                     <i class="fas fa-save"></i> Simpan Tahap 4
+                  </button>
+                </div>
+              </div>
+
+              <!-- TAB TAHAP REVISI -->
+              <div id="tab-user1-tahap-revisi" class="tab-content-item">
+                <div class="progress-section detailed" data-tahap="revisi">
+                  <div class="section-header-flex">
+                    <h3>Tahap Revisi: Input Perbaikan</h3>
+                  </div>
+
+                  <div class="revisi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;">
+                    
+                    <!-- Revisi 1 -->
+                    <div class="revisi-item" style="background: rgba(30, 41, 59, 0.8); border-radius: 12px; padding: 16px; border: 1px solid #334155;">
+                      <div class="revisi-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span class="revisi-title" style="font-weight: 600; color: #38bdf8; font-size: 1.1rem;">Revisi 1</span>
+                      </div>
+                      <div class="revisi-state-buttons" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button type="button" class="state-btn revisi-btn" data-revisi="1" data-state="50" data-active="false">50%</button>
+                        <div class="vertical-divider" style="color: #64748b;">|</div>
+                        <button type="button" class="state-btn revisi-btn" data-revisi="1" data-state="90" data-active="false">90%</button>
+                        <div class="vertical-divider" style="color: #64748b;">|</div>
+                        <button type="button" class="state-btn revisi-btn" data-revisi="1" data-state="100" data-active="false">100%</button>
+                      </div>
+                      <input type="hidden" name="revisi-1" value="" class="sub-task" data-weight="1" data-task="REVISI 1" id="revisiInput1User1" />
+                      <div class="revisi-image-container" style="margin-top: 12px;">
+                        <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-size: 0.85rem;"><i class="fas fa-image"></i> Foto Revisi 1</label>
+                        <div id="revisiImagePreview1User1" style="width: 100%; min-height: 120px; background: #0f172a; border: 2px dashed #334155; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.85rem;">
+                          <span>Belum ada foto</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Revisi 2 -->
+                    <div class="revisi-item" style="background: rgba(30, 41, 59, 0.8); border-radius: 12px; padding: 16px; border: 1px solid #334155;">
+                      <div class="revisi-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span class="revisi-title" style="font-weight: 600; color: #38bdf8; font-size: 1.1rem;">Revisi 2</span>
+                      </div>
+                      <div class="revisi-state-buttons" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button type="button" class="state-btn revisi-btn" data-revisi="2" data-state="50" data-active="false">50%</button>
+                        <div class="vertical-divider" style="color: #64748b;">|</div>
+                        <button type="button" class="state-btn revisi-btn" data-revisi="2" data-state="90" data-active="false">90%</button>
+                        <div class="vertical-divider" style="color: #64748b;">|</div>
+                        <button type="button" class="state-btn revisi-btn" data-revisi="2" data-state="100" data-active="false">100%</button>
+                      </div>
+                      <input type="hidden" name="revisi-2" value="" class="sub-task" data-weight="1" data-task="REVISI 2" id="revisiInput2User1" />
+                      <div class="revisi-image-container" style="margin-top: 12px;">
+                        <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-size: 0.85rem;"><i class="fas fa-image"></i> Foto Revisi 2</label>
+                        <div id="revisiImagePreview2User1" style="width: 100%; min-height: 120px; background: #0f172a; border: 2px dashed #334155; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.85rem;">
+                          <span>Belum ada foto</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Revisi 3 -->
+                    <div class="revisi-item" style="background: rgba(30, 41, 59, 0.8); border-radius: 12px; padding: 16px; border: 1px solid #334155;">
+                      <div class="revisi-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span class="revisi-title" style="font-weight: 600; color: #38bdf8; font-size: 1.1rem;">Revisi 3</span>
+                      </div>
+                      <div class="revisi-state-buttons" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button type="button" class="state-btn revisi-btn" data-revisi="3" data-state="50" data-active="false">50%</button>
+                        <div class="vertical-divider" style="color: #64748b;">|</div>
+                        <button type="button" class="state-btn revisi-btn" data-revisi="3" data-state="90" data-active="false">90%</button>
+                        <div class="vertical-divider" style="color: #64748b;">|</div>
+                        <button type="button" class="state-btn revisi-btn" data-revisi="3" data-state="100" data-active="false">100%</button>
+                      </div>
+                      <input type="hidden" name="revisi-3" value="" class="sub-task" data-weight="1" data-task="REVISI 3" id="revisiInput3User1" />
+                      <div class="revisi-image-container" style="margin-top: 12px;">
+                        <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-size: 0.85rem;"><i class="fas fa-image"></i> Foto Revisi 3</label>
+                        <div id="revisiImagePreview3User1" style="width: 100%; min-height: 120px; background: #0f172a; border: 2px dashed #334155; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.85rem;">
+                          <span>Belum ada foto</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Revisi 4 -->
+                    <div class="revisi-item" style="background: rgba(30, 41, 59, 0.8); border-radius: 12px; padding: 16px; border: 1px solid #334155;">
+                      <div class="revisi-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span class="revisi-title" style="font-weight: 600; color: #38bdf8; font-size: 1.1rem;">Revisi 4</span>
+                      </div>
+                      <div class="revisi-state-buttons" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button type="button" class="state-btn revisi-btn" data-revisi="4" data-state="50" data-active="false">50%</button>
+                        <div class="vertical-divider" style="color: #64748b;">|</div>
+                        <button type="button" class="state-btn revisi-btn" data-revisi="4" data-state="90" data-active="false">90%</button>
+                        <div class="vertical-divider" style="color: #64748b;">|</div>
+                        <button type="button" class="state-btn revisi-btn" data-revisi="4" data-state="100" data-active="false">100%</button>
+                      </div>
+                      <input type="hidden" name="revisi-4" value="" class="sub-task" data-weight="1" data-task="REVISI 4" id="revisiInput4User1" />
+                      <div class="revisi-image-container" style="margin-top: 12px;">
+                        <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-size: 0.85rem;"><i class="fas fa-image"></i> Foto Revisi 4</label>
+                        <div id="revisiImagePreview4User1" style="width: 100%; min-height: 120px; background: #0f172a; border: 2px dashed #334155; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.85rem;">
+                          <span>Belum ada foto</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <button class="btn-save-section btn-save-revisi" type="button" data-tahap="revisi" style="margin-top: 20px;">
+                    <i class="fas fa-save"></i> Simpan Revisi
                   </button>
                 </div>
               </div>
