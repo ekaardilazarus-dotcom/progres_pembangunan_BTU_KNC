@@ -5149,29 +5149,78 @@ function loadTahapDataSection(section, tahap, data) {
 }
 
 function updateTahapProgressUI(section, tahap) {
-  const subTasks = section.querySelectorAll('.sub-task');
-  let completed = 0;
-  let total = 0;
-
-  subTasks.forEach(task => {
-    total++;
-    if (task.type === 'checkbox') {
-      if (task.checked) completed++;
-    } else if (task.value && task.value.trim() !== '') {
-      completed++;
+    if (!section) return;
+    
+    const subTasks = section.querySelectorAll('.sub-task');
+    let totalWeight = 0;
+    let completedWeight = 0;
+    
+    subTasks.forEach(task => {
+        // Skip hidden inputs dan textarea
+        if (task.type === 'hidden' || task.tagName === 'TEXTAREA') {
+            return;
+        }
+        
+        // Handle slider progress
+        if (task.classList.contains('progress-slider')) {
+            const value = parseInt(task.value) || 0;
+            const weight = parseFloat(task.getAttribute('data-weight')) || 1;
+            
+            totalWeight += weight;
+            completedWeight += (value / 100) * weight; // Convert % to weight
+            
+            console.log(`Slider ${task.getAttribute('data-task')}: ${value}% * weight ${weight} = ${(value / 100) * weight}`);
+        }
+        // Handle checkbox
+        else if (task.type === 'checkbox') {
+            const weight = parseFloat(task.getAttribute('data-weight')) || 1;
+            
+            totalWeight += weight;
+            if (task.checked) {
+                completedWeight += weight;
+            }
+        }
+        // Handle state buttons (hidden inputs)
+        else if (task.type === 'hidden' && task.classList.contains('sub-task')) {
+            const weight = parseFloat(task.getAttribute('data-weight')) || 1;
+            
+            totalWeight += weight;
+            if (task.value && task.value.trim() !== '') {
+                completedWeight += weight;
+            }
+        }
+    });
+    
+    // Hitung persentase
+    let percent = 0;
+    if (totalWeight > 0) {
+        percent = Math.round((completedWeight / totalWeight) * 100);
     }
-  });
-
-  const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const percentEl = section.querySelector('.sub-percent');
-  const barEl = section.querySelector('.progress-fill');
-
-  if (percentEl) percentEl.textContent = percent + '%';
-  if (barEl) barEl.style.width = percent + '%';
-
-  // Update overall progress
-  const pageId = currentRole + 'Page';
-  updateProgress(pageId);
+    
+    // Update display
+    const percentEl = section.querySelector('.sub-percent');
+    const barEl = section.querySelector('.progress-fill');
+    
+    if (percentEl) {
+        percentEl.textContent = percent + '%';
+        console.log(`Tahap ${tahap}: ${completedWeight}/${totalWeight} = ${percent}%`);
+    }
+    
+    if (barEl) {
+        barEl.style.width = percent + '%';
+        
+        // Update color class
+        barEl.className = 'progress-fill';
+        if (percent >= 89) barEl.classList.add('bar-high');
+        else if (percent >= 60) barEl.classList.add('bar-medium');
+        else if (percent >= 10) barEl.classList.add('bar-low');
+        else barEl.classList.add('bar-very-low');
+    }
+    
+    // Update overall progress
+    updateProgress(currentRole + 'Page');
+    
+    return percent;
 }
 
 // ========== FUNGSI LOAD KAVLING DATA (MODIFIKASI) ==========
@@ -7433,114 +7482,375 @@ async function saveKeyDelivery() {
   }
 }
 
-// Ganti semua versi updateProgress dengan ini:
 function updateProgress(rolePage) {
-  const pageElement = document.getElementById(rolePage);
-  if (!pageElement) return;
+    const pageElement = document.getElementById(rolePage);
+    if (!pageElement) return;
 
-  const progressSections = pageElement.querySelectorAll('.progress-section[data-tahap]');
-
-  // Progress values for specific components
-  let tahap1_3_Progress = 0; // Max 94
-  let completionProgress = 0; // Max 5
-  let deliveryDateProgress = 0; // Max 1
-
-  // Tahap 1-3 tasks count
-  let t13_total = 0;
-  let t13_completed = 0;
-
-  progressSections.forEach(section => {
-    const tahap = section.getAttribute('data-tahap');
-    const tasks = section.querySelectorAll('.sub-task, [data-task]');
-    let sectionCompleted = 0;
-    let sectionTotal = 0;
-
-    tasks.forEach(task => {
-      // Abaikan isian Kondisi Property / Keterangan Tambahan
-      if (task.classList.contains('tahap-comments') || task.id === 'utilityPropertyNotes' || task.id === 'propertyNotesManager') {
-        return;
-      }
-
-      sectionTotal++;
-
-      let isCompleted = false;
-      if (task.type === 'checkbox') {
-        if (task.checked) isCompleted = true;
-      } else if (task.type === 'hidden' || task.type === 'text') {
-        if (task.value && task.value.trim() !== '') isCompleted = true;
-      }
-
-      if (isCompleted) {
-        sectionCompleted++;
-        if (tahap === '1' || tahap === '2' || tahap === '3') t13_completed++;
-      }
-
-      if (tahap === '1' || tahap === '2' || tahap === '3') t13_total++;
+    const progressSections = pageElement.querySelectorAll('.progress-section[data-tahap]');
+    
+    let totalWeight = 0;
+    let completedWeight = 0;
+    
+    progressSections.forEach(section => {
+        const tahap = section.getAttribute('data-tahap');
+        const subTasks = section.querySelectorAll('.sub-task');
+        
+        subTasks.forEach(task => {
+            // Skip hidden inputs dan textarea
+            if (task.type === 'hidden' && !task.hasAttribute('data-weight') || 
+                task.tagName === 'TEXTAREA' || 
+                task.classList.contains('tahap-comments')) {
+                return;
+            }
+            
+            // Get weight (default = 1)
+            const weight = parseFloat(task.getAttribute('data-weight')) || 1;
+            
+            // Count task
+            totalWeight += weight;
+            
+            // Check completion
+            let isCompleted = false;
+            
+            if (task.classList.contains('progress-slider')) {
+                // Slider: dianggap complete jika >= 100%
+                const value = parseInt(task.value) || 0;
+                isCompleted = (value >= 100);
+                console.log(`Slider ${task.getAttribute('data-task')}: ${value}% = ${isCompleted ? 'complete' : 'not complete'}`);
+            }
+            else if (task.type === 'checkbox') {
+                // Checkbox: checked = complete
+                isCompleted = task.checked;
+            }
+            else if (task.type === 'hidden' || task.type === 'text') {
+                // Hidden/Text: ada value = complete
+                isCompleted = (task.value && task.value.trim() !== '');
+            }
+            
+            if (isCompleted) {
+                completedWeight += weight;
+            }
+        });
     });
-
-    // Specific Tahap 4 components
-    let sectionPercent = 0;
-    if (tahap === '4') {
-      const completionTask = section.querySelector('[data-task^="COMPLETION"]');
-      const deliveryDateTask = section.querySelector('.key-delivery-date');
-
-      if (completionTask && completionTask.checked) {
-        completionProgress = 5;
-      }
-      if (deliveryDateTask && deliveryDateTask.value.trim() !== '') {
-        deliveryDateProgress = 1;
-      }
-
-      let t4_p1 = (deliveryDateTask && (deliveryDateTask.value || '').trim() !== '') ? 50 : 0;
-      let t4_p2 = (completionTask && completionTask.checked) ? 50 : 0;
-      sectionPercent = t4_p1 + t4_p2;
-    } else {
-      sectionPercent = sectionTotal > 0 ? (sectionCompleted / sectionTotal) * 100 : 0;
+    
+    // Hitung persentase overall
+    let totalPercent = 0;
+    if (totalWeight > 0) {
+        totalPercent = Math.round((completedWeight / totalWeight) * 100);
     }
-
-    const subPercentEl = section.querySelector('.sub-percent');
-    if (subPercentEl) subPercentEl.textContent = Math.round(sectionPercent) + '%';
-
-    const progressFill = section.querySelector('.progress-fill');
-    if (progressFill) progressFill.style.width = sectionPercent + '%';
-  });
-
-  if (t13_total > 0) {
-    tahap1_3_Progress = (t13_completed / t13_total) * 94;
-  }
-
-  const totalProgress = Math.round(tahap1_3_Progress + completionProgress + deliveryDateProgress);
-  updateTotalProgressDisplay(totalProgress + '%', rolePage);
-
-  return totalProgress;
+    
+    console.log(`Overall Progress: ${completedWeight}/${totalWeight} = ${totalPercent}%`);
+    
+    // Update overall progress display
+    updateTotalProgressDisplay(totalPercent + '%', rolePage);
+    
+    // Update setiap tahap progress bar
+    progressSections.forEach(section => {
+        const tahap = section.getAttribute('data-tahap');
+        updateTahapProgressUI(section, tahap);
+    });
+    
+    return totalPercent;
 }
 
-//--------------
-
+// ========== FUNGSI UPDATE TOTAL PROGRESS DISPLAY ==========
 function updateTotalProgressDisplay(progress, pageId) {
-  const pageElement = document.getElementById(pageId);
-  if (!pageElement) return;
+    const pageElement = document.getElementById(pageId);
+    if (!pageElement) return;
 
-  // For managerPage, we use specific IDs for percent and bar
-  const totalPercentEl = pageId === 'managerPage' ? document.getElementById('managerOverallPercent') : pageElement.querySelector('.total-percent');
-  const totalBarEl = pageId === 'managerPage' ? document.getElementById('managerOverallBar') : pageElement.querySelector('.total-bar');
+    const totalPercentEl = pageElement.querySelector('.total-percent');
+    const totalBarEl = pageElement.querySelector('.total-bar');
 
-  if (totalPercentEl) {
-    totalPercentEl.textContent = progress;
-  }
+    if (totalPercentEl) {
+        totalPercentEl.textContent = progress;
+    }
 
-  if (totalBarEl) {
-    totalBarEl.style.width = progress;
+    if (totalBarEl) {
+        // Parse persentase dari string
+        let percentValue = 0;
+        if (typeof progress === 'string') {
+            const match = progress.match(/(\d+)%/);
+            if (match) {
+                percentValue = parseInt(match[1]);
+            } else {
+                percentValue = parseInt(progress) || 0;
+            }
+        } else if (typeof progress === 'number') {
+            percentValue = progress;
+        }
+        
+        totalBarEl.style.width = percentValue + '%';
+        
+        // Update color
+        totalBarEl.className = 'total-bar';
+        if (percentValue >= 89) totalBarEl.classList.add('bar-high');
+        else if (percentValue >= 60) totalBarEl.classList.add('bar-medium');
+        else if (percentValue >= 10) totalBarEl.classList.add('bar-low');
+        else totalBarEl.classList.add('bar-very-low');
+        
+        console.log(`Total progress updated: ${percentValue}%`);
+    }
+}
+function setupSliderProgressListeners() {
+    console.log('🎯 Setting up slider progress listeners...');
     
-    // Add color logic for manager progress bar and others
-    const percentValue = parseInt(progress) || 0;
-    totalBarEl.className = totalBarEl.className.replace(/\bbar-(high|medium|low|very-low)\b/g, '').trim(); // Reset classes
-    if (percentValue >= 89) totalBarEl.classList.add('bar-high');
-    else if (percentValue >= 60) totalBarEl.classList.add('bar-medium');
-    else if (percentValue >= 10) totalBarEl.classList.add('bar-low');
-    else totalBarEl.classList.add('bar-very-low');
+    const user2Page = document.getElementById('user2Page');
+    if (!user2Page) return;
+    
+    const sliders = user2Page.querySelectorAll('.progress-slider');
+    
+    sliders.forEach(slider => {
+        // Hapus listener lama jika ada
+        const newSlider = slider.cloneNode(true);
+        slider.parentNode.replaceChild(newSlider, slider);
+        
+        newSlider.addEventListener('input', function() {
+            console.log(`Slider ${this.getAttribute('data-task')} changed to ${this.value}%`);
+            
+            const tahapSection = this.closest('.progress-section');
+            if (tahapSection) {
+                const tahap = tahapSection.getAttribute('data-tahap');
+                updateTahapProgressUI(tahapSection, tahap);
+            }
+        });
+        
+        newSlider.addEventListener('change', function() {
+            console.log(`Slider ${this.getAttribute('data-task')} final value: ${this.value}%`);
+        });
+    });
+    
+    console.log(`✅ Setup ${sliders.length} slider listeners`);
+}
+function debugProgressCalculation() {
+    if (currentRole !== 'user2') return;
+    
+    const user2Page = document.getElementById('user2Page');
+    if (!user2Page) return;
+    
+    console.log('=== DEBUG PROGRESS CALCULATION ===');
+    
+    const tahapSections = user2Page.querySelectorAll('.progress-section[data-tahap]');
+    
+    tahapSections.forEach(section => {
+        const tahap = section.getAttribute('data-tahap');
+        console.log(`\n=== TAHAP ${tahap} ===`);
+        
+        const sliders = section.querySelectorAll('.progress-slider');
+        const checkboxes = section.querySelectorAll('input[type="checkbox"].sub-task');
+        const stateInputs = section.querySelectorAll('input[type="hidden"].sub-task');
+        
+        console.log(`Sliders: ${sliders.length}`);
+        console.log(`Checkboxes: ${checkboxes.length}`);
+        console.log(`State inputs: ${stateInputs.length}`);
+        
+        // Hitung manual
+        let totalWeight = 0;
+        let completedWeight = 0;
+        
+        sliders.forEach(slider => {
+            const value = parseInt(slider.value) || 0;
+            const weight = parseFloat(slider.getAttribute('data-weight')) || 1;
+            const task = slider.getAttribute('data-task');
+            
+            totalWeight += weight;
+            completedWeight += (value / 100) * weight;
+            
+            console.log(`  ${task}: ${value}% * weight ${weight} = ${(value / 100) * weight}`);
+        });
+        
+        checkboxes.forEach(cb => {
+            const weight = parseFloat(cb.getAttribute('data-weight')) || 1;
+            const task = cb.getAttribute('data-task');
+            
+            totalWeight += weight;
+            if (cb.checked) {
+                completedWeight += weight;
+            }
+            
+            console.log(`  ${task}: ${cb.checked ? '✓' : '✗'} * weight ${weight} = ${cb.checked ? weight : 0}`);
+        });
+        
+        stateInputs.forEach(input => {
+            const weight = parseFloat(input.getAttribute('data-weight')) || 1;
+            const task = input.getAttribute('data-task') || input.name;
+            
+            totalWeight += weight;
+            if (input.value && input.value.trim() !== '') {
+                completedWeight += weight;
+            }
+            
+            console.log(`  ${task}: "${input.value}" * weight ${weight} = ${input.value && input.value.trim() !== '' ? weight : 0}`);
+        });
+        
+        if (totalWeight > 0) {
+            const percent = Math.round((completedWeight / totalWeight) * 100);
+            console.log(`  Result: ${completedWeight}/${totalWeight} = ${percent}%`);
+        }
+    });
+}
+// ========== FUNGSI WEIGHT DISTRIBUTION UNTUK USER2 ==========
+function setupTaskWeightsForUser2() {
+    console.log('⚖️ Setting up task weights for User2...');
+    
+    // Berikan weight yang berbeda untuk setiap task
+    const weightMapping = {
+        // === TAHAP 1 ===
+        'LAND CLEARING': 2,
+        'PONDASI': 3,
+        'SLOOF': 3,
+        'PAS.DDG S/D2 CANOPY': 2,
+        'PAS.DDG S/D RING BLK': 2,
+        'CONDUIT+INBOW DOOS': 1,
+        'PIPA AIR KOTOR': 1,
+        'PIPA AIR BERSIH': 1,
+        'SISTEM PEMBUANGAN': 1,
+        'PLESTER': 2,
+        'ACIAN & BENANGAN': 2,
+        'COR MEJA DAPUR': 1,
+        
+        // === TAHAP 2 ===
+        'RANGKA ATAP': 3,
+        'GENTENG': 2,
+        'PLAFOND': 2,
+        'KERAMIK DINDING TOILET & DAPUR': 1,
+        'INSTALASI LISTRIK': 3,
+        'KERAMIK LANTAI': 3,
+        
+        // === TAHAP 3 ===
+        'KUSEN PINTU & JENDELA': 2,
+        'DAUN PINTU & JENDELA': 2,
+        'CAT DASAR + LAPIS AWAL': 2,
+        'FITTING LAMPU': 1,
+        'FIXTURE & SANITER': 2,
+        'CAT FINISH INTERIOR': 2,
+        'CAT FINISH EXTERIOR': 2,
+        'BAK KONTROL & BATAS CARPORT': 1,
+        'PAVING HALAMAN': 2,
+        'METERAN LISTRIK': 1,
+        'METERAN AIR': 1,
+        'Konekting Air Bersih': 1,
+        
+        // === TAHAP 4 ===
+        'Konekting Air Kotor': 1,
+        'Gorong-gorong': 1,
+        'Akses Jalan': 2,
+        'GENERAL CLEANING': 3,
+        'COMPLETION / Penyelesaian akhir': 5
+    };
+    
+    // Apply weights ke semua tasks
+    const user2Page = document.getElementById('user2Page');
+    if (!user2Page) return;
+    
+    const allTasks = user2Page.querySelectorAll('.sub-task');
+    
+    allTasks.forEach(task => {
+        const taskName = task.getAttribute('data-task');
+        if (taskName && weightMapping[taskName]) {
+            task.setAttribute('data-weight', weightMapping[taskName]);
+            console.log(`Set weight for ${taskName}: ${weightMapping[taskName]}`);
+        } else {
+            // Default weight = 1
+            task.setAttribute('data-weight', '1');
+        }
+    });
+    
+    console.log('✅ Task weights setup complete');
+}
 
-  }
+function calculateTahap4Progress() {
+    const tahap4Section = document.querySelector('#user2Page .progress-section[data-tahap="4"]');
+    if (!tahap4Section) return 0;
+    
+    const sliders = tahap4Section.querySelectorAll('.progress-slider');
+    const completionCheckbox = tahap4Section.querySelector('input[type="checkbox"][data-task="COMPLETION / Penyelesaian akhir"]');
+    const keyReturnRecipient = document.getElementById('keyReturnRecipientUser2');
+    const keyReturnDate = document.getElementById('keyReturnDateUser2');
+    
+    let totalWeight = 0;
+    let completedWeight = 0;
+    
+    // Sliders (weight = 1 each)
+    sliders.forEach(slider => {
+        totalWeight += 1;
+        const value = parseInt(slider.value) || 0;
+        completedWeight += (value / 100); // Convert % to decimal
+    });
+    
+    // Completion checkbox (weight = 5)
+    if (completionCheckbox) {
+        totalWeight += 5;
+        if (completionCheckbox.checked) {
+            completedWeight += 5;
+        }
+    }
+    
+    // Key return info (weight = 2 each)
+    if (keyReturnRecipient) {
+        totalWeight += 2;
+        if (keyReturnRecipient.value && keyReturnRecipient.value.trim() !== '') {
+            completedWeight += 2;
+        }
+    }
+    
+    if (keyReturnDate) {
+        totalWeight += 2;
+        if (keyReturnDate.value) {
+            completedWeight += 2;
+        }
+    }
+    
+    if (totalWeight > 0) {
+        return Math.round((completedWeight / totalWeight) * 100);
+    }
+    
+    return 0;
+}
+// ========== INTEGRASI DENGAN FUNGSI LAIN ==========
+function setupUser2Complete() {
+    console.log('🚀 Setting up complete User2 interface...');
+    
+    // Setup task weights
+    setupTaskWeightsForUser2();
+    
+    // Setup sliders
+    setupUser2ProgressSliders();
+    
+    // Setup slider progress listeners
+    setupSliderProgressListeners();
+    
+    // Setup save buttons
+    setupUser2SaveButtons();
+    
+    // Setup state buttons
+    setupStateButtons('user2Page');
+    
+    // Setup checkbox listeners
+    setupCheckboxListeners('user2Page');
+    
+    // Setup today buttons
+    setupTodayButtons();
+    
+    // Setup auto progress update ketika slider berubah
+    const user2Page = document.getElementById('user2Page');
+    if (user2Page) {
+        user2Page.addEventListener('input', function(e) {
+            if (e.target.classList.contains('progress-slider') || 
+                e.target.type === 'checkbox' || 
+                e.target.classList.contains('sub-task')) {
+                
+                setTimeout(() => {
+                    const tahapSection = e.target.closest('.progress-section');
+                    if (tahapSection) {
+                        const tahap = tahapSection.getAttribute('data-tahap');
+                        updateTahapProgressUI(tahapSection, tahap);
+                    }
+                }, 100);
+            }
+        });
+    }
+    
+    console.log('✅ User2 interface setup complete');
 }
 
 function updateSupervisorStagesUI(totalPercent, progressData = null) {
@@ -8643,17 +8953,184 @@ function updateSnapMarkers(sliderContainer, value) {
     }
   });
 }
-
+// ========== FUNGSI SETUP SLIDER UNTUK USER2  ==========
 function setupUser2ProgressSliders() {
-  console.log('🎚️ Setting up User2 progress sliders...');
-  
-  const sliders = [
-    { sliderId: 'landClearingSliderUser2', percentId: 'landClearingPercentUser2', trackId: 'landClearingTrackUser2', hiddenId: 'landClearingInputUser2', task: 'LAND CLEARING' },
-    { sliderId: 'pondasiSliderUser2', percentId: 'pondasiPercentUser2', trackId: 'pondasiTrackUser2', hiddenId: 'pondasiInputUser2', task: 'PONDASI' },
-    { sliderId: 'sloofSliderUser2', percentId: 'sloofPercentUser2', trackId: 'sloofTrackUser2', hiddenId: 'sloofInputUser2', task: 'SLOOF' }
-  ];
-  
-  sliders.forEach(config => {
+    console.log('🎚️ Setting up ALL User2 progress sliders...');
+    
+    // Daftar SEMUA slider yang ada di HTML User2 (sesuai dengan ID di HTML)
+    const sliders = [
+        // === TAHAP 1 ===
+        { sliderId: 'landClearingSliderUser2', percentId: 'landClearingPercentUser2', trackId: 'landClearingTrackUser2', hiddenId: 'landClearingInputUser2', task: 'LAND CLEARING' },
+        { sliderId: 'pondasiSliderUser2', percentId: 'pondasiPercentUser2', trackId: 'pondasiTrackUser2', hiddenId: 'pondasiInputUser2', task: 'PONDASI' },
+        { sliderId: 'sloofSliderUser2', percentId: 'sloofPercentUser2', trackId: 'sloofTrackUser2', hiddenId: 'sloofInputUser2', task: 'SLOOF' },
+        { sliderId: 'pasDdgCanopySliderUser2', percentId: 'pasDdgCanopyPercentUser2', trackId: 'pasDdgCanopyTrackUser2', hiddenId: 'pasDdgCanopyInputUser2', task: 'PAS.DDG S/D2 CANOPY' },
+        { sliderId: 'pasDdgRingBlkSliderUser2', percentId: 'pasDdgRingBlkPercentUser2', trackId: 'pasDdgRingBlkTrackUser2', hiddenId: 'pasDdgRingBlkInputUser2', task: 'PAS.DDG S/D RING BLK' },
+        { sliderId: 'conduitSliderUser2', percentId: 'conduitPercentUser2', trackId: 'conduitTrackUser2', hiddenId: 'conduitInputUser2', task: 'CONDUIT+INBOW DOOS' },
+        { sliderId: 'pipaAirKotorSliderUser2', percentId: 'pipaAirKotorPercentUser2', trackId: 'pipaAirKotorTrackUser2', hiddenId: 'pipaAirKotorInputUser2', task: 'PIPA AIR KOTOR' },
+        { sliderId: 'pipaAirBersihSliderUser2', percentId: 'pipaAirBersihPercentUser2', trackId: 'pipaAirBersihTrackUser2', hiddenId: 'pipaAirBersihInputUser2', task: 'PIPA AIR BERSIH' },
+        { sliderId: 'plesterSliderUser2', percentId: 'plesterPercentUser2', trackId: 'plesterTrackUser2', hiddenId: 'plesterInputUser2', task: 'PLESTER' },
+        { sliderId: 'acianBenSliderUser2', percentId: 'acianBenPercentUser2', trackId: 'acianBenTrackUser2', hiddenId: 'acianBenInputUser2', task: 'ACIAN & BENANGAN' },
+        
+        // === TAHAP 2 ===
+        { sliderId: 'rangkaAtapSliderUser2', percentId: 'rangkaAtapPercentUser2', trackId: 'rangkaAtapTrackUser2', hiddenId: 'rangkaAtapInputUser2', task: 'RANGKA ATAP' },
+        { sliderId: 'gentengSliderUser2', percentId: 'gentengPercentUser2', trackId: 'gentengTrackUser2', hiddenId: 'gentengInputUser2', task: 'GENTENG' },
+        { sliderId: 'plafondSliderUser2', percentId: 'plafondPercentUser2', trackId: 'plafondTrackUser2', hiddenId: 'plafondInputUser2', task: 'PLAFOND' },
+        { sliderId: 'instalasiListrikSliderUser2', percentId: 'instalasiListrikPercentUser2', trackId: 'instalasiListrikTrackUser2', hiddenId: 'instalasiListrikInputUser2', task: 'INSTALASI LISTRIK' },
+        { sliderId: 'keramikLantaiSliderUser2', percentId: 'keramikLantaiPercentUser2', trackId: 'keramikLantaiTrackUser2', hiddenId: 'keramikLantaiInputUser2', task: 'KERAMIK LANTAI' },
+        
+        // === TAHAP 3 ===
+        { sliderId: 'kusenSliderUser2', percentId: 'kusenPercentUser2', trackId: 'kusenTrackUser2', hiddenId: 'kusenInputUser2', task: 'KUSEN PINTU & JENDELA' },
+        { sliderId: 'daunPintuSliderUser2', percentId: 'daunPintuPercentUser2', trackId: 'daunPintuTrackUser2', hiddenId: 'daunPintuInputUser2', task: 'DAUN PINTU & JENDELA' },
+        { sliderId: 'catDasarSliderUser2', percentId: 'catDasarPercentUser2', trackId: 'catDasarTrackUser2', hiddenId: 'catDasarInputUser2', task: 'CAT DASAR + LAPIS AWAL' },
+        { sliderId: 'fittingLampuSliderUser2', percentId: 'fittingLampuPercentUser2', trackId: 'fittingLampuTrackUser2', hiddenId: 'fittingLampuInputUser2', task: 'FITTING LAMPU' },
+        { sliderId: 'fixtureSaniterSliderUser2', percentId: 'fixtureSaniterPercentUser2', trackId: 'fixtureSaniterTrackUser2', hiddenId: 'fixtureSaniterInputUser2', task: 'FIXTURE & SANITER' },
+        { sliderId: 'catInteriorSliderUser2', percentId: 'catInteriorPercentUser2', trackId: 'catInteriorTrackUser2', hiddenId: 'catInteriorInputUser2', task: 'CAT FINISH INTERIOR' },
+        { sliderId: 'catExteriorSliderUser2', percentId: 'catExteriorPercentUser2', trackId: 'catExteriorTrackUser2', hiddenId: 'catExteriorInputUser2', task: 'CAT FINISH EXTERIOR' },
+        { sliderId: 'bakKontrolSliderUser2', percentId: 'bakKontrolPercentUser2', trackId: 'bakKontrolTrackUser2', hiddenId: 'bakKontrolInputUser2', task: 'BAK KONTROL & BATAS CARPORT' },
+        { sliderId: 'pavingHalamanSliderUser2', percentId: 'pavingHalamanPercentUser2', trackId: 'pavingHalamanTrackUser2', hiddenId: 'pavingHalamanInputUser2', task: 'PAVING HALAMAN' },
+        { sliderId: 'meteranListrikSliderUser2', percentId: 'meteranListrikPercentUser2', trackId: 'meteranListrikTrackUser2', hiddenId: 'meteranListrikInputUser2', task: 'METERAN LISTRIK' },
+        { sliderId: 'meteranAirSliderUser2', percentId: 'meteranAirPercentUser2', trackId: 'meteranAirTrackUser2', hiddenId: 'meteranAirInputUser2', task: 'METERAN AIR' },
+        { sliderId: 'konektingBersihSliderUser2', percentId: 'konektingBersihPercentUser2', trackId: 'konektingBersihTrackUser2', hiddenId: 'konektingBersihInputUser2', task: 'Konekting Air Bersih' },
+        
+        // === TAHAP 4 ===
+        { sliderId: 'konektingKotorSliderUser2', percentId: 'konektingKotorPercentUser2', trackId: 'konektingKotorTrackUser2', hiddenId: 'konektingKotorInputUser2', task: 'Konekting Air Kotor' },
+        { sliderId: 'gorongGorongSliderUser2', percentId: 'gorongGorongPercentUser2', trackId: 'gorongGorongTrackUser2', hiddenId: 'gorongGorongInputUser2', task: 'Gorong-gorong' },
+        { sliderId: 'aksesJalanSliderUser2', percentId: 'aksesJalanPercentUser2', trackId: 'aksesJalanTrackUser2', hiddenId: 'aksesJalanInputUser2', task: 'Akses Jalan' },
+        { sliderId: 'generalCleaningSliderUser2', percentId: 'generalCleaningPercentUser2', trackId: 'generalCleaningTrackUser2', hiddenId: 'generalCleaningInputUser2', task: 'GENERAL CLEANING' }
+    ];
+    
+    let setupCount = 0;
+    let failedCount = 0;
+    
+    sliders.forEach(config => {
+        const slider = document.getElementById(config.sliderId);
+        const percentBox = document.getElementById(config.percentId);
+        const trackFill = document.getElementById(config.trackId);
+        const hiddenInput = document.getElementById(config.hiddenId);
+        const sliderContainer = slider ? slider.closest('.slider-container') : null;
+        const checkbox100 = document.querySelector(`input.check-100[data-slider="${config.sliderId}"]`);
+        
+        if (!slider || !percentBox || !trackFill) {
+            console.log(`⚠️ Slider elements not found for ${config.task}: ${config.sliderId}, ${config.percentId}, ${config.trackId}`);
+            failedCount++;
+            return;
+        }
+        
+        console.log(`✅ Setting up slider for ${config.task}: ${config.sliderId}`);
+        
+        const updateSliderUI = (value, updateCheckbox = true) => {
+            const numValue = parseInt(value) || 0;
+            percentBox.textContent = numValue + '%';
+            trackFill.style.width = numValue + '%';
+            
+            if (hiddenInput) {
+                hiddenInput.value = numValue > 0 ? numValue + '%' : '';
+            }
+            
+            if (sliderContainer) {
+                updateSnapMarkers(sliderContainer, numValue);
+            }
+            
+            if (updateCheckbox && checkbox100) {
+                checkbox100.checked = (numValue === 100);
+            }
+            
+            // Update progress per tahap
+            const tahapSection = slider.closest('.progress-section');
+            if (tahapSection) {
+                const tahap = tahapSection.getAttribute('data-tahap');
+                updateTahapProgressUI(tahapSection, tahap);
+            }
+            
+            // Update overall progress
+            const pageId = currentRole + 'Page';
+            updateProgress(pageId);
+        };
+        
+        // Setup input event listener
+        slider.addEventListener('input', function() {
+            updateSliderUI(this.value);
+        });
+        
+        // Setup change event listener for snap
+        slider.addEventListener('change', function() {
+            const snappedValue = snapToPoint(parseInt(this.value));
+            if (snappedValue !== parseInt(this.value)) {
+                this.value = snappedValue;
+                updateSliderUI(snappedValue);
+            }
+        });
+        
+        // Setup checkbox 100% listener
+        if (checkbox100) {
+            checkbox100.addEventListener('change', function() {
+                if (this.checked) {
+                    slider.value = 100;
+                    updateSliderUI(100, false);
+                } else {
+                    slider.value = 0;
+                    updateSliderUI(0, false);
+                }
+            });
+        }
+        
+        // Initialize UI dengan nilai default
+        updateSliderUI(slider.value, false);
+        setupCount++;
+    });
+    
+    console.log(`✅ User2 sliders setup complete: ${setupCount} sliders setup, ${failedCount} failed`);
+}
+
+// ========== FUNGSI UPDATE SLIDER DARI DATABASE (DIPERBAIKI) ==========
+function updateUser2SliderFromDB(task, value) {
+    const sliderMapping = {
+        // === TAHAP 1 ===
+        'LAND CLEARING': { sliderId: 'landClearingSliderUser2', percentId: 'landClearingPercentUser2', trackId: 'landClearingTrackUser2', hiddenId: 'landClearingInputUser2' },
+        'PONDASI': { sliderId: 'pondasiSliderUser2', percentId: 'pondasiPercentUser2', trackId: 'pondasiTrackUser2', hiddenId: 'pondasiInputUser2' },
+        'SLOOF': { sliderId: 'sloofSliderUser2', percentId: 'sloofPercentUser2', trackId: 'sloofTrackUser2', hiddenId: 'sloofInputUser2' },
+        'PAS.DDG S/D2 CANOPY': { sliderId: 'pasDdgCanopySliderUser2', percentId: 'pasDdgCanopyPercentUser2', trackId: 'pasDdgCanopyTrackUser2', hiddenId: 'pasDdgCanopyInputUser2' },
+        'PAS.DDG S/D RING BLK': { sliderId: 'pasDdgRingBlkSliderUser2', percentId: 'pasDdgRingBlkPercentUser2', trackId: 'pasDdgRingBlkTrackUser2', hiddenId: 'pasDdgRingBlkInputUser2' },
+        'CONDUIT+INBOW DOOS': { sliderId: 'conduitSliderUser2', percentId: 'conduitPercentUser2', trackId: 'conduitTrackUser2', hiddenId: 'conduitInputUser2' },
+        'PIPA AIR KOTOR': { sliderId: 'pipaAirKotorSliderUser2', percentId: 'pipaAirKotorPercentUser2', trackId: 'pipaAirKotorTrackUser2', hiddenId: 'pipaAirKotorInputUser2' },
+        'PIPA AIR BERSIH': { sliderId: 'pipaAirBersihSliderUser2', percentId: 'pipaAirBersihPercentUser2', trackId: 'pipaAirBersihTrackUser2', hiddenId: 'pipaAirBersihInputUser2' },
+        'PLESTER': { sliderId: 'plesterSliderUser2', percentId: 'plesterPercentUser2', trackId: 'plesterTrackUser2', hiddenId: 'plesterInputUser2' },
+        'ACIAN & BENANGAN': { sliderId: 'acianBenSliderUser2', percentId: 'acianBenPercentUser2', trackId: 'acianBenTrackUser2', hiddenId: 'acianBenInputUser2' },
+        
+        // === TAHAP 2 ===
+        'RANGKA ATAP': { sliderId: 'rangkaAtapSliderUser2', percentId: 'rangkaAtapPercentUser2', trackId: 'rangkaAtapTrackUser2', hiddenId: 'rangkaAtapInputUser2' },
+        'GENTENG': { sliderId: 'gentengSliderUser2', percentId: 'gentengPercentUser2', trackId: 'gentengTrackUser2', hiddenId: 'gentengInputUser2' },
+        'PLAFOND': { sliderId: 'plafondSliderUser2', percentId: 'plafondPercentUser2', trackId: 'plafondTrackUser2', hiddenId: 'plafondInputUser2' },
+        'INSTALASI LISTRIK': { sliderId: 'instalasiListrikSliderUser2', percentId: 'instalasiListrikPercentUser2', trackId: 'instalasiListrikTrackUser2', hiddenId: 'instalasiListrikInputUser2' },
+        'KERAMIK LANTAI': { sliderId: 'keramikLantaiSliderUser2', percentId: 'keramikLantaiPercentUser2', trackId: 'keramikLantaiTrackUser2', hiddenId: 'keramikLantaiInputUser2' },
+        
+        // === TAHAP 3 ===
+        'KUSEN PINTU & JENDELA': { sliderId: 'kusenSliderUser2', percentId: 'kusenPercentUser2', trackId: 'kusenTrackUser2', hiddenId: 'kusenInputUser2' },
+        'DAUN PINTU & JENDELA': { sliderId: 'daunPintuSliderUser2', percentId: 'daunPintuPercentUser2', trackId: 'daunPintuTrackUser2', hiddenId: 'daunPintuInputUser2' },
+        'CAT DASAR + LAPIS AWAL': { sliderId: 'catDasarSliderUser2', percentId: 'catDasarPercentUser2', trackId: 'catDasarTrackUser2', hiddenId: 'catDasarInputUser2' },
+        'FITTING LAMPU': { sliderId: 'fittingLampuSliderUser2', percentId: 'fittingLampuPercentUser2', trackId: 'fittingLampuTrackUser2', hiddenId: 'fittingLampuInputUser2' },
+        'FIXTURE & SANITER': { sliderId: 'fixtureSaniterSliderUser2', percentId: 'fixtureSaniterPercentUser2', trackId: 'fixtureSaniterTrackUser2', hiddenId: 'fixtureSaniterInputUser2' },
+        'CAT FINISH INTERIOR': { sliderId: 'catInteriorSliderUser2', percentId: 'catInteriorPercentUser2', trackId: 'catInteriorTrackUser2', hiddenId: 'catInteriorInputUser2' },
+        'CAT FINISH EXTERIOR': { sliderId: 'catExteriorSliderUser2', percentId: 'catExteriorPercentUser2', trackId: 'catExteriorTrackUser2', hiddenId: 'catExteriorInputUser2' },
+        'BAK KONTROL & BATAS CARPORT': { sliderId: 'bakKontrolSliderUser2', percentId: 'bakKontrolPercentUser2', trackId: 'bakKontrolTrackUser2', hiddenId: 'bakKontrolInputUser2' },
+        'PAVING HALAMAN': { sliderId: 'pavingHalamanSliderUser2', percentId: 'pavingHalamanPercentUser2', trackId: 'pavingHalamanTrackUser2', hiddenId: 'pavingHalamanInputUser2' },
+        'METERAN LISTRIK': { sliderId: 'meteranListrikSliderUser2', percentId: 'meteranListrikPercentUser2', trackId: 'meteranListrikTrackUser2', hiddenId: 'meteranListrikInputUser2' },
+        'METERAN AIR': { sliderId: 'meteranAirSliderUser2', percentId: 'meteranAirPercentUser2', trackId: 'meteranAirTrackUser2', hiddenId: 'meteranAirInputUser2' },
+        'Konekting Air Bersih': { sliderId: 'konektingBersihSliderUser2', percentId: 'konektingBersihPercentUser2', trackId: 'konektingBersihTrackUser2', hiddenId: 'konektingBersihInputUser2' },
+        
+        // === TAHAP 4 ===
+        'Konekting Air Kotor': { sliderId: 'konektingKotorSliderUser2', percentId: 'konektingKotorPercentUser2', trackId: 'konektingKotorTrackUser2', hiddenId: 'konektingKotorInputUser2' },
+        'Gorong-gorong': { sliderId: 'gorongGorongSliderUser2', percentId: 'gorongGorongPercentUser2', trackId: 'gorongGorongTrackUser2', hiddenId: 'gorongGorongInputUser2' },
+        'Akses Jalan': { sliderId: 'aksesJalanSliderUser2', percentId: 'aksesJalanPercentUser2', trackId: 'aksesJalanTrackUser2', hiddenId: 'aksesJalanInputUser2' },
+        'GENERAL CLEANING': { sliderId: 'generalCleaningSliderUser2', percentId: 'generalCleaningPercentUser2', trackId: 'generalCleaningTrackUser2', hiddenId: 'generalCleaningInputUser2' }
+    };
+    
+    const config = sliderMapping[task];
+    if (!config) {
+        console.log(`❌ No slider mapping found for task: ${task}`);
+        return;
+    }
+    
     const slider = document.getElementById(config.sliderId);
     const percentBox = document.getElementById(config.percentId);
     const trackFill = document.getElementById(config.trackId);
@@ -8662,129 +9139,63 @@ function setupUser2ProgressSliders() {
     const checkbox100 = document.querySelector(`input.check-100[data-slider="${config.sliderId}"]`);
     
     if (!slider || !percentBox || !trackFill) {
-      console.log(`❌ Slider elements not found for ${config.task}`);
-      return;
+        console.log(`❌ Slider elements not found for ${task}: ${config.sliderId}, ${config.percentId}, ${config.trackId}`);
+        return;
     }
     
-    const updateSliderUI = (value, updateCheckbox = true) => {
-      const numValue = parseInt(value) || 0;
-      percentBox.textContent = numValue + '%';
-      trackFill.style.width = numValue + '%';
-      if (hiddenInput) hiddenInput.value = numValue > 0 ? numValue + '%' : '';
-      if (sliderContainer) updateSnapMarkers(sliderContainer, numValue);
-      if (updateCheckbox && checkbox100) {
-        checkbox100.checked = (numValue === 100);
-      }
-    };
-    
-    slider.addEventListener('input', function() {
-      updateSliderUI(this.value);
-      console.log(`Slider ${config.task} changed to: ${this.value}%`);
-      
-      const tahapSection = this.closest('.progress-section');
-      if (tahapSection) {
-        const tahap = tahapSection.getAttribute('data-tahap');
-        updateTahapProgressUI(tahapSection, tahap);
-      }
-    });
-    
-    slider.addEventListener('change', function() {
-      const snappedValue = snapToPoint(parseInt(this.value));
-      if (snappedValue !== parseInt(this.value)) {
-        this.value = snappedValue;
-        updateSliderUI(snappedValue);
-        console.log(`Slider ${config.task} snapped to: ${snappedValue}%`);
-      } else {
-        console.log(`Slider ${config.task} final value: ${this.value}%`);
-      }
-      
-      const tahapSection = this.closest('.progress-section');
-      if (tahapSection) {
-        const tahap = tahapSection.getAttribute('data-tahap');
-        updateTahapProgressUI(tahapSection, tahap);
-      }
-    });
-    
-    if (checkbox100) {
-      checkbox100.addEventListener('change', function() {
-        if (this.checked) {
-          slider.value = 100;
-          updateSliderUI(100, false);
-          console.log(`Checkbox set ${config.task} to 100%`);
-        } else {
-          slider.value = 0;
-          updateSliderUI(0, false);
-          console.log(`Checkbox reset ${config.task} to 0%`);
+    let numValue = 0;
+    if (value) {
+        if (typeof value === 'string') {
+            numValue = parseInt(value.replace('%', '')) || 0;
+        } else if (typeof value === 'number') {
+            numValue = value;
+        } else if (typeof value === 'boolean' && value === true) {
+            numValue = 100;
         }
-        
-        const tahapSection = slider.closest('.progress-section');
-        if (tahapSection) {
-          const tahap = tahapSection.getAttribute('data-tahap');
-          updateTahapProgressUI(tahapSection, tahap);
-        }
-      });
     }
     
-    updateSliderUI(slider.value);
-    console.log(`✅ Slider setup complete for ${config.task}`);
-  });
-  
-  console.log('✅ All User2 sliders setup complete');
+    slider.value = numValue;
+    percentBox.textContent = numValue + '%';
+    trackFill.style.width = numValue + '%';
+    if (hiddenInput) hiddenInput.value = numValue > 0 ? numValue + '%' : '';
+    if (sliderContainer) updateSnapMarkers(sliderContainer, numValue);
+    if (checkbox100) checkbox100.checked = (numValue === 100);
+    
+    console.log(`📊 Updated User2 slider ${task} to ${numValue}% from DB`);
 }
 
-function updateUser2SliderFromDB(task, value) {
-  const sliderMapping = {
-    'LAND CLEARING': { sliderId: 'landClearingSliderUser2', percentId: 'landClearingPercentUser2', trackId: 'landClearingTrackUser2', hiddenId: 'landClearingInputUser2' },
-    'PONDASI': { sliderId: 'pondasiSliderUser2', percentId: 'pondasiPercentUser2', trackId: 'pondasiTrackUser2', hiddenId: 'pondasiInputUser2' },
-    'SLOOF': { sliderId: 'sloofSliderUser2', percentId: 'sloofPercentUser2', trackId: 'sloofTrackUser2', hiddenId: 'sloofInputUser2' }
-  };
-  
-  const config = sliderMapping[task];
-  if (!config) return;
-  
-  const slider = document.getElementById(config.sliderId);
-  const percentBox = document.getElementById(config.percentId);
-  const trackFill = document.getElementById(config.trackId);
-  const hiddenInput = document.getElementById(config.hiddenId);
-  const sliderContainer = slider ? slider.closest('.slider-container') : null;
-  const checkbox100 = document.querySelector(`input.check-100[data-slider="${config.sliderId}"]`);
-  
-  if (!slider || !percentBox || !trackFill) return;
-  
-  let numValue = 0;
-  if (value) {
-    if (typeof value === 'string') {
-      numValue = parseInt(value.replace('%', '')) || 0;
-    } else if (typeof value === 'number') {
-      numValue = value;
-    } else if (typeof value === 'boolean' && value === true) {
-      numValue = 100;
-    }
-  }
-  
-  slider.value = numValue;
-  percentBox.textContent = numValue + '%';
-  trackFill.style.width = numValue + '%';
-  if (hiddenInput) hiddenInput.value = numValue > 0 ? numValue + '%' : '';
-  if (sliderContainer) updateSnapMarkers(sliderContainer, numValue);
-  if (checkbox100) checkbox100.checked = (numValue === 100);
-  
-  console.log(`📊 Updated User2 slider ${task} to ${numValue}% from DB`);
-}
-
+// ========== FUNGSI LOAD SLIDERS DARI DATA DATABASE ==========
 function loadUser2SlidersFromData(data) {
-  if (!data || currentRole !== 'user2') return;
-  
-  console.log('📥 Loading User2 sliders from database data...');
-  
-  const tasks = ['LAND CLEARING', 'PONDASI', 'SLOOF'];
-  tasks.forEach(task => {
-    const value = data[task] || data[task.toLowerCase().replace(/ /g, '_')];
-    if (value !== undefined) {
-      updateUser2SliderFromDB(task, value);
-    }
-  });
+    if (!data || currentRole !== 'user2') return;
+    
+    console.log('📥 Loading User2 sliders from database data...');
+    
+    const tasks = [
+        // Tahap 1
+        'LAND CLEARING', 'PONDASI', 'SLOOF', 'PAS.DDG S/D2 CANOPY', 'PAS.DDG S/D RING BLK',
+        'CONDUIT+INBOW DOOS', 'PIPA AIR KOTOR', 'PIPA AIR BERSIH', 'PLESTER', 'ACIAN & BENANGAN',
+        
+        // Tahap 2
+        'RANGKA ATAP', 'GENTENG', 'PLAFOND', 'INSTALASI LISTRIK', 'KERAMIK LANTAI',
+        
+        // Tahap 3
+        'KUSEN PINTU & JENDELA', 'DAUN PINTU & JENDELA', 'CAT DASAR + LAPIS AWAL', 
+        'FITTING LAMPU', 'FIXTURE & SANITER', 'CAT FINISH INTERIOR', 'CAT FINISH EXTERIOR',
+        'BAK KONTROL & BATAS CARPORT', 'PAVING HALAMAN', 'METERAN LISTRIK', 'METERAN AIR',
+        'Konekting Air Bersih',
+        
+        // Tahap 4
+        'Konekting Air Kotor', 'Gorong-gorong', 'Akses Jalan', 'GENERAL CLEANING'
+    ];
+    
+    tasks.forEach(task => {
+        const value = data[task] || data[task.toLowerCase().replace(/ /g, '_')];
+        if (value !== undefined) {
+            updateUser2SliderFromDB(task, value);
+        }
+    });
 }
+
 
 // Panggil setelah DOM siap
 document.addEventListener('DOMContentLoaded', function() {
