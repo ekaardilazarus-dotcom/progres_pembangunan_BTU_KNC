@@ -108,7 +108,186 @@ function hideGlobalLoading() {
   if (modal) modal.style.display = 'none';
 }
 
-// ========== TOAST NOTIFICATION ==========
+// ========== IMAGE PROCESSING ==========
+const MAX_REVISI_PHOTOS = 6;
+let selectedRevisiPhotos = [];
+
+function setupRevisiPhotoUpload() {
+  const photoInput = document.getElementById('revisiPhotoInputUser1');
+  const previewContainer = document.getElementById('revisiImagePreview1User1');
+
+  if (!photoInput || !previewContainer) return;
+
+  // Hapus event listener lama dengan clone
+  const newPhotoInput = photoInput.cloneNode(true);
+  photoInput.parentNode.replaceChild(newPhotoInput, photoInput);
+
+  newPhotoInput.addEventListener('change', async function(e) {
+    const files = Array.from(e.target.files);
+    
+    if (selectedRevisiPhotos.length + files.length > MAX_REVISI_PHOTOS) {
+      showToast('warning', `Maksimal ${MAX_REVISI_PHOTOS} foto.`);
+      return;
+    }
+
+    showGlobalLoading('Memproses foto...');
+
+    try {
+      // Tunggu semua file diproses
+      const promises = files.map(file => {
+        if (!file.type.startsWith('image/')) return null;
+        return compressImage(file, 0.7);
+      }).filter(p => p !== null);
+
+      const results = await Promise.all(promises);
+      results.forEach(base64 => {
+        if (base64) selectedRevisiPhotos.push(base64);
+      });
+
+      renderRevisiPreviews();
+    } catch (err) {
+      console.error('Processing error:', err);
+      showToast('error', 'Gagal memproses foto');
+    } finally {
+      hideGlobalLoading();
+      // Reset input
+      newPhotoInput.value = '';
+    }
+  });
+}
+
+function compressImage(file, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Optional: Resize if too large
+        const MAX_WIDTH = 1200;
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedDataUrl);
+      };
+      img.onerror = reject;
+    };
+    reader.onerror = reject;
+  });
+}
+
+function renderRevisiPreviews() {
+  const previewContainer = document.getElementById('revisiImagePreview1User1');
+  if (!previewContainer) return;
+
+  if (selectedRevisiPhotos.length === 0) {
+    previewContainer.innerHTML = `
+      <div style="text-align: center;">
+        <i class="fas fa-images" style="font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.5;"></i>
+        <span>Belum ada foto yang dipilih</span>
+      </div>
+    `;
+    return;
+  }
+
+  previewContainer.innerHTML = '';
+  selectedRevisiPhotos.forEach((base64, index) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'photo-thumb-wrapper';
+    thumb.style.position = 'relative';
+    thumb.style.width = '80px';
+    thumb.style.height = '80px';
+    thumb.style.borderRadius = '8px';
+    thumb.style.overflow = 'hidden';
+    thumb.style.border = '2px solid #334155';
+    thumb.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+
+    thumb.innerHTML = `
+      <img src="${base64}" style="width: 100%; height: 100%; object-fit: cover;" />
+      <button type="button" onclick="removeRevisiPhoto(${index})" style="position: absolute; top: 4px; right: 4px; background: #ef4444; color: white; border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">&times;</button>
+    `;
+    previewContainer.appendChild(thumb);
+  });
+}
+
+function removeRevisiPhoto(index) {
+  selectedRevisiPhotos.splice(index, 1);
+  renderRevisiPreviews();
+}
+
+async function saveTahapRevisi() {
+  if (!selectedKavling || !currentKavlingData) {
+    showToast('error', 'Pilih kavling terlebih dahulu');
+    return;
+  }
+
+  const rolePage = currentRole + 'Page';
+  const revisiSection = document.querySelector(`#${rolePage} .progress-section[data-tahap="revisi"]`);
+  if (!revisiSection) return;
+
+  const saveButton = revisiSection.querySelector('.btn-save-revisi');
+  const notesEl = revisiSection.querySelector('#kondisiUnitNotesUser1');
+  
+  const tahapData = {};
+  if (notesEl) {
+    tahapData['KETERANGAN_KONDISI_UNIT'] = notesEl.value.trim();
+  }
+
+  // Tambahkan foto ke data yang dikirim (sebagai array base64)
+  tahapData['FOTO_KONDISI_PROPERTI'] = selectedRevisiPhotos;
+
+  if (saveButton) {
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    saveButton.disabled = true;
+  }
+
+  showGlobalLoading('Menyimpan Kondisi Unit Saat Ini & Foto...');
+
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'saveTahapRevisi',
+      kavling: selectedKavling,
+      data: tahapData,
+      user: currentRole
+    });
+
+    hideGlobalLoading();
+
+    if (result.success) {
+      showToast('success', `Berhasil! Kondisi Unit Saat Ini untuk Blok ${selectedKavling} telah tersimpan.`);
+      // Reset foto setelah sukses
+      selectedRevisiPhotos = [];
+      renderRevisiPreviews();
+    } else {
+      showToast('error', result.message || 'Gagal menyimpan kondisi unit');
+    }
+  } catch (error) {
+    console.error('Error saving kondisi unit:', error);
+    showToast('error', 'Gagal menyimpan: ' + error.message);
+  } finally {
+    if (saveButton) {
+      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Kondisi Unit';
+      saveButton.disabled = false;
+    }
+  }
+}
+
+// Tambahkan inisialisasi di DOMContentLoaded atau fungsi init app
+// search for APP INITIALIZED log to find where to add
+
 function showToast(type, message) {
   // Hapus toast sebelumnya
   const existingToast = document.getElementById('globalToast');
@@ -1847,6 +2026,21 @@ function loadProgressData(progressData) {
   let idSuffix = '';
   if (currentRole === 'user2') idSuffix = '2';
   else if (currentRole === 'user3') idSuffix = '3';
+
+  // Aktifkan Tanggal Handover jika ada
+  const hoContainers = pageElement.querySelectorAll('.info-item');
+  hoContainers.forEach(container => {
+    const label = container.querySelector('.info-label');
+    if (label && label.textContent.includes('Tanggal HandOver')) {
+      container.style.display = 'flex';
+      const input = container.querySelector('input');
+      if (input) {
+        input.disabled = false;
+        input.style.opacity = '1';
+        input.style.pointerEvents = 'auto';
+      }
+    }
+  });
 
   // ===== Tahap 1 =====
   if (progressData.tahap1) {
@@ -4919,42 +5113,200 @@ function updateDashboardTitle(role, name) {
   }
 }
 
-function setupUser4Tabs() {
-  const page = document.getElementById('user4Page');
-  if (!page) return;
+function loadTahapDataSection(section, tahap, data) {
+  const subTasks = section.querySelectorAll('.sub-task');
+  subTasks.forEach(input => {
+    const taskName = input.getAttribute('data-task');
+    const value = (data && data[taskName]) ? data[taskName] : '';
 
-  const tabBtns = page.querySelectorAll('.admin-tab-btn');
-  const tabContents = page.querySelectorAll('.tab-content-item');
+    if (input.type === 'checkbox') {
+      input.checked = (value === '100%' || value === true || value === 'TRUE');
+    } else {
+      input.value = value;
+      // Add visual feedback for progress buttons
+      const parent = input.closest('.progress-choice');
+      if (parent) {
+        const btns = parent.querySelectorAll('.progress-btn');
+        btns.forEach(b => {
+          if (b.getAttribute('data-value') === value) b.classList.add('active');
+          else b.classList.remove('active');
+        });
+      }
+    }
+  });
 
-  console.log('Setting up User4 tabs, count:', tabBtns.length);
+  // Special logic for Pelaksana 2 Land Clearing DB display
+  if (currentRole === 'user2' && tahap === '1') {
+    const dbDisplay = document.getElementById('landClearingDBProgressUser2');
+    if (dbDisplay) {
+      const lcValue = (data && data['LAND CLEARING']) ? data['LAND CLEARING'] : '0%';
+      dbDisplay.value = lcValue;
+    }
+  }
 
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-      const tabId = this.getAttribute('data-tab');
-      console.log('User4 Tab clicked:', tabId);
+  updateTahapProgressUI(section, tahap);
+}
 
-      // Hapus active dari semua tombol dan konten di halaman ini
-      tabBtns.forEach(b => b.classList.remove('active'));
-      tabContents.forEach(c => c.classList.remove('active'));
+function updateTahapProgressUI(section, tahap) {
+  const subTasks = section.querySelectorAll('.sub-task');
+  let completed = 0;
+  let total = 0;
 
-      // Tambah active ke yang dipilih
-      this.classList.add('active');
-      const targetTab = page.querySelector('#tab-' + tabId);
-      if (targetTab) {
-        targetTab.classList.add('active');
+  subTasks.forEach(task => {
+    total++;
+    if (task.type === 'checkbox') {
+      if (task.checked) completed++;
+    } else if (task.value && task.value.trim() !== '') {
+      completed++;
+    }
+  });
 
-        // ===== TAMBAHAN: Load data ketika tab diaktifkan =====
-        if (tabId === 'delivery' && selectedKavling) {
-          setTimeout(() => {
-            loadKeyDeliveryData();
-          }, 200);
+  const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const percentEl = section.querySelector('.sub-percent');
+  const barEl = section.querySelector('.progress-fill');
+
+  if (percentEl) percentEl.textContent = percent + '%';
+  if (barEl) barEl.style.width = percent + '%';
+
+  // Update overall progress
+  const pageId = currentRole + 'Page';
+  updateProgress(pageId);
+}
+
+// ========== FUNGSI LOAD KAVLING DATA (MODIFIKASI) ==========
+async function loadKavlingData(kavlingName) {
+  if (!kavlingName) return;
+  
+  showGlobalLoading('Memuat data kavling...');
+  
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getKavlingData',
+      kavling: kavlingName
+    });
+    
+    if (result.success) {
+      currentKavlingData = result;
+      selectedKavling = kavlingName;
+      
+      // Update UI displays
+      updateKavlingInfoDisplay(result);
+      
+      const pageId = currentRole + 'Page';
+      const page = document.getElementById(pageId);
+      
+      if (page) {
+        // Load each stage section
+        const stages = ['1', '2', '3', '4'];
+        stages.forEach(s => {
+          const section = page.querySelector(`.progress-section[data-tahap="${s}"]`);
+          if (section) {
+            const stageData = result.data ? result.data[`tahap${s}`] : null;
+            loadTahapDataSection(section, s, stageData);
+          }
+        });
+        
+        // Specific for Pelaksana 1: Kondisi Unit Saat Ini
+        if (currentRole === 'user1') {
+          const revisiSection = page.querySelector('.progress-section[data-tahap="revisi"]');
+          if (revisiSection) {
+            const notesEl = revisiSection.querySelector('#kondisiUnitNotesUser1');
+            if (notesEl) notesEl.value = result.propertyNotes || '';
+          }
         }
       }
-    });
-  });
+      
+      showToast('success', 'Data kavling berhasil dimuat');
+    } else {
+      showToast('error', 'Gagal memuat data: ' + result.message);
+    }
+  } catch (error) {
+    console.error('Error loading kavling data:', error);
+    showToast('error', 'Error: ' + error.message);
+  } finally {
+    hideGlobalLoading();
+  }
 }
+
+function updateKavlingInfoDisplay(data) {
+  const pageId = currentRole + 'Page';
+  const page = document.getElementById(pageId);
+  if (!page) return;
+
+  const infoSection = page.querySelector('.kavling-info-display');
+  if (!infoSection) return;
+
+  const valName = infoSection.querySelector('.val-name');
+  const valType = infoSection.querySelector('.val-type');
+  const valLt = infoSection.querySelector('.val-lt');
+  const valLb = infoSection.querySelector('.val-lb');
+
+  if (valName) valName.textContent = data.kavling || selectedKavling;
+  if (valType) valType.textContent = data.type || '-';
+  if (valLt) valLt.textContent = data.lt || '-';
+  if (valLb) valLb.textContent = data.lb || '-';
+}
+
+// ========== FUNGSI searchKavling DIPERBARUI ==========
+async function searchKavling(isSync = false) {
+  const selectId = getRoleSelectId(currentRole);
+  const select = document.getElementById(selectId);
+  if (!select) return;
+
+  const kavlingName = select.value;
+  if (!kavlingName) return;
+
+  await loadKavlingData(kavlingName);
+}
+
+function getRoleSelectId(role) {
+  const selectIds = {
+    'user1': 'searchKavlingUser1',
+    'user2': 'searchKavlingUser2', 
+    'user3': 'searchKavlingUser3',
+    'user4': 'searchKavlingUser4',
+    'manager': 'searchKavlingManager'
+  };
+  return selectIds[role] || `searchKavling${role.charAt(0).toUpperCase() + role.slice(1)}`;
+}
+
 // Fungsi untuk load kavling list dengan loading
 async function loadKavlingListWithLoading() {
+  console.log('Loading kavling list with loading modal...');
+  showGlobalLoading('Memuat daftar kavling...');
+
+  try {
+    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
+      action: 'getKavlingList'
+    });
+
+    if (result.success && result.kavlings && result.kavlings.length > 0) {
+      allKavlings = result.kavlings; // Store globally
+      updateAllKavlingSelects(result.kavlings);
+      console.log(`✅ Loaded ${result.kavlings.length} kavlings`);
+
+      // Tampilkan sukses dan auto close
+      showStatusModal('success', 'Daftar Dimuat', `${result.kavlings.length} kavling berhasil dimuat!`);
+
+      setTimeout(() => {
+        hideGlobalLoading();
+      }, 1500);
+
+      return result.kavlings;
+    } else {
+      hideGlobalLoading();
+      console.log('❌ No kavlings found:', result.message);
+      showToast('warning', 'Tidak ada data kavling ditemukan');
+      return [];
+    }
+
+  } catch (error) {
+    hideGlobalLoading();
+    console.error('❌ Error loading kavling list:', error);
+    showToast('error', 'Gagal memuat daftar kavling');
+    return [];
+  }
+}
   console.log('Loading kavling list with loading modal...');
   showGlobalLoading('Memuat daftar kavling...');
 
@@ -5412,6 +5764,9 @@ function setupDynamicEventListeners() {
         } else if (tahap === '4') {
           console.log('Calling saveTahap4');
           saveTahap4();
+        } else if (tahap === 'revisi') {
+          console.log('Calling saveTahapRevisi');
+          saveTahapRevisi();
         } else {
           console.log('Unknown tahap:', tahap);
         }
@@ -5643,6 +5998,9 @@ function initApp() {
     currentRole = savedRole;
     showPage(savedRole);
   }
+
+  // Inisialisasi upload foto revisi
+  setupRevisiPhotoUpload();
 
   console.log('=== APP INITIALIZED ===');
 }
