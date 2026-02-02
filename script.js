@@ -2004,13 +2004,21 @@ function updateKavlingInfo(data, pageId) {
     `;
   }
 
-  // Populate handover kunci input for user1
+  // Populate handover kunci display for user1
   if (role === 'user1') {
-    const handoverInput = document.getElementById('handoverKunciUserInput1');
-    if (handoverInput) {
+    const handoverDisplay = document.getElementById('handoverKunciUserDisplay1');
+    if (handoverDisplay) {
       // Get handover date from Column AQ data (tglHandoverKunci or similar)
       const handoverKunci = data.tglHandoverKunci || data.data?.tglHandoverKunci || data.data?.handoverKunci || hoDateText;
-      handoverInput.value = handoverKunci !== '-' && handoverKunci !== 'tidak diketahui, cek ulang data' ? handoverKunci : '';
+      if (handoverKunci && handoverKunci !== '-' && handoverKunci !== '') {
+        handoverDisplay.textContent = handoverKunci;
+        handoverDisplay.style.color = '#22c55e';
+        handoverDisplay.style.fontStyle = 'normal';
+      } else {
+        handoverDisplay.textContent = 'tidak diketahui, cek ulang data';
+        handoverDisplay.style.color = '#f59e0b';
+        handoverDisplay.style.fontStyle = 'italic';
+      }
     }
   }
 }
@@ -5272,41 +5280,6 @@ function getRoleSelectId(role) {
 
 // Fungsi untuk load kavling list dengan loading
 async function loadKavlingListWithLoading() {
-  console.log('Loading kavling list with loading modal...');
-  showGlobalLoading('Memuat daftar kavling...');
-
-  try {
-    const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
-      action: 'getKavlingList'
-    });
-
-    if (result.success && result.kavlings && result.kavlings.length > 0) {
-      allKavlings = result.kavlings; // Store globally
-      updateAllKavlingSelects(result.kavlings);
-      console.log(`✅ Loaded ${result.kavlings.length} kavlings`);
-
-      // Tampilkan sukses dan auto close
-      showStatusModal('success', 'Daftar Dimuat', `${result.kavlings.length} kavling berhasil dimuat!`);
-
-      setTimeout(() => {
-        hideGlobalLoading();
-      }, 1500);
-
-      return result.kavlings;
-    } else {
-      hideGlobalLoading();
-      console.log('❌ No kavlings found:', result.message);
-      showToast('warning', 'Tidak ada data kavling ditemukan');
-      return [];
-    }
-
-  } catch (error) {
-    hideGlobalLoading();
-    console.error('❌ Error loading kavling list:', error);
-    showToast('error', 'Gagal memuat daftar kavling');
-    return [];
-  }
-}
   console.log('Loading kavling list with loading modal...');
   showGlobalLoading('Memuat daftar kavling...');
 
