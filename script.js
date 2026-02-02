@@ -568,26 +568,23 @@ function setupUser4Tabs() {
 function setupProgressButtons(page) {
   const progressBtns = page.querySelectorAll('.progress-btn');
   progressBtns.forEach(btn => {
-    // Hapus listener lama
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
 
     newBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      const value = this.getAttribute('data-value');
-      const taskName = this.getAttribute('data-task');
       const parent = this.closest('.progress-choice');
-      
       if (!parent) return;
 
       const input = parent.querySelector('input[type="hidden"].sub-task');
       if (!input) return;
 
-      // Hapus active dari semua tombol di grup ini
+      // Reset active
       const siblings = parent.querySelectorAll('.progress-btn');
       siblings.forEach(s => s.classList.remove('active'));
 
-      // Jika klik yang sudah aktif, batalkan (toggle)
+      // Toggle value
+      const value = this.getAttribute('data-value');
       if (input.value === value) {
         input.value = '';
       } else {
@@ -595,9 +592,9 @@ function setupProgressButtons(page) {
         this.classList.add('active');
       }
 
-      console.log(`Progress button clicked: ${taskName} = ${input.value}`);
-      
-      // Trigger update progress UI
+      console.log(`Progress button clicked: ${this.getAttribute('data-task')} = ${input.value}`);
+
+      // Update UI sekali saja
       const tahapSection = this.closest('.progress-section');
       if (tahapSection) {
         const tahap = tahapSection.getAttribute('data-tahap');
@@ -5147,77 +5144,35 @@ function loadTahapDataSection(section, tahap, data) {
 
   updateTahapProgressUI(section, tahap);
 }
+// Hitung progress dari sebuah tahapSection
+function calculateProgress(tahapSection) {
+  let percent = 0;
 
-function updateTahapProgressUI(section, tahap) {
-    if (!section) return;
-    
-    const subTasks = section.querySelectorAll('.sub-task');
-    let totalWeight = 0;
-    let completedWeight = 0;
-    
-    subTasks.forEach(task => {
-        // Skip hidden inputs dan textarea
-        if (task.type === 'hidden' || task.tagName === 'TEXTAREA') {
-            return;
-        }
-        
-        // Handle slider progress
-        if (task.classList.contains('progress-slider')) {
-            const value = parseInt(task.value) || 0;
-            const weight = parseFloat(task.getAttribute('data-weight')) || 1;
-            
-            totalWeight += weight;
-            completedWeight += (value / 100) * weight; // Convert % to weight
-            }
-        // Handle checkbox
-        else if (task.type === 'checkbox') {
-            const weight = parseFloat(task.getAttribute('data-weight')) || 1;
-            
-            totalWeight += weight;
-            if (task.checked) {
-                completedWeight += weight;
-            }
-        }
-        // Handle state buttons (hidden inputs)
-        else if (task.type === 'hidden' && task.classList.contains('sub-task')) {
-            const weight = parseFloat(task.getAttribute('data-weight')) || 1;
-            
-            totalWeight += weight;
-            if (task.value && task.value.trim() !== '') {
-                completedWeight += weight;
-            }
-        }
+  // Contoh: hitung dari input hidden sub-task
+  const inputs = tahapSection.querySelectorAll('input.sub-task');
+  if (inputs.length > 0) {
+    let completed = 0;
+    inputs.forEach(input => {
+      if (input.value && input.value !== '') {
+        completed++;
+      }
     });
-    
-    // Hitung persentase
-    let percent = 0;
-    if (totalWeight > 0) {
-        percent = Math.round((completedWeight / totalWeight) * 100);
-    }
-    
-    // Update display
-    const percentEl = section.querySelector('.sub-percent');
-    const barEl = section.querySelector('.progress-fill');
-    
-    if (percentEl) {
-        percentEl.textContent = percent + '%';
-        }
-    
-    if (barEl) {
-        barEl.style.width = percent + '%';
-        
-        // Update color class
-        barEl.className = 'progress-fill';
-        if (percent >= 89) barEl.classList.add('bar-high');
-        else if (percent >= 60) barEl.classList.add('bar-medium');
-        else if (percent >= 10) barEl.classList.add('bar-low');
-        else barEl.classList.add('bar-very-low');
-    }
-    
-    // Update overall progress
-    updateProgress(currentRole + 'Page');
-    
-    return percent;
+    percent = Math.round((completed / inputs.length) * 100);
+  }
+
+  return percent;
+}
+function updateTahapProgressUI(tahapSection, tahap) {
+  const percent = calculateProgress(tahapSection);
+
+  // Update bar dan teks
+  const bar = tahapSection.querySelector('.progress-fill');
+  const text = tahapSection.querySelector('.sub-percent-tahap');
+
+  if (bar) bar.style.width = percent + '%';
+  if (text) text.textContent = percent + '%';
+
+  console.log(`UI updated for tahap ${tahap}: ${percent}%`);
 }
 
 // ========== FUNGSI LOAD KAVLING DATA (MODIFIKASI) ==========
@@ -7477,6 +7432,10 @@ async function saveKeyDelivery() {
   } finally {
     hideGlobalLoading();
   }
+}
+function updateProgress(tahapSection) {
+  const percent = calculateProgress(tahapSection);
+  return percent;
 }
 
 function updateProgress(rolePage) {
