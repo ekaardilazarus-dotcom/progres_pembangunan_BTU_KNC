@@ -5168,9 +5168,7 @@ function updateTahapProgressUI(section, tahap) {
             
             totalWeight += weight;
             completedWeight += (value / 100) * weight; // Convert % to weight
-            
-            console.log(`Slider ${task.getAttribute('data-task')}: ${value}% * weight ${weight} = ${(value / 100) * weight}`);
-        }
+            }
         // Handle checkbox
         else if (task.type === 'checkbox') {
             const weight = parseFloat(task.getAttribute('data-weight')) || 1;
@@ -5203,8 +5201,7 @@ function updateTahapProgressUI(section, tahap) {
     
     if (percentEl) {
         percentEl.textContent = percent + '%';
-        console.log(`Tahap ${tahap}: ${completedWeight}/${totalWeight} = ${percent}%`);
-    }
+        }
     
     if (barEl) {
         barEl.style.width = percent + '%';
@@ -7516,8 +7513,7 @@ function updateProgress(rolePage) {
                 // Slider: dianggap complete jika >= 100%
                 const value = parseInt(task.value) || 0;
                 isCompleted = (value >= 100);
-                console.log(`Slider ${task.getAttribute('data-task')}: ${value}% = ${isCompleted ? 'complete' : 'not complete'}`);
-            }
+             }
             else if (task.type === 'checkbox') {
                 // Checkbox: checked = complete
                 isCompleted = task.checked;
@@ -7539,9 +7535,7 @@ function updateProgress(rolePage) {
         totalPercent = Math.round((completedWeight / totalWeight) * 100);
     }
     
-    console.log(`Overall Progress: ${completedWeight}/${totalWeight} = ${totalPercent}%`);
-    
-    // Update overall progress display
+     // Update overall progress display
     updateTotalProgressDisplay(totalPercent + '%', rolePage);
     
     // Update setiap tahap progress bar
@@ -7605,7 +7599,7 @@ function setupSliderProgressListeners() {
         slider.parentNode.replaceChild(newSlider, slider);
         
         newSlider.addEventListener('input', function() {
-            console.log(`Slider ${this.getAttribute('data-task')} changed to ${this.value}%`);
+            //////console.log(`Slider ${this.getAttribute('data-task')} changed to ${this.value}%`);
             
             const tahapSection = this.closest('.progress-section');
             if (tahapSection) {
@@ -7615,78 +7609,11 @@ function setupSliderProgressListeners() {
         });
         
         newSlider.addEventListener('change', function() {
-            console.log(`Slider ${this.getAttribute('data-task')} final value: ${this.value}%`);
+            ////console.log(`Slider ${this.getAttribute('data-task')} final value: ${this.value}%`);
         });
     });
     
     console.log(`✅ Setup ${sliders.length} slider listeners`);
-}
-function debugProgressCalculation() {
-    if (currentRole !== 'user2') return;
-    
-    const user2Page = document.getElementById('user2Page');
-    if (!user2Page) return;
-    
-    console.log('=== DEBUG PROGRESS CALCULATION ===');
-    
-    const tahapSections = user2Page.querySelectorAll('.progress-section[data-tahap]');
-    
-    tahapSections.forEach(section => {
-        const tahap = section.getAttribute('data-tahap');
-        console.log(`\n=== TAHAP ${tahap} ===`);
-        
-        const sliders = section.querySelectorAll('.progress-slider');
-        const checkboxes = section.querySelectorAll('input[type="checkbox"].sub-task');
-        const stateInputs = section.querySelectorAll('input[type="hidden"].sub-task');
-        
-        console.log(`Sliders: ${sliders.length}`);
-        console.log(`Checkboxes: ${checkboxes.length}`);
-        console.log(`State inputs: ${stateInputs.length}`);
-        
-        // Hitung manual
-        let totalWeight = 0;
-        let completedWeight = 0;
-        
-        sliders.forEach(slider => {
-            const value = parseInt(slider.value) || 0;
-            const weight = parseFloat(slider.getAttribute('data-weight')) || 1;
-            const task = slider.getAttribute('data-task');
-            
-            totalWeight += weight;
-            completedWeight += (value / 100) * weight;
-            
-            console.log(`  ${task}: ${value}% * weight ${weight} = ${(value / 100) * weight}`);
-        });
-        
-        checkboxes.forEach(cb => {
-            const weight = parseFloat(cb.getAttribute('data-weight')) || 1;
-            const task = cb.getAttribute('data-task');
-            
-            totalWeight += weight;
-            if (cb.checked) {
-                completedWeight += weight;
-            }
-            
-            console.log(`  ${task}: ${cb.checked ? '✓' : '✗'} * weight ${weight} = ${cb.checked ? weight : 0}`);
-        });
-        
-        stateInputs.forEach(input => {
-            const weight = parseFloat(input.getAttribute('data-weight')) || 1;
-            const task = input.getAttribute('data-task') || input.name;
-            
-            totalWeight += weight;
-            if (input.value && input.value.trim() !== '') {
-                completedWeight += weight;
-            }
-            
-            console.log(`  ${task}: "${input.value}" * weight ${weight} = ${input.value && input.value.trim() !== '' ? weight : 0}`);
-        });
-        
-        if (totalWeight > 0) {
-            const percent = Math.round((completedWeight / totalWeight) * 100);
-            console.log(`  Result: ${completedWeight}/${totalWeight} = ${percent}%`);
-        }
-    });
 }
 // ========== FUNGSI WEIGHT DISTRIBUTION UNTUK USER2 ==========
 function setupTaskWeightsForUser2() {
