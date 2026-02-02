@@ -2003,24 +2003,6 @@ function updateKavlingInfo(data, pageId) {
       </div>
     `;
   }
-
-  // Populate handover kunci display for user1
-  if (role === 'user1') {
-    const handoverDisplay = document.getElementById('handoverKunciUserDisplay1');
-    if (handoverDisplay) {
-      // Get handover date from Column AQ data (tglHandoverKunci or similar)
-      const handoverKunci = data.tglHandoverKunci || data.data?.tglHandoverKunci || data.data?.handoverKunci || hoDateText;
-      if (handoverKunci && handoverKunci !== '-' && handoverKunci !== '') {
-        handoverDisplay.textContent = handoverKunci;
-        handoverDisplay.style.color = '#22c55e';
-        handoverDisplay.style.fontStyle = 'normal';
-      } else {
-        handoverDisplay.textContent = 'tidak diketahui, cek ulang data';
-        handoverDisplay.style.color = '#f59e0b';
-        handoverDisplay.style.fontStyle = 'italic';
-      }
-    }
-  }
 }
 
 function loadProgressData(progressData) {
