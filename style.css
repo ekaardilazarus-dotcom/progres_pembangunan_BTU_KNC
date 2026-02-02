@@ -718,6 +718,219 @@ h1 {
   align-self: center;
 }
 
+/* ===== PROGRESS SLIDER STYLES ===== */
+.task-item-standalone.progress-slider-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 10px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  transition: all 0.3s ease;
+}
+
+.task-item-standalone.progress-slider-choice:hover {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.slider-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-percent-box {
+  min-width: 50px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+  transition: all 0.3s ease;
+}
+
+.slider-container {
+  position: relative;
+  width: 100%;
+  height: 12px;
+}
+
+.progress-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.5);
+  border: 3px solid white;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.progress-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.6);
+}
+
+.progress-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+.progress-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.5);
+  border: 3px solid white;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.progress-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+}
+
+.progress-slider::-moz-range-track {
+  background: transparent;
+  height: 12px;
+  border-radius: 6px;
+}
+
+.slider-track-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 12px;
+  background: linear-gradient(90deg, #0ea5e9, #10b981, #8b5cf6);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 1;
+  transition: width 0.1s ease;
+}
+
+.slider-row-with-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-container.with-markers {
+  flex: 1;
+  position: relative;
+  height: 40px;
+  padding-bottom: 20px;
+}
+
+.slider-container.with-markers .progress-slider {
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.slider-container.with-markers .slider-track-fill {
+  position: absolute;
+  top: 0;
+}
+
+.slider-snap-markers {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  pointer-events: none;
+}
+
+.snap-marker {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  padding-top: 4px;
+}
+
+.snap-marker::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 1px;
+}
+
+.snap-marker.active {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.snap-marker.active::before {
+  background: #38bdf8;
+}
+
+.slider-check-100 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 2px solid rgba(139, 92, 246, 0.4);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.slider-check-100:hover {
+  border-color: rgba(139, 92, 246, 0.8);
+  background: rgba(139, 92, 246, 0.2);
+}
+
+.slider-check-100 input[type="checkbox"] {
+  display: none;
+}
+
+.slider-check-100 .checkmark-icon {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.slider-check-100 input[type="checkbox"]:checked + .checkmark-icon {
+  color: #8b5cf6;
+  transform: scale(1.2);
+}
+
+.slider-check-100:has(input:checked) {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(167, 139, 250, 0.3));
+  border-color: #8b5cf6;
+  box-shadow: 0 2px 10px rgba(139, 92, 246, 0.4);
+}
 
 /* ===== MODAL STYLES ===== */
 .modal {
