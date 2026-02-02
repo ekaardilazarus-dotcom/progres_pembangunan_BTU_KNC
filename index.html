@@ -1668,104 +1668,129 @@
                       />
                     </div>
 
-                    <!-- PASANG DINDING S/D CANOPY -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">PASANG DINDING SAMPAI DENGAN CANOPY</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="PAS.DDG S/D2 CANOPY" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PAS.DDG S/D2 CANOPY" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PAS.DDG S/D2 CANOPY" data-value="100%">100%</button>
+                    <!-- PASANG DINDING S/D CANOPY dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">PASANG DINDING S/D CANOPY</span>
+                        <span class="slider-percent-box" id="pasDdgCanopyPercentUser2">0%</span>
                       </div>
-                      <input
-                        type="hidden"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PAS.DDG S/D2 CANOPY"
-                        id="pasDdgCanopyInputUser2"
-                      />
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="PAS.DDG S/D2 CANOPY" data-weight="1" data-snap="true" id="pasDdgCanopySliderUser2" />
+                          <div class="slider-track-fill" id="pasDdgCanopyTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="pasDdgCanopySliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
+                      </div>
+                      <input type="hidden" name="pas-ddg-canopy-progress" value="" class="sub-task-hidden" data-weight="1" data-task="PAS.DDG S/D2 CANOPY" id="pasDdgCanopyInputUser2" />
                     </div>
 
-                    <!-- PASANG DINDING S/D RING BALK -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">PASANG DINDING SAMPAI DENGAN RING BALK</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="PAS.DDG S/D RING BLK" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PAS.DDG S/D RING BLK" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PAS.DDG S/D RING BLK" data-value="100%">100%</button>
+                    <!-- PASANG DINDING S/D RING BALK dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">PASANG DINDING S/D RING BALK</span>
+                        <span class="slider-percent-box" id="pasDdgRingBlkPercentUser2">0%</span>
                       </div>
-                      <input
-                        type="hidden"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PAS.DDG S/D RING BLK"
-                        id="pasDdgRingBlkInputUser2"
-                      />
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="PAS.DDG S/D RING BLK" data-weight="1" data-snap="true" id="pasDdgRingBlkSliderUser2" />
+                          <div class="slider-track-fill" id="pasDdgRingBlkTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="pasDdgRingBlkSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
+                      </div>
+                      <input type="hidden" name="pas-ddg-ringblk-progress" value="" class="sub-task-hidden" data-weight="1" data-task="PAS.DDG S/D RING BLK" id="pasDdgRingBlkInputUser2" />
                     </div>
 
-                    <!-- CONDUIT+INBOW DOOS -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">CONDUIT+INBOW DOOS</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="CONDUIT+INBOW DOOS" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="CONDUIT+INBOW DOOS" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="CONDUIT+INBOW DOOS" data-value="100%">100%</button>
+                    <!-- CONDUIT+INBOW DOOS dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">CONDUIT+INBOW DOOS</span>
+                        <span class="slider-percent-box" id="conduitPercentUser2">0%</span>
                       </div>
-                      <input
-                        type="hidden"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="CONDUIT+INBOW DOOS"
-                        id="conduitInputUser2"
-                      />
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="CONDUIT+INBOW DOOS" data-weight="1" data-snap="true" id="conduitSliderUser2" />
+                          <div class="slider-track-fill" id="conduitTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="conduitSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
+                      </div>
+                      <input type="hidden" name="conduit-progress" value="" class="sub-task-hidden" data-weight="1" data-task="CONDUIT+INBOW DOOS" id="conduitInputUser2" />
                     </div>
 
-                    <!-- PIPA AIR KOTOR -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">PIPA AIR KOTOR</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="PIPA AIR KOTOR" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PIPA AIR KOTOR" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PIPA AIR KOTOR" data-value="100%">100%</button>
+                    <!-- PIPA AIR KOTOR dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">PIPA AIR KOTOR</span>
+                        <span class="slider-percent-box" id="pipaAirKotorPercentUser2">0%</span>
                       </div>
-                      <input
-                        type="hidden"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PIPA AIR KOTOR"
-                        id="pipaAirKotorInputUser2"
-                      />
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="PIPA AIR KOTOR" data-weight="1" data-snap="true" id="pipaAirKotorSliderUser2" />
+                          <div class="slider-track-fill" id="pipaAirKotorTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="pipaAirKotorSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
+                      </div>
+                      <input type="hidden" name="pipa-air-kotor-progress" value="" class="sub-task-hidden" data-weight="1" data-task="PIPA AIR KOTOR" id="pipaAirKotorInputUser2" />
                     </div>
 
-                    <!-- PIPA AIR BERSIH -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">PIPA AIR BERSIH</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="PIPA AIR BERSIH" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PIPA AIR BERSIH" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PIPA AIR BERSIH" data-value="100%">100%</button>
+                    <!-- PIPA AIR BERSIH dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">PIPA AIR BERSIH</span>
+                        <span class="slider-percent-box" id="pipaAirBersihPercentUser2">0%</span>
                       </div>
-                      <input
-                        type="hidden"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PIPA AIR BERSIH"
-                        id="pipaAirBersihInputUser2"
-                      />
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="PIPA AIR BERSIH" data-weight="1" data-snap="true" id="pipaAirBersihSliderUser2" />
+                          <div class="slider-track-fill" id="pipaAirBersihTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="pipaAirBersihSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
+                      </div>
+                      <input type="hidden" name="pipa-air-bersih-progress" value="" class="sub-task-hidden" data-weight="1" data-task="PIPA AIR BERSIH" id="pipaAirBersihInputUser2" />
                     </div>
 
                     <!-- SISTEM PEMBUANGAN (pilihan Biotank/Ipal/Septictank) -->
@@ -1810,44 +1835,54 @@
                       />
                     </div>
 
-                    <!-- PLESTER -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">PLESTER</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="PLESTER" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PLESTER" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PLESTER" data-value="100%">100%</button>
+                    <!-- PLESTER dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">PLESTER</span>
+                        <span class="slider-percent-box" id="plesterPercentUser2">0%</span>
                       </div>
-                      <input
-                        type="hidden"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PLESTER"
-                        id="plesterInputUser2"
-                      />
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="PLESTER" data-weight="1" data-snap="true" id="plesterSliderUser2" />
+                          <div class="slider-track-fill" id="plesterTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="plesterSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
+                      </div>
+                      <input type="hidden" name="plester-progress" value="" class="sub-task-hidden" data-weight="1" data-task="PLESTER" id="plesterInputUser2" />
                     </div>
 
-                    <!-- ACIAN & BENANGAN -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">ACIAN & BENANGAN</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="ACIAN & BENANGAN" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="ACIAN & BENANGAN" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="ACIAN & BENANGAN" data-value="100%">100%</button>
+                    <!-- ACIAN & BENANGAN dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">ACIAN & BENANGAN</span>
+                        <span class="slider-percent-box" id="acianBenPercentUser2">0%</span>
                       </div>
-                      <input
-                        type="hidden"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="ACIAN & BENANGAN"
-                        id="acianBenInputUser2"
-                      />
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="ACIAN & BENANGAN" data-weight="1" data-snap="true" id="acianBenSliderUser2" />
+                          <div class="slider-track-fill" id="acianBenTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="acianBenSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
+                      </div>
+                      <input type="hidden" name="acian-ben-progress" value="" class="sub-task-hidden" data-weight="1" data-task="ACIAN & BENANGAN" id="acianBenInputUser2" />
                     </div>
 
                     <!-- COR MEJA DAPUR (pilihan Dengan/Tanpa) -->
@@ -1902,43 +1937,79 @@
                   </div>
                   <div class="sub-tasks-grid">
                     
-                    <!-- RANGKA ATAP -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">RANGKA ATAP</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="RANGKA ATAP" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="RANGKA ATAP" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="RANGKA ATAP" data-value="100%">100%</button>
+                    <!-- RANGKA ATAP dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">RANGKA ATAP</span>
+                        <span class="slider-percent-box" id="rangkaAtapPercentUser2">0%</span>
                       </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="RANGKA ATAP" id="rangkaAtapInputUser2" />
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="RANGKA ATAP" data-weight="1" data-snap="true" id="rangkaAtapSliderUser2" />
+                          <div class="slider-track-fill" id="rangkaAtapTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="rangkaAtapSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
+                      </div>
+                      <input type="hidden" name="rangka-atap-progress" value="" class="sub-task-hidden" data-weight="1" data-task="RANGKA ATAP" id="rangkaAtapInputUser2" />
                     </div>
 
-                    <!-- GENTENG -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">GENTENG</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="GENTENG" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="GENTENG" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="GENTENG" data-value="100%">100%</button>
+                    <!-- GENTENG dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">GENTENG</span>
+                        <span class="slider-percent-box" id="gentengPercentUser2">0%</span>
                       </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="GENTENG" id="gentengInputUser2" />
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="GENTENG" data-weight="1" data-snap="true" id="gentengSliderUser2" />
+                          <div class="slider-track-fill" id="gentengTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="gentengSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
+                      </div>
+                      <input type="hidden" name="genteng-progress" value="" class="sub-task-hidden" data-weight="1" data-task="GENTENG" id="gentengInputUser2" />
                     </div>
 
-                    <!-- PLAFOND -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">PLAFOND</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="PLAFOND" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PLAFOND" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PLAFOND" data-value="100%">100%</button>
+                    <!-- PLAFOND dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">PLAFOND</span>
+                        <span class="slider-percent-box" id="plafondPercentUser2">0%</span>
                       </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="PLAFOND" id="plafondInputUser2" />
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="PLAFOND" data-weight="1" data-snap="true" id="plafondSliderUser2" />
+                          <div class="slider-track-fill" id="plafondTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="plafondSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
+                      </div>
+                      <input type="hidden" name="plafond-progress" value="" class="sub-task-hidden" data-weight="1" data-task="PLAFOND" id="plafondInputUser2" />
                     </div>
 
                     <!-- KERAMIK DINDING (pilihan Dengan/Tanpa) -->
@@ -1952,769 +2023,56 @@
                       <input type="hidden" name="bathroom-tiles" value="" class="sub-task" data-weight="1" data-task="KERAMIK DINDING TOILET & DAPUR" id="bathroomTilesInputUser2" />
                     </div>
 
-                    <!-- INSTALASI LISTRIK -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">INSTALASI LISTRIK</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="INSTALASI LISTRIK" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="INSTALASI LISTRIK" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="INSTALASI LISTRIK" data-value="100%">100%</button>
+                    <!-- INSTALASI LISTRIK dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">INSTALASI LISTRIK</span>
+                        <span class="slider-percent-box" id="instalasiListrikPercentUser2">0%</span>
                       </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="INSTALASI LISTRIK" id="instalasiListrikInputUser2" />
-                    </div>
-
-                    <!-- KERAMIK LANTAI -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">KERAMIK LANTAI</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="KERAMIK LANTAI" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="KERAMIK LANTAI" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="KERAMIK LANTAI" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="KERAMIK LANTAI" id="keramikLantaiInputUser2" />
-                    </div>
-
-                  </div>
-                  <button class="btn-save-section" type="button" data-tahap="2">
-                    <i class="fas fa-save"></i> Simpan Tahap 2
-                  </button>
-                </div>
-              </div>
-
-              <!-- TAHAP 3 - USER 2 -->
-              <div id="tab-user2-tahap3" class="tab-content-item">
-                <div class="progress-section detailed" data-tahap="3">
-                  <div class="section-header-flex">
-                    <h3>Tahap 3: Progres Kerja Pemasangan Fasilitas</h3>
-                    <span class="sub-percent">0%</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div class="progress-fill tahap3" style="width: 0%"></div>
-                  </div>
-                  <div class="sub-tasks-grid">
-                    
-                    <!-- KUSEN PINTU & JENDELA -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">KUSEN PINTU & JENDELA</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="KUSEN PINTU & JENDELA" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="KUSEN PINTU & JENDELA" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="KUSEN PINTU & JENDELA" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="KUSEN PINTU & JENDELA" />
-                    </div>
-
-                    <!-- DAUN PINTU & JENDELA -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">DAUN PINTU & JENDELA</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="DAUN PINTU & JENDELA" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="DAUN PINTU & JENDELA" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="DAUN PINTU & JENDELA" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="DAUN PINTU & JENDELA" />
-                    </div>
-
-                    <!-- CAT DASAR + LAPIS AWAL -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">CAT DASAR + LAPIS AWAL</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="CAT DASAR + LAPIS AWAL" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="CAT DASAR + LAPIS AWAL" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="CAT DASAR + LAPIS AWAL" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="CAT DASAR + LAPIS AWAL" />
-                    </div>
-
-                    <!-- FITTING LAMPU -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">FITTING LAMPU</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="FITTING LAMPU" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="FITTING LAMPU" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="FITTING LAMPU" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="FITTING LAMPU" />
-                    </div>
-
-                    <!-- FIXTURE & SANITER -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">FIXTURE & SANITER</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="FIXTURE & SANITER" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="FIXTURE & SANITER" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="FIXTURE & SANITER" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="FIXTURE & SANITER" />
-                    </div>
-
-                    <!-- CAT FINISH INTERIOR -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">CAT FINISH INTERIOR</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="CAT FINISH INTERIOR" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="CAT FINISH INTERIOR" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="CAT FINISH INTERIOR" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="CAT FINISH INTERIOR" />
-                    </div>
-
-                    <!-- CAT FINISH EXTERIOR -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">CAT FINISH EXTERIOR</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="CAT FINISH EXTERIOR" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="CAT FINISH EXTERIOR" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="CAT FINISH EXTERIOR" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="CAT FINISH EXTERIOR" />
-                    </div>
-
-                    <!-- BAK KONTROL & BATAS CARPORT -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">BAK KONTROL & BATAS CARPORT</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="BAK KONTROL & BATAS CARPORT" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="BAK KONTROL & BATAS CARPORT" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="BAK KONTROL & BATAS CARPORT" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="BAK KONTROL & BATAS CARPORT" />
-                    </div>
-
-                    <!-- PAVING HALAMAN / CARPOT -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">PAVING HALAMAN / Carpot</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="PAVING HALAMAN" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PAVING HALAMAN" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PAVING HALAMAN" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="PAVING HALAMAN" />
-                    </div>
-
-                    <!-- METERAN LISTRIK -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">Meteran Listrik</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="METERAN LISTRIK" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="METERAN LISTRIK" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="METERAN LISTRIK" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="METERAN LISTRIK" />
-                    </div>
-
-                    <!-- METERAN PDAM -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">Meteran PDAM</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="METERAN AIR" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="METERAN AIR" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="METERAN AIR" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="METERAN AIR" />
-                    </div>
-
-                    <!-- KONEKTING PIPA AIR BERSIH -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">Konekting Pipa Air Bersih</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="Konekting Air Bersih" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="Konekting Air Bersih" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="Konekting Air Bersih" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="Konekting Air Bersih" />
-                    </div>
-
-                  </div>
-                  <button class="btn-save-section" type="button" data-tahap="3">
-                    <i class="fas fa-save"></i> Simpan Tahap 3
-                  </button>
-                </div>
-              </div>
-
-
-            <!-- TAHAP 4 - USER 2 -->
-              <div id="tab-user2-tahap4" class="tab-content-item">
-                <div class="progress-section detailed" data-tahap="4">
-                  <div class="section-header-flex">
-                    <h3>Tahap 4: Progres Kerja Interior & Exterior</h3>
-                    <span class="sub-percent">0%</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div class="progress-fill tahap4" style="width: 0%"></div>
-                  </div>
-                  <div class="sub-tasks-grid">
-                    
-                    <!-- KONEKTING PIPA AIR KOTOR -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">Konekting Pipa Air Kotor</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="Konekting Air Kotor" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="Konekting Air Kotor" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="Konekting Air Kotor" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="Konekting Air Kotor" />
-                    </div>
-
-                    <!-- GORONG-GORONG -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">Gorong-Gorong</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="Gorong-gorong" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="Gorong-gorong" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="Gorong-gorong" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="Gorong-gorong" />
-                    </div>
-
-                    <!-- AKSES JALAN -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">Akses Jalan</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="Akses Jalan" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="Akses Jalan" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="Akses Jalan" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="Akses Jalan" />
-                    </div>
-
-                    <!-- GENERAL CLEANING -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">GENERAL CLEANING</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="GENERAL CLEANING" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="GENERAL CLEANING" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="GENERAL CLEANING" data-value="100%">100%</button>
-                      </div>
-                      <input type="hidden" value="" class="sub-task" data-weight="1" data-task="GENERAL CLEANING" />
-                    </div>
-
-                  </div>
-
-                  <!-- Catatan Keterangan -->
-                  <div style="margin-top: 20px;">
-                    <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
-                      <i class="fas fa-sticky-note"></i> Keterangan
-                    </label>
-                    <textarea
-                      id="keteranganTahap4User2"
-                      style="width: 100%; height: 100px; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: vertical;"
-                      placeholder="Masukkan keterangan tambahan di sini..."
-                    ></textarea>
-                  </div>
-
-                  <!-- Info Pengembalian Kunci -->
-                  <div style="margin-top: 20px; padding: 15px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3);">
-                    <h4 style="margin-bottom: 12px; color: #38bdf8;">
-                      <i class="fas fa-key"></i> Pengembalian Kunci Setelah Pembangunan
-                    </h4>
-                    
-                    <div style="margin-bottom: 15px;">
-                      <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
-                        Diberikan Kepada Siapa?
-                      </label>
-                      <input
-                        type="text"
-                        id="keyReturnRecipientUser2"
-                        placeholder="Nama penerima kunci"
-                        style="width: 100%; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
-                      />
-                    </div>
-
-                    <div>
-                      <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
-                        Tanggal Pengembalian Kunci
-                      </label>
-                      <input
-                        type="date"
-                        id="keyReturnDateUser2"
-                        style="width: 100%; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
-                      />
-                    </div>
-                  </div>
-
-                  <button class="btn-save-section" type="button" data-tahap="4">
-                    <i class="fas fa-save"></i> Simpan Tahap 4
-                  </button>
-                </div>
-              </div>
-
-              <!-- TAB KONDISI UNIT SAAT INI -->
-              <div id="tab-user2-kondisi_saat_ini" class="tab-content-item">
-                <div class="progress-section detailed" data-tahap="revisi">
-                  <div class="section-header-flex">
-                    <h3>Kondisi Unit Saat Ini</h3>
-                  </div>
-
-                  <div class="kondisi-unit-content" style="margin-top: 20px;">
-                    <div class="input-group" style="margin-bottom: 20px;">
-                      <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-size: 0.9rem;">Area Catatan Kondisi Properti:</label>
-                      <textarea id="kondisiUnitNotesUser2" class="sub-task" data-task="KETERANGAN_KONDISI_UNIT" placeholder="Masukkan keterangan detail mengenai kondisi unit saat ini..." style="width: 100%; min-height: 150px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; color: white; font-family: inherit; font-size: 0.9rem; line-height: 1.5;"></textarea>
-                    </div>
-
-                    <div class="Kondisi-image-container">
-                      <label style="display: block; margin-bottom: 12px; color: #94a3b8; font-size: 0.9rem; font-weight: 600;">
-                        <i class="fas fa-camera-retro"></i> Unggah Foto Kondisi Properti (Max 6)
-                      </label>
-                      <div style="margin-bottom: 15px; color: #64748b; font-size: 0.8rem;">
-                        <i class="fas fa-info-circle"></i> Foto akan dikompresi otomatis untuk mempercepat pengunggahan.
-                      </div>
-                      <input type="file" id="revisiPhotoInputUser2" accept="image/*" multiple style="display: none;" />
-                      <button type="button" class="btn-upload-foto" onclick="document.getElementById('revisiPhotoInputUser2').click()" style="background: linear-gradient(135deg, #334155, #1e293b); color: white; border: 1px solid #475569; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
-                        <i class="fas fa-plus"></i> Pilih & Unggah Foto
-                      </button>
-                      <div id="revisiImagePreview1User2" class="photo-preview-container" style="width: 100%; min-height: 100px; background: #0f172a; border: 2px dashed #334155; border-radius: 12px; display: flex; flex-wrap: wrap; gap: 12px; padding: 15px; align-items: center; justify-content: center; color: #64748b; font-size: 0.9rem;">
-                        <div style="text-align: center;">
-                          <i class="fas fa-images" style="font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.5;"></i>
-                          <span>Belum ada foto yang dipilih</span>
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="INSTALASI LISTRIK" data-weight="1" data-snap="true" id="instalasiListrikSliderUser2" />
+                          <div class="slider-track-fill" id="instalasiListrikTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
                         </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="instalasiListrikSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
                       </div>
-                    </div>
-                  </div>
-                  <button class="btn-save-section btn-save-revisi" type="button" data-tahap="revisi" style="margin-top: 20px;">
-                    <i class="fas fa-save"></i> Simpan Kondisi Unit
-                  </button>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PAGE: user3 -->
-      <div class="page-content user3-page" id="user3Page" aria-hidden="true">
-        <div class="page-header">
-          <div class="page-title">
-            <i class="fas fa-hard-hat"></i>
-            <h2 id="user3Title">Dashboard Pelaksana 3</h2>
-          </div>
-          <div class="dashboard-buttons-grid">
-            <button class="logout-btn combined-btn" type="button">
-              <i class="fas fa-sign-out-alt"></i> Kembali ke Menu Awal & Logout
-            </button>
-            <button class="btn-edit-kavling" type="button">
-              <i class="fas fa-edit"></i> Edit Kavling
-            </button>
-            <button class="btn-add-kavling" type="button">
-              <i class="fas fa-plus-circle"></i> Tambah Kavling
-            </button>
-            <button class="sync-btn combined-btn" type="button">
-              <i class="fas fa-sync-alt"></i> Sinkronkan Data
-            </button>
-          </div>
-        </div>
-
-        <div class="page-layout">
-          <div class="sidebar-kavling">
-            <div class="search-section">
-              <div class="search-box">
-                <div class="custom-search-container">
-                  <input
-                    type="text"
-                    id="searchKavlingUser3Input"
-                    class="search-input-custom"
-                    placeholder="Cari Kavling..."
-                    autocomplete="off"
-                  />
-                  <div
-                    id="searchKavlingUser3List"
-                    class="custom-dropdown-list"
-                    style="display: none"
-                  ></div>
-                  <select id="searchKavlingUser3" style="display: none">
-                    <option value="">-- Pilih Kavling --</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="kavling-info-display" id="kavlingInfoUser3">
-                <div class="info-item">
-                  <span class="info-label">Blok/Kavling:</span>
-                  <span class="info-value val-name">-</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Type:</span>
-                  <span class="info-value val-type">-</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Luas Tanah (LT):</span>
-                  <span class="info-value val-lt">-</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Luas Bangunan (LB):</span>
-                  <span class="info-value val-lb">-</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="page-body">
-            <div class="overall-rekap">
-              <div class="rekap-header">
-                <h3>Keseluruhan Progres Proyek</h3>
-                <span class="total-percent" aria-live="polite">0%</span>
-              </div>
-              <div class="progress-bar main">
-                <div class="progress-fill total-bar" style="width: 0%"></div>
-              </div>
-            </div>
-
-            <div class="admin-tabs pelaksana-tabs user3-tabs">
-              <button class="admin-tab-btn active" data-tab="user3-tahap1">
-                <i class="fas fa-layer-group"></i> Tahap 1
-              </button>
-              <button class="admin-tab-btn" data-tab="user3-tahap2">
-                <i class="fas fa-layer-group"></i> Tahap 2
-              </button>
-              <button class="admin-tab-btn" data-tab="user3-tahap3">
-                <i class="fas fa-layer-group"></i> Tahap 3
-              </button>
-              <button class="admin-tab-btn" data-tab="user3-tahap4">
-                <i class="fas fa-layer-group"></i> Tahap 4
-              </button>
-              <button class="admin-tab-btn" data-tab="user3-revision-photos">
-                <i class="fas fa-images"></i> Revisi dari Supervisor
-              </button>
-            </div>
-
-            <div class="tab-content pelaksana-tab-content">
-              <!-- TAHAP 1 - USER 3 -->
-              <div id="tab-user3-tahap1" class="tab-content-item active">
-                <div
-                  class="progress-section detailed"
-                  data-tahap="1"
-                  style="border-left: 6px solid #8b5cf6"
-                >
-                  <div class="section-header-flex">
-                    <h3 style="color: #8b5cf6">
-                      Tahap 1: Struktur Awal
-                    </h3>
-                    <span class="sub-percent">0%</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill tahap1"
-                      style="
-                        width: 0%;
-                        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-                      "
-                    ></div>
-                  </div>
-                  <div class="sub-tasks-grid">
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="LAND CLEARING"
-                      />
-                      Land Clearing</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PONDASI"
-                      />
-                      Pondasi</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="SLOOF"
-                      />
-                      Sloof</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PAS.DDG S/D2 CANOPY"
-                      />
-                      Pas.Ddg S/D Canopy</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PAS.DDG S/D RING BLK"
-                      />
-                      Pas.Ddg S/D Ring Blk</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="CONDUIT+INBOW DOOS"
-                      />
-                      Conduit + Inbow Doos</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PIPA AIR KOTOR"
-                      />
-                      Pipa Air Kotor</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PIPA AIR BERSIH"
-                      />
-                      Pipa Air Bersih</label
-                    >
-
-                    <!-- SISTEM PEMBUANGAN -->
-                    <div class="task-item-standalone waste-system">
-                      <span class="item-title">SISTEM PEMBUANGAN =</span>
-                      <div class="dual-state-buttons">
-                        <button
-                          type="button"
-                          class="state-btn system-btn"
-                          data-state="biotank"
-                          data-active="false"
-                        >
-                          Biotank
-                        </button>
-                        <div class="vertical-divider">|</div>
-                        <button
-                          type="button"
-                          class="state-btn system-btn"
-                          data-state="ipal"
-                          data-active="false"
-                        >
-                          Ipal
-                        </button>
-                        <div class="vertical-divider">|</div>
-                        <button
-                          type="button"
-                          class="state-btn system-btn"
-                          data-state="septictank"
-                          data-active="false"
-                        >
-                          Septictank
-                        </button>
-                      </div>
-                      <input
-                        type="hidden"
-                        name="waste-system"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="SISTEM PEMBUANGAN"
-                        id="wasteSystemInputUser3"
-                      />
+                      <input type="hidden" name="instalasi-listrik-progress" value="" class="sub-task-hidden" data-weight="1" data-task="INSTALASI LISTRIK" id="instalasiListrikInputUser2" />
                     </div>
 
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PLESTER"
-                      />
-                      Plester</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="ACIAN & BENANGAN"
-                      />
-                      Acian & Benangan</label
-                    >
-
-                    <!-- COR MEJA DAPUR -->
-                    <div class="task-item-standalone table-kitchen">
-                      <span class="item-title">COR MEJA DAPUR =</span>
-                      <div class="dual-state-buttons">
-                        <button
-                          type="button"
-                          class="state-btn table-btn"
-                          data-state="include"
-                          data-active="false"
-                        >
-                          Dengan COR MEJA DAPUR
-                        </button>
-                        <div class="vertical-divider">|</div>
-                        <button
-                          type="button"
-                          class="state-btn table-btn"
-                          data-state="exclude"
-                          data-active="false"
-                        >
-                          Tanpa COR MEJA DAPUR
-                        </button>
+                    <!-- KERAMIK LANTAI dengan slider -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">KERAMIK LANTAI</span>
+                        <span class="slider-percent-box" id="keramikLantaiPercentUser2">0%</span>
                       </div>
-                      <input
-                        type="hidden"
-                        name="table-kitchen"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="COR MEJA DAPUR"
-                        id="tableKitchenInputUser3"
-                      />
-                    </div>
-                  </div>
-                  <button class="btn-save-section" type="button" data-tahap="1">
-                    <i class="fas fa-save"></i> Simpan Tahap 1
-                  </button>
-                </div>
-              </div>
-
-              <!-- TAHAP 2 - USER 3 -->
-              <div id="tab-user3-tahap2" class="tab-content-item">
-                <div
-                  class="progress-section detailed"
-                  data-tahap="2"
-                  style="border-left: 6px solid #8b5cf6"
-                >
-                  <div class="section-header-flex">
-                    <h3 style="color: #8b5cf6">
-                      Tahap 2: Atap, Dinding & Lantai
-                    </h3>
-                    <span class="sub-percent">0%</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill tahap2"
-                      style="
-                        width: 0%;
-                        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-                      "
-                    ></div>
-                  </div>
-                  <div class="sub-tasks-grid">
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="RANGKA ATAP"
-                      />
-                      Rangka Atap</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="GENTENG"
-                      />
-                      Genteng</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PLAFOND"
-                      />
-                      Plafond</label
-                    >
-
-                    <!-- KERAMIK DINDING -->
-                    <div class="task-item-standalone bathroom-tiles">
-                      <span class="item-title"
-                        >KERAMIK DINDING TOILET & DAPUR =</span
-                      >
-                      <div class="dual-state-buttons">
-                        <button
-                          type="button"
-                          class="state-btn tiles-btn"
-                          data-state="include"
-                          data-active="false"
-                        >
-                          Dengan Keramik Dinding
-                        </button>
-                        <div class="vertical-divider">|</div>
-                        <button
-                          type="button"
-                          class="state-btn tiles-btn"
-                          data-state="exclude"
-                          data-active="false"
-                        >
-                          Tanpa Keramik Dinding
-                        </button>
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="KERAMIK LANTAI" data-weight="1" data-snap="true" id="keramikLantaiSliderUser2" />
+                          <div class="slider-track-fill" id="keramikLantaiTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="keramikLantaiSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
                       </div>
-                      <input
-                        type="hidden"
-                        name="bathroom-tiles"
-                        value=""
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="KERAMIK DINDING TOILET & DAPUR"
-                        id="bathroomTilesInputUser3"
-                      />
+                      <input type="hidden" name="keramik-lantai-progress" value="" class="sub-task-hidden" data-weight="1" data-task="KERAMIK LANTAI" id="keramikLantaiInputUser2" />
                     </div>
 
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="INSTALASI LISTRIK"
-                      />
-                      Instalasi Listrik</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="KERAMIK LANTAI"
-                      />
-                      Keramik Lantai</label
-                    >
                   </div>
                   <button class="btn-save-section" type="button" data-tahap="2">
                     <i class="fas fa-save"></i> Simpan Tahap 2
@@ -2722,351 +2080,592 @@
                 </div>
               </div>
 
-              <!-- TAHAP 3 - USER 3 -->
-              <div id="tab-user3-tahap3" class="tab-content-item">
-                <div
-                  class="progress-section detailed"
-                  data-tahap="3"
-                  style="border-left: 6px solid #8b5cf6"
-                >
-                  <div class="section-header-flex">
-                    <h3 style="color: #8b5cf6">
-                      Tahap 3: Finishing
-                    </h3>
-                    <span class="sub-percent">0%</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill tahap3"
-                      style="
-                        width: 0%;
-                        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-                      "
-                    ></div>
-                  </div>
-                  <div class="sub-tasks-grid">
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="KUSEN PINTU & JENDELA"
-                      />
-                      Kusen Pintu & Jendela</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="DAUN PINTU & JENDELA"
-                      />
-                      Daun Pintu & Jendela</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="CAT DASAR + LAPIS AWAL"
-                      />
-                      Cat Dasar + Lapis Awal</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="FITTING LAMPU"
-                      />
-                      Fitting Lampu</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="FIXTURE & SANITER"
-                      />
-                      Fixture & Saniter</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="CAT FINISH INTERIOR"
-                      />
-                      Cat Finish Interior</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="CAT FINISH EXTERIOR"
-                      />
-                      Cat Finish Exterior</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="BAK KONTROL & BATAS CARPORT"
-                      />
-                      Bak Kontrol & Batas Carport</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="PAVING HALAMAN"
-                      />
-                      Paving Halaman</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="METERAN LISTRIK"
-                      />
-                      Meteran Listrik</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="METERAN AIR"
-                      />
-                      Meteran Air</label
-                    >
-                    <label class="task-item"
-                      ><input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="GENERAL CLEANING"
-                      />
-                      General Cleaning</label
-                    >
-                  </div>
-                  <button class="btn-save-section" type="button" data-tahap="3">
-                    <i class="fas fa-save"></i> Simpan Tahap 3
-                  </button>
-                </div>
-              </div>
-
-              <!-- TAHAP 4 - USER 3 -->
-              <div id="tab-user3-tahap4" class="tab-content-item">
-                <div
-                  class="progress-section detailed"
-                  data-tahap="4"
-                  style="border-left: 6px solid #8b5cf6"
-                >
-                  <div class="section-header-flex">
-                    <h3 style="color: #8b5cf6">
-                      Tahap 4: Kondisi Akhir
-                    </h3>
-                    <span class="sub-percent">0%</span>
-                  </div>
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill tahap4"
-                      style="
-                        width: 0%;
-                        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-                      "
-                    ></div>
-                  </div>
-
-                  <div class="notes-section" style="margin-top: 10px">
-                    <label
-                      style="
-                        display: block;
-                        margin-bottom: 8px;
-                        color: #8b5cf6;
-                        font-weight: 600;
-                      "
-                    >
-                      <i class="fas fa-comment-dots"></i> Kondisi Property /
-                      Keterangan Tambahan
-                    </label>
-                    <textarea
-                      class="tahap-comments"
-                      data-task="KETERANGAN"
-                      style="
-                        width: 100%;
-                        height: 100px;
-                        padding: 15px;
-                        border-radius: 12px;
-                        background: #0f172a;
-                        color: white;
-                        border: 2px solid rgba(139, 92, 246, 0.5);
-                        font-size: 1rem;
-                        resize: none;
-                      "
-                      placeholder="Masukkan kondisi property atau keterangan tambahan..."
-                    ></textarea>
-                  </div>
-
-                  <div class="delivery-section" style="margin-top: 20px">
-                    <label
-                      style="
-                        display: block;
-                        margin-bottom: 8px;
-                        color: #8b5cf6;
-                        font-weight: 600;
-                      "
-                    >
-                      <i class="fas fa-key"></i> Penyerahan Kunci Dari Kepada
-                      Siapa :
-                    </label>
-                    <input
-                      type="text"
-                      class="key-delivery-input sub-task-text"
-                      data-task="PENYERAHAN KUNCI"
-                      style="
-                        width: 100%;
-                        padding: 14px;
-                        border-radius: 10px;
-                        background: #0f172a;
-                        color: white;
-                        border: 2px solid rgba(139, 92, 246, 0.5);
-                        font-size: 1rem;
-                      "
-                      placeholder="Dari dan Penerima"
-                      autocomplete="off"
-                    />
-                  </div>
-
-                  <div style="margin-top: 20px">
-                    <label
-                      style="
-                        display: block;
-                        margin-bottom: 8px;
-                        color: #8b5cf6;
-                        font-weight: 600;
-                      "
-                    >
-                      <i class="fas fa-calendar-alt"></i> Tanggal Penyerahan
-                      Kunci dari Pelaksana ke Penanggung Jawab :
-                    </label>
-
-                    <div style="display: flex; gap: 10px; align-items: center">
-                      <!-- Input tanggal -->
-                      <input
-                        type="text"
-                        class="key-delivery-date sub-task"
-                        placeholder="dd/mm/yyyy"
-                        style="
-                          width: 100%;
-                          padding: 14px;
-                          border-radius: 10px;
-                          background: #0f172a;
-                          color: white;
-                          border: 2px solid rgba(139, 92, 246, 0.5);
-                          font-size: 1rem;
-                        "
-                        maxlength="10"
-                      />
-                    </div>
-
-                    <div
-                      style="
-                        display: flex;
-                        gap: 10px;
-                        align-items: center;
-                        margin-top: 10px;
-                      "
-                    >
-                      <!-- Tombol Hari Ini -->
-                      <button
-                        type="button"
-                        class="btn-today"
-                        style="
-                          background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-                          color: white;
-                          border: none;
-                          padding: 14px 20px;
-                          border-radius: 10px;
-                          cursor: pointer;
-                          font-weight: 600;
-                          white-space: nowrap;
-                        "
-                      >
-                        <i class="fas fa-calendar-check"></i> Hari Ini
-                      </button>
-                    </div>
-
-                    <small
-                      style="
-                        color: #94a3b8;
-                        font-size: 0.8rem;
-                        display: block;
-                        margin-top: 5px;
-                      "
-                    >
-                      Klik ikon kalender untuk pilih tanggal, atau "Hari Ini"
-                      untuk tanggal sekarang. Kosongkan jika belum ada tanggal.
-                    </small>
-                  </div>
-
-                  <div style="margin-top: 20px">
-                    <label
-                      class="task-item"
-                      style="
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                        cursor: pointer;
-                      "
-                    >
-                      <input
-                        type="checkbox"
-                        class="sub-task"
-                        data-weight="1"
-                        data-task="COMPLETION / Penyelesaian akhir"
-                        data-tahap="4"
-                      />
-                      <span class="item-title"
-                        >Completion / Penyelesaian akhir</span
-                      >
-                    </label>
-                  </div>
-
-                  <button
-                    class="btn-save-section"
-                    type="button"
-                    data-tahap="4"
-                    style="margin-top: 25px"
-                  >
-                    <i class="fas fa-save"></i> Simpan Tahap 4
-                  </button>
-                </div>
-              </div>
-
-              <!-- FOTO REVISI - USER 3 -->
-              <div id="tab-user3-revision-photos" class="tab-content-item">
-                <div class="progress-section detailed">
-                  <h3 style="margin-bottom: 15px; color: #8b5cf6">
-                    <i class="fas fa-images"></i> Foto Catatan Revisi (Supervisor)
-                  </h3>
-                  <div id="revisionPhotoGalleryUser3" class="revision-gallery-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                    <div class="loading-placeholder" style="grid-column: span 2; text-align: center; color: #94a3b8; padding: 20px; border: 2px dashed #334155; border-radius: 12px;">
-                      <i class="fas fa-cloud-download-alt" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
-                      Belum ada foto revisi untuk kavling ini
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <!-- TAHAP 3 - USER 2 dengan SLIDER -->
+<div id="tab-user2-tahap3" class="tab-content-item">
+  <div class="progress-section detailed" data-tahap="3">
+    <div class="section-header-flex">
+      <h3>Tahap 3: Progres Kerja Pemasangan Fasilitas</h3>
+      <span class="sub-percent">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill tahap3" style="width: 0%"></div>
+    </div>
+    <div class="sub-tasks-grid">
+      
+      <!-- KUSEN PINTU & JENDELA dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">KUSEN PINTU & JENDELA</span>
+          <span class="slider-percent-box" id="kusenPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="KUSEN PINTU & JENDELA" data-weight="1" data-snap="true" id="kusenSliderUser2" />
+            <div class="slider-track-fill" id="kusenTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
             </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="kusenSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="KUSEN PINTU & JENDELA" id="kusenInputUser2" />
+      </div>
+
+      <!-- DAUN PINTU & JENDELA dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">DAUN PINTU & JENDELA</span>
+          <span class="slider-percent-box" id="daunPintuPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="DAUN PINTU & JENDELA" data-weight="1" data-snap="true" id="daunPintuSliderUser2" />
+            <div class="slider-track-fill" id="daunPintuTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="daunPintuSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="DAUN PINTU & JENDELA" id="daunPintuInputUser2" />
+      </div>
+
+      <!-- CAT DASAR + LAPIS AWAL dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">CAT DASAR + LAPIS AWAL</span>
+          <span class="slider-percent-box" id="catDasarPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="CAT DASAR + LAPIS AWAL" data-weight="1" data-snap="true" id="catDasarSliderUser2" />
+            <div class="slider-track-fill" id="catDasarTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="catDasarSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="CAT DASAR + LAPIS AWAL" id="catDasarInputUser2" />
+      </div>
+
+      <!-- FITTING LAMPU dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">FITTING LAMPU</span>
+          <span class="slider-percent-box" id="fittingLampuPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="FITTING LAMPU" data-weight="1" data-snap="true" id="fittingLampuSliderUser2" />
+            <div class="slider-track-fill" id="fittingLampuTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="fittingLampuSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="FITTING LAMPU" id="fittingLampuInputUser2" />
+      </div>
+
+      <!-- FIXTURE & SANITER dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">FIXTURE & SANITER</span>
+          <span class="slider-percent-box" id="fixtureSaniterPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="FIXTURE & SANITER" data-weight="1" data-snap="true" id="fixtureSaniterSliderUser2" />
+            <div class="slider-track-fill" id="fixtureSaniterTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="fixtureSaniterSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="FIXTURE & SANITER" id="fixtureSaniterInputUser2" />
+      </div>
+
+      <!-- CAT FINISH INTERIOR dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">CAT FINISH INTERIOR</span>
+          <span class="slider-percent-box" id="catInteriorPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="CAT FINISH INTERIOR" data-weight="1" data-snap="true" id="catInteriorSliderUser2" />
+            <div class="slider-track-fill" id="catInteriorTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="catInteriorSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="CAT FINISH INTERIOR" id="catInteriorInputUser2" />
+      </div>
+
+      <!-- CAT FINISH EXTERIOR dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">CAT FINISH EXTERIOR</span>
+          <span class="slider-percent-box" id="catExteriorPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="CAT FINISH EXTERIOR" data-weight="1" data-snap="true" id="catExteriorSliderUser2" />
+            <div class="slider-track-fill" id="catExteriorTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="catExteriorSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="CAT FINISH EXTERIOR" id="catExteriorInputUser2" />
+      </div>
+
+      <!-- BAK KONTROL & BATAS CARPORT dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">BAK KONTROL & BATAS CARPORT</span>
+          <span class="slider-percent-box" id="bakKontrolPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="BAK KONTROL & BATAS CARPORT" data-weight="1" data-snap="true" id="bakKontrolSliderUser2" />
+            <div class="slider-track-fill" id="bakKontrolTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="bakKontrolSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="BAK KONTROL & BATAS CARPORT" id="bakKontrolInputUser2" />
+      </div>
+
+      <!-- PAVING HALAMAN / CARPOT dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">PAVING HALAMAN / CARPOT</span>
+          <span class="slider-percent-box" id="pavingHalamanPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="PAVING HALAMAN" data-weight="1" data-snap="true" id="pavingHalamanSliderUser2" />
+            <div class="slider-track-fill" id="pavingHalamanTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="pavingHalamanSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="PAVING HALAMAN" id="pavingHalamanInputUser2" />
+      </div>
+
+      <!-- METERAN LISTRIK dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">METERAN LISTRIK</span>
+          <span class="slider-percent-box" id="meteranListrikPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="METERAN LISTRIK" data-weight="1" data-snap="true" id="meteranListrikSliderUser2" />
+            <div class="slider-track-fill" id="meteranListrikTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="meteranListrikSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="METERAN LISTRIK" id="meteranListrikInputUser2" />
+      </div>
+
+      <!-- METERAN PDAM dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">METERAN AIR (PDAM)</span>
+          <span class="slider-percent-box" id="meteranAirPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="METERAN AIR" data-weight="1" data-snap="true" id="meteranAirSliderUser2" />
+            <div class="slider-track-fill" id="meteranAirTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="meteranAirSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="METERAN AIR" id="meteranAirInputUser2" />
+      </div>
+
+      <!-- KONEKTING PIPA AIR BERSIH dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">KONEKTING AIR BERSIH</span>
+          <span class="slider-percent-box" id="konektingBersihPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="Konekting Air Bersih" data-weight="1" data-snap="true" id="konektingBersihSliderUser2" />
+            <div class="slider-track-fill" id="konektingBersihTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="konektingBersihSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="Konekting Air Bersih" id="konektingBersihInputUser2" />
+      </div>
+
+    </div>
+    <button class="btn-save-section" type="button" data-tahap="3">
+      <i class="fas fa-save"></i> Simpan Tahap 3
+    </button>
+  </div>
+</div>
+
+
+        <!-- TAHAP 4 - USER 2 dengan SLIDER -->
+<div id="tab-user2-tahap4" class="tab-content-item">
+  <div class="progress-section detailed" data-tahap="4">
+    <div class="section-header-flex">
+      <h3>Tahap 4: Progres Kerja Interior & Exterior</h3>
+      <span class="sub-percent">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill tahap4" style="width: 0%"></div>
+    </div>
+    <div class="sub-tasks-grid">
+      
+      <!-- KONEKTING PIPA AIR KOTOR dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">KONEKTING AIR KOTOR</span>
+          <span class="slider-percent-box" id="konektingKotorPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="Konekting Air Kotor" data-weight="1" data-snap="true" id="konektingKotorSliderUser2" />
+            <div class="slider-track-fill" id="konektingKotorTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="konektingKotorSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="Konekting Air Kotor" id="konektingKotorInputUser2" />
+      </div>
+
+      <!-- GORONG-GORONG dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">GORONG-GORONG</span>
+          <span class="slider-percent-box" id="gorongGorongPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="Gorong-gorong" data-weight="1" data-snap="true" id="gorongGorongSliderUser2" />
+            <div class="slider-track-fill" id="gorongGorongTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="gorongGorongSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="Gorong-gorong" id="gorongGorongInputUser2" />
+      </div>
+
+      <!-- AKSES JALAN dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">AKSES JALAN</span>
+          <span class="slider-percent-box" id="aksesJalanPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="Akses Jalan" data-weight="1" data-snap="true" id="aksesJalanSliderUser2" />
+            <div class="slider-track-fill" id="aksesJalanTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="aksesJalanSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="Akses Jalan" id="aksesJalanInputUser2" />
+      </div>
+
+      <!-- GENERAL CLEANING dengan slider -->
+      <div class="task-item-standalone progress-slider-choice">
+        <div class="slider-title-row">
+          <span class="item-title">GENERAL CLEANING</span>
+          <span class="slider-percent-box" id="generalCleaningPercentUser2">0%</span>
+        </div>
+        <div class="slider-row-with-check">
+          <div class="slider-container with-markers">
+            <input type="range" min="0" max="100" value="0" class="progress-slider sub-task" data-task="GENERAL CLEANING" data-weight="1" data-snap="true" id="generalCleaningSliderUser2" />
+            <div class="slider-track-fill" id="generalCleaningTrackUser2" style="width: 0%"></div>
+            <div class="slider-snap-markers">
+              <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+              <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+              <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+              <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+            </div>
+          </div>
+          <label class="slider-check-100" title="Set ke 100%">
+            <input type="checkbox" class="check-100" data-slider="generalCleaningSliderUser2" />
+            <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+          </label>
+        </div>
+        <input type="hidden" value="" class="sub-task-hidden" data-weight="1" data-task="GENERAL CLEANING" id="generalCleaningInputUser2" />
+      </div>
+
+    </div>
+
+    <!-- Catatan Keterangan -->
+    <div style="margin-top: 20px;">
+      <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
+        <i class="fas fa-sticky-note"></i> Keterangan
+      </label>
+      <textarea
+        id="keteranganTahap4User2"
+        style="width: 100%; height: 100px; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem; resize: vertical;"
+        placeholder="Masukkan keterangan tambahan di sini..."
+      ></textarea>
+    </div>
+
+    <!-- Info Pengembalian Kunci -->
+    <div style="margin-top: 20px; padding: 15px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3);">
+      <h4 style="margin-bottom: 12px; color: #38bdf8;">
+        <i class="fas fa-key"></i> Pengembalian Kunci Setelah Pembangunan
+      </h4>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
+          Diberikan Kepada Siapa?
+        </label>
+        <input
+          type="text"
+          id="keyReturnRecipientUser2"
+          placeholder="Nama penerima kunci"
+          style="width: 100%; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
+        />
+      </div>
+
+      <div>
+        <label style="display: block; margin-bottom: 8px; color: #94a3b8; font-weight: 600;">
+          Tanggal Pengembalian Kunci
+        </label>
+        <input
+          type="date"
+          id="keyReturnDateUser2"
+          style="width: 100%; padding: 12px; border-radius: 10px; background: #0f172a; color: white; border: 2px solid #334155; font-size: 1rem;"
+        />
+      </div>
+    </div>
+
+    <button class="btn-save-section" type="button" data-tahap="4">
+      <i class="fas fa-save"></i> Simpan Tahap 4
+    </button>
+  </div>
+</div>
+
+     <!-- PAGE: user3 - Disederhanakan hanya untuk dashboard informasi -->
+<div class="page-content user3-page" id="user3Page" aria-hidden="true">
+  <div class="page-header">
+    <div class="page-title">
+      <i class="fas fa-hard-hat"></i>
+      <h2 id="user3Title">Dashboard Pelaksana 3</h2>
+    </div>
+    <div class="dashboard-buttons-grid">
+      <button class="logout-btn combined-btn" type="button">
+        <i class="fas fa-sign-out-alt"></i> Kembali ke Menu Awal & Logout
+      </button>
+      <button class="sync-btn combined-btn" type="button">
+        <i class="fas fa-sync-alt"></i> Sinkronkan Data
+      </button>
+    </div>
+  </div>
+
+  <div class="page-layout">
+    <div class="sidebar-kavling">
+      <div class="search-section">
+        <div class="search-box">
+          <div class="custom-search-container">
+            <input
+              type="text"
+              id="searchKavlingUser3Input"
+              class="search-input-custom"
+              placeholder="Cari Kavling..."
+              autocomplete="off"
+            />
+            <div
+              id="searchKavlingUser3List"
+              class="custom-dropdown-list"
+              style="display: none"
+            ></div>
+            <select id="searchKavlingUser3" style="display: none">
+              <option value="">-- Pilih Kavling --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="kavling-info-display" id="kavlingInfoUser3">
+          <div class="info-item">
+            <span class="info-label">Blok/Kavling:</span>
+            <span class="info-value val-name">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Type:</span>
+            <span class="info-value val-type">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Luas Tanah (LT):</span>
+            <span class="info-value val-lt">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Luas Bangunan (LB):</span>
+            <span class="info-value val-lb">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Tanggal HandOver Kunci ke User:</span>
+            <span class="info-value val-HOuser">-</span>
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="page-body">
+      <div class="overall-rekap">
+        <div class="rekap-header">
+          <h3>Keseluruhan Progres Proyek</h3>
+          <span class="total-percent" aria-live="polite">0%</span>
+        </div>
+        <div class="progress-bar main">
+          <div class="progress-fill total-bar" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Informasi Tambahan -->
+      <div class="info-card" style="
+        background: rgba(139, 92, 246, 0.1);
+        border: 2px solid rgba(139, 92, 246, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+      ">
+        <h3 style="color: #8b5cf6; margin-bottom: 15px;">
+          <i class="fas fa-info-circle"></i> Informasi
+        </h3>
+        <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 10px;">
+          Dashboard ini hanya menampilkan informasi dasar kavling. Untuk detail progres pembangunan, silakan hubungi supervisor.
+        </p>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+          <div style="flex: 1; text-align: center; padding: 10px; background: rgba(139, 92, 246, 0.2); border-radius: 8px;">
+            <div style="font-size: 0.9rem; color: #94a3b8;">Status</div>
+            <div id="statusInfoUser3" style="font-weight: 700; color: #8b5cf6; font-size: 1.1rem;">-</div>
+          </div>
+          <div style="flex: 1; text-align: center; padding: 10px; background: rgba(139, 92, 246, 0.2); border-radius: 8px;">
+            <div style="font-size: 0.9rem; color: #94a3b8;">Terakhir Update</div>
+            <div id="lastUpdateUser3" style="font-weight: 700; color: #8b5cf6; font-size: 1.1rem;">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
       <!-- PAGE: user4 (ADMIN UTILITAS) -->
       <div class="page-content user4-page" id="user4Page" aria-hidden="true">
