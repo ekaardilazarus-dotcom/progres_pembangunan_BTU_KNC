@@ -2131,6 +2131,17 @@ function loadProgressData(progressData) {
         }
       }
     });
+    
+    // Load User2 sliders from database data
+    if (currentRole === 'user2') {
+      const sliderTasks = ['LAND CLEARING', 'PONDASI', 'SLOOF'];
+      sliderTasks.forEach(taskName => {
+        const value = progressData.tahap1[taskName];
+        if (value !== undefined && typeof updateUser2SliderFromDB === 'function') {
+          updateUser2SliderFromDB(taskName, value);
+        }
+      });
+    }
   }
 
   // ===== Tahap 2 =====
@@ -8608,7 +8619,175 @@ function resetSupervisorHOSection() {
   if (inputTgl) inputTgl.value = '';
 }
 
+// ========== USER2 PROGRESS SLIDER FUNCTIONALITY ==========
+const SNAP_POINTS = [30, 50, 70, 100];
+const SNAP_THRESHOLD = 5;
+
+function snapToPoint(value) {
+  for (const point of SNAP_POINTS) {
+    if (Math.abs(value - point) <= SNAP_THRESHOLD) {
+      return point;
+    }
+  }
+  return value;
+}
+
+function updateSnapMarkers(sliderContainer, value) {
+  const markers = sliderContainer.querySelectorAll('.snap-marker');
+  markers.forEach(marker => {
+    const markerValue = parseInt(marker.getAttribute('data-value'));
+    if (markerValue === value) {
+      marker.classList.add('active');
+    } else {
+      marker.classList.remove('active');
+    }
+  });
+}
+
+function setupUser2ProgressSliders() {
+  console.log('🎚️ Setting up User2 progress sliders...');
+  
+  const sliders = [
+    { sliderId: 'landClearingSliderUser2', percentId: 'landClearingPercentUser2', trackId: 'landClearingTrackUser2', hiddenId: 'landClearingInputUser2', task: 'LAND CLEARING' },
+    { sliderId: 'pondasiSliderUser2', percentId: 'pondasiPercentUser2', trackId: 'pondasiTrackUser2', hiddenId: 'pondasiInputUser2', task: 'PONDASI' },
+    { sliderId: 'sloofSliderUser2', percentId: 'sloofPercentUser2', trackId: 'sloofTrackUser2', hiddenId: 'sloofInputUser2', task: 'SLOOF' }
+  ];
+  
+  sliders.forEach(config => {
+    const slider = document.getElementById(config.sliderId);
+    const percentBox = document.getElementById(config.percentId);
+    const trackFill = document.getElementById(config.trackId);
+    const hiddenInput = document.getElementById(config.hiddenId);
+    const sliderContainer = slider ? slider.closest('.slider-container') : null;
+    const checkbox100 = document.querySelector(`input.check-100[data-slider="${config.sliderId}"]`);
+    
+    if (!slider || !percentBox || !trackFill) {
+      console.log(`❌ Slider elements not found for ${config.task}`);
+      return;
+    }
+    
+    const updateSliderUI = (value, updateCheckbox = true) => {
+      const numValue = parseInt(value) || 0;
+      percentBox.textContent = numValue + '%';
+      trackFill.style.width = numValue + '%';
+      if (hiddenInput) hiddenInput.value = numValue > 0 ? numValue + '%' : '';
+      if (sliderContainer) updateSnapMarkers(sliderContainer, numValue);
+      if (updateCheckbox && checkbox100) {
+        checkbox100.checked = (numValue === 100);
+      }
+    };
+    
+    slider.addEventListener('input', function() {
+      updateSliderUI(this.value);
+      console.log(`Slider ${config.task} changed to: ${this.value}%`);
+      
+      const tahapSection = this.closest('.progress-section');
+      if (tahapSection) {
+        const tahap = tahapSection.getAttribute('data-tahap');
+        updateTahapProgressUI(tahapSection, tahap);
+      }
+    });
+    
+    slider.addEventListener('change', function() {
+      const snappedValue = snapToPoint(parseInt(this.value));
+      if (snappedValue !== parseInt(this.value)) {
+        this.value = snappedValue;
+        updateSliderUI(snappedValue);
+        console.log(`Slider ${config.task} snapped to: ${snappedValue}%`);
+      } else {
+        console.log(`Slider ${config.task} final value: ${this.value}%`);
+      }
+      
+      const tahapSection = this.closest('.progress-section');
+      if (tahapSection) {
+        const tahap = tahapSection.getAttribute('data-tahap');
+        updateTahapProgressUI(tahapSection, tahap);
+      }
+    });
+    
+    if (checkbox100) {
+      checkbox100.addEventListener('change', function() {
+        if (this.checked) {
+          slider.value = 100;
+          updateSliderUI(100, false);
+          console.log(`Checkbox set ${config.task} to 100%`);
+        } else {
+          slider.value = 0;
+          updateSliderUI(0, false);
+          console.log(`Checkbox reset ${config.task} to 0%`);
+        }
+        
+        const tahapSection = slider.closest('.progress-section');
+        if (tahapSection) {
+          const tahap = tahapSection.getAttribute('data-tahap');
+          updateTahapProgressUI(tahapSection, tahap);
+        }
+      });
+    }
+    
+    updateSliderUI(slider.value);
+    console.log(`✅ Slider setup complete for ${config.task}`);
+  });
+  
+  console.log('✅ All User2 sliders setup complete');
+}
+
+function updateUser2SliderFromDB(task, value) {
+  const sliderMapping = {
+    'LAND CLEARING': { sliderId: 'landClearingSliderUser2', percentId: 'landClearingPercentUser2', trackId: 'landClearingTrackUser2', hiddenId: 'landClearingInputUser2' },
+    'PONDASI': { sliderId: 'pondasiSliderUser2', percentId: 'pondasiPercentUser2', trackId: 'pondasiTrackUser2', hiddenId: 'pondasiInputUser2' },
+    'SLOOF': { sliderId: 'sloofSliderUser2', percentId: 'sloofPercentUser2', trackId: 'sloofTrackUser2', hiddenId: 'sloofInputUser2' }
+  };
+  
+  const config = sliderMapping[task];
+  if (!config) return;
+  
+  const slider = document.getElementById(config.sliderId);
+  const percentBox = document.getElementById(config.percentId);
+  const trackFill = document.getElementById(config.trackId);
+  const hiddenInput = document.getElementById(config.hiddenId);
+  const sliderContainer = slider ? slider.closest('.slider-container') : null;
+  const checkbox100 = document.querySelector(`input.check-100[data-slider="${config.sliderId}"]`);
+  
+  if (!slider || !percentBox || !trackFill) return;
+  
+  let numValue = 0;
+  if (value) {
+    if (typeof value === 'string') {
+      numValue = parseInt(value.replace('%', '')) || 0;
+    } else if (typeof value === 'number') {
+      numValue = value;
+    } else if (typeof value === 'boolean' && value === true) {
+      numValue = 100;
+    }
+  }
+  
+  slider.value = numValue;
+  percentBox.textContent = numValue + '%';
+  trackFill.style.width = numValue + '%';
+  if (hiddenInput) hiddenInput.value = numValue > 0 ? numValue + '%' : '';
+  if (sliderContainer) updateSnapMarkers(sliderContainer, numValue);
+  if (checkbox100) checkbox100.checked = (numValue === 100);
+  
+  console.log(`📊 Updated User2 slider ${task} to ${numValue}% from DB`);
+}
+
+function loadUser2SlidersFromData(data) {
+  if (!data || currentRole !== 'user2') return;
+  
+  console.log('📥 Loading User2 sliders from database data...');
+  
+  const tasks = ['LAND CLEARING', 'PONDASI', 'SLOOF'];
+  tasks.forEach(task => {
+    const value = data[task] || data[task.toLowerCase().replace(/ /g, '_')];
+    if (value !== undefined) {
+      updateUser2SliderFromDB(task, value);
+    }
+  });
+}
+
 // Panggil setelah DOM siap
 document.addEventListener('DOMContentLoaded', function() {
   setTimeout(debugTahap4Structure, 1000);
+  setTimeout(setupUser2ProgressSliders, 500);
 });
