@@ -1539,63 +1539,129 @@
                   </div>
                   <div class="sub-tasks-grid">
                     
-                    <!-- LAND CLEARING dengan pilihan 50%, 90%, 100% -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">LAND CLEARING</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="LAND CLEARING" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="LAND CLEARING" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="LAND CLEARING" data-value="100%">100%</button>
+                    <!-- LAND CLEARING dengan slider persentase -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">LAND CLEARING</span>
+                        <span class="slider-percent-box" id="landClearingPercentUser2">0%</span>
+                      </div>
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value="0"
+                            class="progress-slider sub-task"
+                            data-task="LAND CLEARING"
+                            data-weight="1"
+                            data-snap="true"
+                            id="landClearingSliderUser2"
+                          />
+                          <div class="slider-track-fill" id="landClearingTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="landClearingSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
                       </div>
                       <input
                         type="hidden"
                         name="land-clearing-progress"
                         value=""
-                        class="sub-task"
+                        class="sub-task-hidden"
                         data-weight="1"
                         data-task="LAND CLEARING"
                         id="landClearingInputUser2"
                       />
                     </div>
 
-                    <!-- PONDASI dengan pilihan 50%, 90%, 100% -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">PONDASI</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="PONDASI" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PONDASI" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="PONDASI" data-value="100%">100%</button>
+                    <!-- PONDASI dengan slider persentase -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">PONDASI</span>
+                        <span class="slider-percent-box" id="pondasiPercentUser2">0%</span>
+                      </div>
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value="0"
+                            class="progress-slider sub-task"
+                            data-task="PONDASI"
+                            data-weight="1"
+                            data-snap="true"
+                            id="pondasiSliderUser2"
+                          />
+                          <div class="slider-track-fill" id="pondasiTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="pondasiSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
                       </div>
                       <input
                         type="hidden"
                         name="pondasi-progress"
                         value=""
-                        class="sub-task"
+                        class="sub-task-hidden"
                         data-weight="1"
                         data-task="PONDASI"
                         id="pondasiInputUser2"
                       />
                     </div>
 
-                    <!-- SLOOF dengan pilihan 50%, 90%, 100% -->
-                    <div class="task-item-standalone progress-choice">
-                      <span class="item-title">SLOOF</span>
-                      <div class="progress-buttons">
-                        <button type="button" class="progress-btn" data-task="SLOOF" data-value="50%">50%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="SLOOF" data-value="90%">90%</button>
-                        <div class="progress-divider">|</div>
-                        <button type="button" class="progress-btn" data-task="SLOOF" data-value="100%">100%</button>
+                    <!-- SLOOF dengan slider persentase -->
+                    <div class="task-item-standalone progress-slider-choice">
+                      <div class="slider-title-row">
+                        <span class="item-title">SLOOF</span>
+                        <span class="slider-percent-box" id="sloofPercentUser2">0%</span>
+                      </div>
+                      <div class="slider-row-with-check">
+                        <div class="slider-container with-markers">
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value="0"
+                            class="progress-slider sub-task"
+                            data-task="SLOOF"
+                            data-weight="1"
+                            data-snap="true"
+                            id="sloofSliderUser2"
+                          />
+                          <div class="slider-track-fill" id="sloofTrackUser2" style="width: 0%"></div>
+                          <div class="slider-snap-markers">
+                            <span class="snap-marker" data-value="30" style="left: 30%">30%</span>
+                            <span class="snap-marker" data-value="50" style="left: 50%">50%</span>
+                            <span class="snap-marker" data-value="70" style="left: 70%">70%</span>
+                            <span class="snap-marker" data-value="100" style="left: 100%">100%</span>
+                          </div>
+                        </div>
+                        <label class="slider-check-100" title="Set ke 100%">
+                          <input type="checkbox" class="check-100" data-slider="sloofSliderUser2" />
+                          <span class="checkmark-icon"><i class="fas fa-check"></i></span>
+                        </label>
                       </div>
                       <input
                         type="hidden"
                         name="sloof-progress"
                         value=""
-                        class="sub-task"
+                        class="sub-task-hidden"
                         data-weight="1"
                         data-task="SLOOF"
                         id="sloofInputUser2"
