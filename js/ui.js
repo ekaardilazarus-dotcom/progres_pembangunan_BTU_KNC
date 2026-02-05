@@ -895,3 +895,4 @@ window.loadRevisionPhotos = async function(kavling) {
     gallery.innerHTML = '<div style="grid-column: span 2; text-align: center; color: #f43f5e; padding: 10px;">Gagal memuat foto</div>';
   }
 };
+
