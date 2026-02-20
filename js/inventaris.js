@@ -77,34 +77,105 @@ function renderTable(data) {
     }
 
     tbody.innerHTML = data.map((row, index) => {
-        // Total Kondisi ada di index 5 di sheet InventarisUnit
+        // Total Kondisi sekarang ada di index 26 (kolom AA) di sheet InventarisUnit
         // Kita gunakan parseProgressValue untuk memastikan nilai 0-100
-        const totalKondisi = window.parseProgressValue(row[5]);
+        const totalKondisi = window.parseProgressValue(row[26]);
         
         let kondisiClass = 'tidak-layak';
         if (totalKondisi >= 91) kondisiClass = 'layak';
         else if (totalKondisi >= 75) kondisiClass = 'renov-ringan';
         else if (totalKondisi >= 50) kondisiClass = 'renov-banyak';
-        else if (totalKondisi >= 20) kondisiClass = 'rusak';
+        else if (totalKondisi >= 20) kondisiClass = 'Terpasang dan Rusak';
 
-        // Kita tampilkan kolom 0 sampai 26 (Blok s/d Kondisi Lainnya)
-        // Kolom 27 adalah Foto (JSON string) yang tidak ditampilkan di tabel utama
-        const displayRow = row.slice(0, 27);
+        // Susun ulang urutan kolom untuk tampilan tabel
+        // Urutan sesuai judul tabel:
+        // BLOK, LT, LB, Type, Status, Total Kondisi, lalu semua kolom fisik
+        const baseColumns = [
+            row[0] || '', // BLOK
+            row[1] || '', // LT
+            row[2] || '', // LB
+            row[3] || '', // Type
+            row[4] || ''  // Status
+        ];
+        const totalKondisiCell = row[26] || ''; // Total Kondisi (AA)
+        const physicalColumns = PHYSICAL_COLUMNS.map((_, idx) => row[idx + 5] || '');
+        const displayRow = [
+            ...baseColumns,
+            totalKondisiCell,
+            ...physicalColumns
+        ];
 
         return `
-            <tr data-kondisi="${kondisiClass}" onclick="openEditModal(${index})" style="cursor: pointer;">
-                <td>${index + 1}</td>
+            <tr data-kondisi="${kondisiClass}" data-row-index="${index}">
+                <td class="pan-cell">${index + 1}</td>
                 ${displayRow.map((cell, i) => {
-                    // Jika ini kolom Total Kondisi (index 5), format sebagai %
+                    const isClickable = i >= 0 && i <= 5; // BLOK s/d Total Kondisi
+                    const cellClasses = isClickable ? 'clickable-cell' : 'pan-cell';
+                    
                     if (i === 5) {
                         const val = window.parseProgressValue(cell);
-                        return `<td>${val}%</td>`;
+                        return `<td class="${cellClasses}" ${isClickable ? `onclick="openEditModal(${index})"` : ''}>${val}%</td>`;
                     }
-                    return `<td>${cell || '-'}</td>`;
+                    
+                    let displayCell = cell || '-';
+                    if (i > 5 && cell) {
+                        const str = String(cell).trim();
+                        // Format "angka" atau "angka%-teks"
+                        const percentDescMatch = str.match(/^(\d+(\.\d+)?)%-?(.*)$/);
+                        if (percentDescMatch) {
+                            const rawNum = percentDescMatch[1];
+                            const desc = percentDescMatch[3].trim();
+                            const numVal = window.parseProgressValue(rawNum);
+                            displayCell = desc ? `${numVal}% - ${desc}` : `${numVal}%`;
+                        } else if (/^\d+(\.\d+)?$/.test(str)) {
+                            // Angka murni (misalnya 0.6 atau 60)
+                            const numVal = window.parseProgressValue(str);
+                            displayCell = `${numVal}%`;
+                        } else {
+                            displayCell = str;
+                        }
+                    }
+
+                    return `<td class="${cellClasses}" ${isClickable ? `onclick="openEditModal(${index})"` : ''}>${displayCell}</td>`;
                 }).join('')}
             </tr>
         `;
     }).join('');
+
+    applyStickyColumns();
+}
+
+function applyStickyColumns() {
+    const table = document.getElementById('kavlingTable');
+    if (!table || !table.tHead || !table.tBodies.length) return;
+
+    const headerRow = table.tHead.rows[0];
+    const bodyRows = table.tBodies[0].rows;
+    const stickyCols = [0, 1, 2, 3, 4, 5, 6]; // No, BLOK, LT, LB, Type, Status, Total Kondisi
+    const leftOffsets = {};
+
+    stickyCols.forEach(colIndex => {
+        const cell = headerRow.children[colIndex];
+        if (!cell) return;
+        const left = cell.offsetLeft;
+        leftOffsets[colIndex] = left;
+        cell.style.position = 'sticky';
+        cell.style.left = left + 'px';
+        cell.style.zIndex = 3;
+        cell.style.background = '#0f172a';
+    });
+
+    Array.from(bodyRows).forEach(row => {
+        stickyCols.forEach(colIndex => {
+            const cell = row.children[colIndex];
+            if (!cell) return;
+            const left = leftOffsets[colIndex];
+            cell.style.position = 'sticky';
+            cell.style.left = left + 'px';
+            cell.style.background = '#020617';
+            cell.style.zIndex = 1;
+        });
+    });
 }
 
 // Modal Functions
@@ -173,7 +244,8 @@ function openEditModal(index) {
     physicalContainer.innerHTML = '';
     
     PHYSICAL_COLUMNS.forEach((colName, i) => {
-        const val = row[i + 6] || '';
+        // Kolom fisik sekarang mulai dari index 5 (kolom F) sampai 25
+        const val = row[i + 5] || '';
         
         // Parsing "XX%-Keterangan" atau format lama
         let percentVal = 0;
@@ -181,59 +253,65 @@ function openEditModal(index) {
 
         if (typeof val === 'string' && val.includes('%-')) {
             const parts = val.split('%-');
-            percentVal = parseFloat(parts[0]) || 0;
+            const rawPercent = parts[0];
+            percentVal = window.parseProgressValue(rawPercent);
             textVal = parts.slice(1).join('%-');
         } else if (val && !isNaN(parseFloat(val))) {
-            percentVal = parseFloat(val);
+            // Nilai numerik lama (misalnya 0.6 atau 60) → konversi ke 0-100
+            percentVal = window.parseProgressValue(val);
             textVal = '';
         }
 
-        const div = document.createElement('div');
-        div.className = 'physical-input-row';
-        
         // Cek jika kolom adalah Meteran Listrik atau Meteran PDAM (Hanya Meteran saja)
         const isMeteran = colName.toLowerCase() === 'meteran listrik' || colName.toLowerCase() === 'meteran pdam';
         
+        const div = document.createElement('div');
+        div.className = isMeteran ? 'physical-input-row physical-meter' : 'physical-input-row';
+        
         if (isMeteran) {
-            // Mapping value untuk dropdown
             let selectedStatus = "Belum Ada";
-            if (textVal.includes("Terpasang")) selectedStatus = "Terpasang";
-            else if (textVal.includes("Rusak")) selectedStatus = "Rusak";
-            else if (textVal.includes("Belum Ada")) selectedStatus = "Belum Ada";
-            else if (percentVal > 0) selectedStatus = "Terpasang"; // Fallback jika hanya ada persen
+            const textLower = (textVal || '').toLowerCase();
+            if (textLower.includes("berfungsi")) selectedStatus = "Terpasang dan Berfungsi";
+            else if (textLower.includes("rusak")) selectedStatus = "Terpasang dan Rusak";
+            else if (textLower.includes("belum")) selectedStatus = "Belum Ada";
+            else if (percentVal >= 95) selectedStatus = "Terpasang dan Berfungsi";
+            else if (percentVal > 0 && percentVal <= 15) selectedStatus = "Terpasang dan Rusak";
+
+            let defaultPercent = 90;
+            if (selectedStatus === 'Terpasang dan Berfungsi') defaultPercent = 100;
+            else if (selectedStatus === 'Terpasang dan Rusak') defaultPercent = 10;
+            const meteranPercent = percentVal || defaultPercent;
 
             div.innerHTML = `
-                 <div class="form-group" style="flex: 1;">
-                     <label>${colName}</label>
-                     <select name="${colName}" onchange="updateAutoCalc()" class="form-control">
-                         <option value="Terpasang" ${selectedStatus === 'Terpasang' ? 'selected' : ''}>Terpasang</option>
-                         <option value="Belum Ada" ${selectedStatus === 'Belum Ada' ? 'selected' : ''}>Belum Ada</option>
-                         <option value="Rusak" ${selectedStatus === 'Rusak' ? 'selected' : ''}>Rusak</option>
-                     </select>
-                     <input type="hidden" name="${colName}_percent" value="${selectedStatus === 'Terpasang' ? '0.5' : '0'}">
-                 </div>
-             `;
+                <div class="form-group physical-meter-group">
+                    <label>${colName}</label>
+                    <select name="${colName}" onchange="updateAutoCalc()" class="form-control">
+                        <option value="Terpasang dan Berfungsi" ${selectedStatus === 'Terpasang dan Berfungsi' ? 'selected' : ''}>Terpasang dan Berfungsi</option>
+                        <option value="Belum Ada" ${selectedStatus === 'Belum Ada' ? 'selected' : ''}>Belum Ada</option>
+                        <option value="Terpasang dan Rusak" ${selectedStatus === 'Terpasang dan Rusak' ? 'selected' : ''}>Terpasang dan Rusak</option>
+                    </select>
+                    <input type="hidden" name="${colName}_percent" value="${meteranPercent}">
+                </div>
+            `;
         } else {
             div.innerHTML = `
-                <div class="form-group">
-                    <label>${colName}</label>
-                    <input type="text" name="${colName}" value="${textVal}" placeholder="Wajib diisi jika < 100%" oninput="updateAutoCalc()">
-                </div>
-                <div class="form-group">
-                    <label>Kondisi %</label>
+                <div class="form-group physical-percent">
+                    <label>Persentase Perkiraan</label>
                     <div class="percent-display-box" onclick="openSlider('${colName}', this)">
                         <span class="val">${percentVal}</span>%
                         <input type="hidden" name="${colName}_percent" value="${percentVal}">
                     </div>
+                </div>
+                <div class="form-group physical-desc">
+                    <label>${colName}</label>
+                    <input type="text" name="${colName}" value="${textVal}" placeholder="keterangan kondisi saat ini" oninput="updateAutoCalc()">
                 </div>
             `;
         }
         physicalContainer.appendChild(div);
     });
 
-    // Load Photos
     currentEditPhotos = [];
-    // Kolom FOTO FOTO ada di index 27 (AB)
     if (row[27]) {
         try {
             const parsed = JSON.parse(row[27]);
@@ -272,10 +350,14 @@ function updateAutoCalc() {
         const isMeteran = colName.toLowerCase() === 'meteran listrik' || colName.toLowerCase() === 'meteran pdam';
         
         if (isMeteran) {
-            if (selectBox) {
-                const val = selectBox.value === 'Terpasang' ? 0.5 : 0;
-                total += val;
-                if (percentInput) percentInput.value = val;
+            if (selectBox && percentInput) {
+                const status = selectBox.value;
+                let percent = 0;
+                if (status === 'Terpasang dan Berfungsi') percent = 100;
+                else if (status === 'Terpasang dan Rusak') percent = 10;
+                else percent = 90;
+                percentInput.value = percent;
+                total += (percent / 100) * meteranWeight;
             }
         } else {
             if (percentInput) {
@@ -290,7 +372,20 @@ function updateAutoCalc() {
     const display = document.getElementById('editTotalKondisiDisplay');
     const hidden = document.getElementById('editTotalKondisi');
     
-    if (display) display.innerText = finalTotal + '%';
+    if (display) {
+        display.innerText = finalTotal + '%';
+        display.classList.remove('total-kondisi-low', 'total-kondisi-medium', 'total-kondisi-high', 'total-kondisi-very-high');
+        const numeric = parseFloat(finalTotal);
+        if (numeric < 50) {
+            display.classList.add('total-kondisi-low');
+        } else if (numeric <= 70) {
+            display.classList.add('total-kondisi-medium');
+        } else if (numeric <= 90) {
+            display.classList.add('total-kondisi-high');
+        } else {
+            display.classList.add('total-kondisi-very-high');
+        }
+    }
     if (hidden) hidden.value = finalTotal + '%';
 }
 
@@ -300,33 +395,51 @@ function closeEditModal() {
 
 function renderPhotoGallery() {
     const gallery = document.getElementById('photoGallery');
+    if (!gallery) return;
     gallery.innerHTML = '';
     
     currentEditPhotos.forEach((photo, index) => {
         const div = document.createElement('div');
         div.className = 'photo-item';
         if (typeof photo === 'string') {
-            div.innerHTML = `
-                <img src="${photo.startsWith('data:') ? photo : 'data:image/jpeg;base64,' + photo}" alt="Foto ${index + 1}">
-                <button type="button" class="remove-photo" onclick="removePhoto(${index})">&times;</button>
-            `;
-        } else if (photo && photo.processing) {
-            div.innerHTML = `
-                <div class="photo-loading" style="width:120px;height:90px;display:flex;align-items:center;justify-content:center;border:1px dashed #64748b;border-radius:8px;background:#0b1220;">
-                    <i class="fas fa-spinner fa-spin" style="color:#94a3b8;font-size:20px;"></i>
-                </div>
-            `;
-        } else {
-            const src = (photo && photo.data) ? (photo.data.startsWith('data:') ? photo.data : 'data:image/jpeg;base64,' + photo.data) : '';
+            const isUrl = photo.startsWith('http://') || photo.startsWith('https://');
+            const src = isUrl ? photo : (photo.startsWith('data:') ? photo : 'data:image/jpeg;base64,' + photo);
             div.innerHTML = `
                 <img src="${src}" alt="Foto ${index + 1}">
                 <button type="button" class="remove-photo" onclick="removePhoto(${index})">&times;</button>
             `;
+        } else {
+            const isProcessing = photo && photo.processing;
+            const isUploading = photo && photo.uploading;
+            if (isProcessing || isUploading) {
+                let label = 'Mengupload foto...';
+                if (isProcessing) {
+                    const prog = typeof photo.progress === 'number' ? photo.progress : 0;
+                    label = `Mengompres ${prog}%`;
+                }
+                div.innerHTML = `
+                    <div class="photo-progress" style="position:absolute;top:4px;left:4px;right:4px;z-index:10;padding:2px 4px;background:rgba(15,23,42,0.9);border-radius:4px;font-size:0.7rem;color:#e5e7eb;text-align:center;">
+                        ${label}
+                    </div>
+                    <div class="photo-loading" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;border:1px dashed #64748b;border-radius:8px;background:#0b1220;">
+                        <i class="fas fa-spinner fa-spin" style="color:#94a3b8;font-size:20px;"></i>
+                    </div>
+                `;
+            } else {
+                const val = photo && photo.data ? photo.data : '';
+                const isUrl2 = val && (val.startsWith('http://') || val.startsWith('https://'));
+                const src = val ? (isUrl2 ? val : (val.startsWith('data:') ? val : 'data:image/jpeg;base64,' + val)) : '';
+                div.innerHTML = `
+                    <img src="${src}" alt="Foto ${index + 1}">
+                    <button type="button" class="remove-photo" onclick="removePhoto(${index})">&times;</button>
+                `;
+            }
         }
         gallery.appendChild(div);
     });
     
-    document.getElementById('photoCountInfo').innerText = `${currentEditPhotos.length}/6 Foto`;
+    const info = document.getElementById('photoCountInfo');
+    if (info) info.innerText = `${currentEditPhotos.length}/6 Foto`;
 }
 
 function removePhoto(index) {
@@ -334,71 +447,13 @@ function removePhoto(index) {
     renderPhotoGallery();
 }
 
-async function handlePhotoUpload(event) {
-    const files = event.target.files;
-    if (!files) return;
 
-    const remainingSlots = 6 - currentEditPhotos.length;
-    const filesToProcess = Array.from(files).slice(0, remainingSlots);
-
-    if (currentEditPhotos.length >= 6) {
-        alert('Maksimal 6 foto diperbolehkan.');
-        return;
-    }
-
-    for (const file of filesToProcess) {
-        try {
-            const placeholderIndex = currentEditPhotos.push({ data: null, processing: true }) - 1;
-            renderPhotoGallery();
-            const compressedBase64 = await compressImage(file, 0.3); // Compress 30% dari kualitas aslinya
-            currentEditPhotos[placeholderIndex] = { data: compressedBase64, processing: false };
-            renderPhotoGallery();
-        } catch (error) {
-            console.error('Error processing photo:', error);
-        }
-    }
-    
-    renderPhotoGallery();
-    event.target.value = ''; // Reset input
-}
-
-function compressImage(file, quality) {
+function readFileAsDataURL(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Maintain aspect ratio
-                let width = img.width;
-                let height = img.height;
-                const maxDim = 1200;
-                if (width > height) {
-                    if (width > maxDim) {
-                        height *= maxDim / width;
-                        width = maxDim;
-                    }
-                } else {
-                    if (height > maxDim) {
-                        width *= maxDim / height;
-                        height = maxDim;
-                    }
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                // Compress quality 0.3 (30%)
-                const base64 = canvas.toDataURL('image/jpeg', quality);
-                resolve(base64);
-            };
-        };
+        reader.onload = e => resolve(e.target.result);
         reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
     });
 }
 
@@ -423,7 +478,7 @@ async function saveEditKavling() {
         
         if (textInput && percentInput) {
             const textVal = textInput.value.trim();
-            const percentVal = parseFloat(percentInput.value) || 0;
+            const percentVal = window.parseProgressValue(percentInput.value);
             
             // Tandai jika kosong tapi < 100% (hanya untuk info, bukan blokir)
             if (percentVal < 100 && !textVal) {
@@ -453,11 +508,36 @@ async function saveEditKavling() {
     // Upload Foto menggunakan JSONP ber-chunk untuk menghindari limit URL
     const url = window.PROGRESS_APPS_SCRIPT_URL;
     if (currentEditPhotos && currentEditPhotos.length > 0) {
-        const normalizedPhotos = currentEditPhotos.map(p => (typeof p === 'string') ? p : (p && p.data ? p.data : null)).filter(Boolean);
+        const normalizedPhotos = currentEditPhotos
+            .map(p => {
+                const val = typeof p === 'string' ? p : (p && p.data ? p.data : null);
+                if (!val) return null;
+                const isUrl = val.startsWith('http://') || val.startsWith('https://');
+                if (isUrl) {
+                    return { t: 'u', v: val };
+                }
+                let base = val;
+                const idx = base.indexOf('base64,');
+                if (idx !== -1) {
+                    base = base.substring(idx + 7);
+                }
+                if (!base) return null;
+                return { t: 'b', v: base };
+            })
+            .filter(Boolean);
         const photoJson = JSON.stringify(normalizedPhotos);
         const session = 'P' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-        const chunkSize = 800; // ukuran kecil untuk keamanan URL JSONP
+        const chunkSize = 1200; // sedikit lebih besar agar jumlah request berkurang
         const total = Math.ceil(photoJson.length / chunkSize);
+
+        currentEditPhotos = currentEditPhotos.map(p => {
+            if (typeof p === 'string') {
+                return { data: p, uploading: true };
+            }
+            return Object.assign({}, p, { uploading: true });
+        });
+        renderPhotoGallery();
+
         for (let i = 0; i < total; i++) {
             const chunk = photoJson.slice(i * chunkSize, (i + 1) * chunkSize);
             try {
@@ -476,6 +556,14 @@ async function saveEditKavling() {
                 console.error('Gagal upload foto chunk', i + 1, 'dari', total, e);
             }
         }
+
+        currentEditPhotos = currentEditPhotos.map(p => {
+            if (typeof p === 'string') return p;
+            const copy = Object.assign({}, p);
+            delete copy.uploading;
+            return copy;
+        });
+        renderPhotoGallery();
     }
 
     try {
@@ -509,6 +597,36 @@ async function saveEditKavling() {
         const btnSave = document.querySelector('.modal-edit .btn-save');
         btnSave.disabled = false;
         btnSave.innerText = 'Simpan Perubahan';
+    }
+}
+
+async function deleteKavlingInventaris() {
+    const blok = document.getElementById('editOldBlok').value || document.getElementById('editBlok').value;
+    if (!blok) {
+        alert('Nama kavling tidak ditemukan.');
+        return;
+    }
+
+    const konfirmasi = confirm(`Iya akan hapus "${blok}" ini?`);
+    if (!konfirmasi) return;
+
+    try {
+        const url = window.PROGRESS_APPS_SCRIPT_URL;
+        const result = await window.getDataFromServer(url, {
+            action: 'deleteInventarisUnit',
+            kavling: blok
+        });
+
+        if (result && result.success) {
+            alert(`Kavling "${blok}" berhasil dihapus.`);
+            closeEditModal();
+            loadInventarisData();
+        } else {
+            throw new Error(result ? result.message : 'Gagal menghapus kavling');
+        }
+    } catch (error) {
+        console.error('Error deleting kavling:', error);
+        alert('Terjadi kesalahan saat menghapus: ' + error.message);
     }
 }
 
@@ -578,6 +696,52 @@ function setupFilters() {
     });
 }
 
+function setupTablePanScroll() {
+    const container = document.querySelector('.main-content-table');
+    if (!container) return;
+
+    let isDown = false;
+    let startX = 0;
+    let startY = 0;
+    let scrollLeft = 0;
+    let scrollTop = 0;
+
+    container.addEventListener('mousedown', function(e) {
+        if (e.button !== 0) return;
+        if (e.target.closest('.clickable-cell')) return;
+
+        isDown = true;
+        container.classList.add('is-panning');
+        startX = e.pageX;
+        startY = e.pageY;
+        scrollLeft = container.scrollLeft;
+        scrollTop = container.scrollTop;
+    });
+
+    container.addEventListener('mousemove', function(e) {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX;
+        const y = e.pageY;
+        const walkX = x - startX;
+        const walkY = y - startY;
+        container.scrollLeft = scrollLeft - walkX;
+        container.scrollTop = scrollTop - walkY;
+    });
+
+    ['mouseleave'].forEach(evt => {
+        container.addEventListener(evt, function() {
+            isDown = false;
+            container.classList.remove('is-panning');
+        });
+    });
+
+    window.addEventListener('mouseup', function() {
+        isDown = false;
+        container.classList.remove('is-panning');
+    });
+}
+
 // Search Logic
 function setupSearch() {
     const searchInput = document.querySelector('.search-input');
@@ -613,6 +777,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     setupFilters();
     setupSearch();
+    setupTablePanScroll();
 });
 
 function logout() {
