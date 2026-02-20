@@ -80,6 +80,17 @@ body {
     font-size: 0.9rem;
     font-weight: 500;
 }
+.filter-section .filter-buttons button:nth-child(1) {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+.filter-section .filter-buttons button:nth-child(3) {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+.filter-section .filter-buttons .filter-btn[data-filter="all"] {
+    text-align: center;
+}
 .filter-btn:hover {
     background: #1e293b;
     border-color: #38bdf8;
@@ -173,13 +184,13 @@ tr:hover {
 }
 .slider-header h4 {
     margin: 0;
-    font-size: 0.9rem;
-    color: #94a3b8;
+    font-size: 1.2rem;
+    color: #9ea0f5;
 }
 #sliderValue {
     font-weight: bold;
-    color: #38bdf8;
-    font-size: 1.2rem;
+    color: #1bb9fd;
+    font-size: 1.3rem;
 }
 .slider-body {
     height: 250px;
@@ -201,20 +212,46 @@ tr:hover {
     flex-direction: column;
     justify-content: space-between;
     padding: 5px 0;
-    color: #64748b;
-    font-size: 0.8rem;
+    color: #8ab9fa;
+    font-size: 1.0rem;
     font-weight: bold;
 }
 .percent-display-box {
     background: #0f172a;
     border: 1px solid #334155;
-    padding: 10px;
-    border-radius: 8px;
+    padding: 8px;
+    border-radius: 10px;
     color: #38bdf8;
     font-weight: bold;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+.total-kondisi-display {
+    font-size: 1.3rem;
+    cursor: default;
+}
+.total-kondisi-low {
+    background: rgba(248, 113, 113, 0.2);
+    border-color: #f87171;
+    color: #fecaca;
+}
+.total-kondisi-medium {
+    background: rgba(249, 115, 22, 0.2);
+    border-color: #f97316;
+    color: #fed7aa;
+}
+.total-kondisi-high {
+    background: rgba(234, 179, 8, 0.2);
+    border-color: #eab308;
+    color: #fef9c3;
+}
+.total-kondisi-very-high {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #04ff11;
+    color: #bfdbfe;
 }
 .percent-display-box:hover {
     border-color: #38bdf8;
@@ -279,6 +316,25 @@ td {
     border: 1px solid #334155; /* Garis pembatas vertikal & horizontal */
     white-space: nowrap; /* Mencegah isi sel membungkus */
     font-size: 0.9rem;
+}
+
+.main-content-table {
+    width: 100%;
+    overflow: auto;
+    position: relative;
+}
+
+.clickable-cell {
+    cursor: pointer;
+}
+
+.pan-cell {
+    cursor: grab;
+}
+
+.main-content-table.is-panning,
+.pan-cell:active {
+    cursor: grabbing;
 }
 /* Password Modal */
 #passwordOverlay {
@@ -345,6 +401,7 @@ td {
     border: 1px solid #334155;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     animation: modalSlideUp 0.3s ease-out;
+    position: relative;
 }
 @keyframes modalSlideUp {
     from { transform: translateY(30px); opacity: 0; }
@@ -352,12 +409,20 @@ td {
 }
 .modal-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 25px;
     border-bottom: 1px solid #334155;
     padding-bottom: 15px;
-    position: relative; /* Tambahkan ini */
+    padding-right: 0;
+    position: static;
+}
+
+.modal-edit .modal-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    column-gap: 12px;
 }
 .modal-header h3 {
     margin: 0;
@@ -368,21 +433,46 @@ td {
     background: none;
     border: none;
     color: #94a3b8;
-    font-size: 1.8rem;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: color 0.2s;
-    position: absolute; /* Ubah ke absolute */
-    right: 0; /* Pojok kanan atas header */
-    top: 0;
+    position: absolute; /* relatif ke modal-content (default untuk modal lain) */
+    right: 16px;
+    top: 16px;
     line-height: 1;
+    padding: 0;
 }
 .close-btn:hover { color: #f43f5e; }
+
+/* Override global .modal-content button style for close button */
+.modal-edit .close-btn {
+    position: static;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    padding: 0;
+    background: #0f172a;
+    border: 1px solid #334155;
+    box-shadow: none;
+}
 
 .form-group { margin-bottom: 20px; }
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
+}
+.modal-edit .edit-section .form-row.mb-4 {
+    display: flex;
+    justify-content: center;
+}
+.modal-edit .edit-section .form-row.mb-4 .form-group {
+    max-width: 260px;
+    width: 100%;
 }
 .form-group label {
     display: block;
@@ -420,7 +510,7 @@ td {
     font-weight: 600;
 }
 .btn-save {
-    padding: 12px 24px;
+    padding: 6px 8px;
     background: linear-gradient(135deg, #38bdf8, #2563eb);
     border: none;
     border-radius: 10px;
@@ -437,6 +527,33 @@ td {
 .mb-4 { margin-bottom: 1rem; }
 .mr-2 { margin-right: 0.5rem; }
 
+.btn-delete {
+    padding: 4px 8px;
+    background: linear-gradient(135deg, #f43f5e, #e11d48);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.3);
+}
+.btn-delete:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(248, 113, 113, 0.4);
+}
+
+/* Proporsi tombol di modal edit: Simpan : Hapus = 3 : 1 */
+.modal-footer .btn-save {
+    flex: 2;
+    font-size: 0.9rem;
+}
+
+.modal-footer .btn-delete {
+    flex: 1;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
 /* Edit Modal Specifics */
 .modal-edit {
     max-width: 800px;
@@ -446,16 +563,18 @@ td {
     padding: 0; /* Padding handle by sections */
 }
 .modal-edit .modal-header {
-    padding: 20px 30px;
+    padding: 16px 24px;
     margin-bottom: 0;
+    flex: 1;
 }
 .modal-edit .modal-footer {
     padding: 20px 30px;
     margin-top: 0;
     border-top: 1px solid #334155;
+    flex: 1;
 }
 .modal-body-scroll {
-    flex: 1;
+    flex: 6;
     overflow-y: auto;
     padding: 20px 30px;
 }
@@ -474,12 +593,55 @@ td {
     border-bottom: 1px solid #334155;
     padding-bottom: 10px;
 }
+.kondisi-label-min {
+    color: #f87171;
+}
+.kondisi-label-max {
+    color: #4ade80;
+}
 .physical-input-row {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1fr 3fr; /* Kondisi % di kiri, Keterangan di kanan */
     gap: 15px;
     margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #1f2937; /* Garis batas antar inputan */
+    align-items: stretch;           /* tinggi kolom kiri/kanan seragam */
+}
+.physical-input-row .form-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.physical-input-row .form-group label {
+    text-align: center;
+    font-weight: 600;
+    color: #cbd5f5;
+}
+.physical-input-row .physical-desc label {
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+}
+.physical-input-row.physical-meter {
+    grid-template-columns: 1fr; /* Meteran baris penuh, memanjang */
+}
+.physical-input-row.physical-meter .form-group label {
+    text-align: left;
+}
+.physical-input-row.physical-meter select {
+    width: 100%;
+    min-height: 44px;
+}
+.physical-input-row .percent-display-box {
+    min-height: 90px;
+    display: flex;
     align-items: center;
+    justify-content: center;
+}
+.physical-input-row .physical-desc input {
+    min-height: 90px;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 .percent-input-wrapper {
     position: relative;
@@ -542,5 +704,83 @@ td {
     .inventaris-container {
         grid-template-columns: 1fr;
         height: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .physical-input-row {
+        grid-template-columns: 1fr 2fr; /* tetap bersebelahan di mobile */
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .header-nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .header-nav h1 {
+        font-size: 1.3rem;
+    }
+
+    .nav-buttons {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .nav-buttons .btn-silver {
+        flex: 1 1 48%;
+    }
+
+    .inventaris-container {
+        gap: 12px;
+    }
+
+    .sidebar {
+        padding: 15px;
+    }
+
+    .main-content-table {
+        padding: 12px;
+    }
+
+    th, td {
+        padding: 8px;
+        font-size: 0.78rem;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        padding: 20px;
+        max-height: 90vh;
+    }
+
+    .modal-edit {
+        max-width: 95%;
+    }
+
+    .modal-body-scroll {
+        padding: 15px 20px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    /* Di modal edit, LT/LB dan Type/Status tetap bersebelahan di mobile */
+    .modal-edit .form-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .password-box {
+        padding: 25px;
+        width: 95%;
     }
 }
