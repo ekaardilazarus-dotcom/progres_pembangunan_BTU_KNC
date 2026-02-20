@@ -71,6 +71,22 @@ window.setupCustomSearch = function(inputId, listId, selectId) {
 /**
  * Render the search list dropdown
  */
+window.parseKavlingParts = function(str) {
+  const trimmed = String(str || '').trim();
+  if (/^\d+$/.test(trimmed)) {
+    return { block: '', number: parseInt(trimmed, 10) };
+  }
+  const complexMatch = trimmed.match(/^([A-Za-z]+\d*)[_ ]*(\d+)$/);
+  if (complexMatch) {
+    return { block: complexMatch[1].toUpperCase(), number: parseInt(complexMatch[2], 10) };
+  }
+  const simpleMatch = trimmed.match(/([A-Za-z]+)[_ ]*(\d+)/);
+  if (simpleMatch) {
+    return { block: simpleMatch[1].toUpperCase(), number: parseInt(simpleMatch[2], 10) };
+  }
+  return { block: trimmed.toUpperCase(), number: 0 };
+};
+
 window.renderSearchList = function(items, listEl, inputEl, selectEl) {
   listEl.innerHTML = '';
 
@@ -82,8 +98,16 @@ window.renderSearchList = function(items, listEl, inputEl, selectEl) {
     return;
   }
 
-  // Limit to first 100 items for performance
-  const displayItems = items.slice(0, 100);
+  const sortedItems = [...items].sort((a, b) => {
+    const aParts = window.parseKavlingParts(a);
+    const bParts = window.parseKavlingParts(b);
+    if (aParts.block !== bParts.block) {
+      return aParts.block.localeCompare(bParts.block);
+    }
+    return aParts.number - bParts.number;
+  });
+
+  const displayItems = sortedItems.slice(0, 100);
 
   displayItems.forEach(item => {
     const div = document.createElement('div');
@@ -263,21 +287,8 @@ window.updateKavlingSelect = function(selectElement, kavlings) {
   }
 
   const sortedKavlings = [...filteredKavlings].sort((a, b) => {
-    const extractParts = (str) => {
-      const trimmed = String(str || '').trim();
-      if (/^\d+$/.test(trimmed)) {
-        return { block: '', number: parseInt(trimmed, 10) };
-      }
-      const match = trimmed.match(/([A-Za-z]+)[_ ]*(\d+)/);
-      if (match) {
-        return { block: match[1].toUpperCase(), number: parseInt(match[2], 10) };
-      }
-      return { block: trimmed.toUpperCase(), number: 0 };
-    };
-
-    const aParts = extractParts(a);
-    const bParts = extractParts(b);
-
+    const aParts = window.parseKavlingParts(a);
+    const bParts = window.parseKavlingParts(b);
     if (aParts.block !== bParts.block) {
       return aParts.block.localeCompare(bParts.block);
     }
