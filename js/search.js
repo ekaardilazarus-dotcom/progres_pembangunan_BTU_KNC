@@ -264,11 +264,15 @@ window.updateKavlingSelect = function(selectElement, kavlings) {
 
   const sortedKavlings = [...filteredKavlings].sort((a, b) => {
     const extractParts = (str) => {
-      const match = str.match(/([A-Za-z]+)[_ ]*(\d+)/);
-      if (match) {
-        return { block: match[1].toUpperCase(), number: parseInt(match[2]) };
+      const trimmed = String(str || '').trim();
+      if (/^\d+$/.test(trimmed)) {
+        return { block: '', number: parseInt(trimmed, 10) };
       }
-      return { block: str, number: 0 };
+      const match = trimmed.match(/([A-Za-z]+)[_ ]*(\d+)/);
+      if (match) {
+        return { block: match[1].toUpperCase(), number: parseInt(match[2], 10) };
+      }
+      return { block: trimmed.toUpperCase(), number: 0 };
     };
 
     const aParts = extractParts(a);
