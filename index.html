@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>  
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Utama - Sistem Progres Kavling</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Override specific to index.html to ensure links behave like buttons */
+        a.role-btn {
+            text-decoration: none;
+        }
+        
+        /* Custom colors for Project buttons if not reusing role colors */
+        .role-btn.knc {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+        .role-btn.btu {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        }
+        .role-btn.inventaris {
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+        }
+        
+        /* Adjust container max-width if needed */
+        .container {
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sistem Progres Kavling</h1>
+            <p class="subtitle">
+                Pilih Proyek atau Peran Anda untuk Melanjutkan
+            </p>
+        </header>
+
+        <div class="main-content">
+            
+            <!-- Section Progres Pembangunan (KNC & BTU) -->
+            <div class="section-container">
+                <h2 class="section-title">Progres Pembangunan</h2>
+                <div class="role-selector" id="projectSelector">
+                    <a href="knc.html" class="role-btn knc">
+                        <i class="fas fa-city"></i>
+                        <h3>Progress Pembangunan KNC</h3>
+                    </a>
+                    <a href="btu.html" class="role-btn btu">
+                        <i class="fas fa-building"></i>
+                        <h3>Progress Pembangunan BTU</h3>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Section Manager & Admin Property -->
+            <div class="section-container">
+                <h2 class="section-title">Management & Admin Property</h2>
+                <div class="role-selector manager-handover-set">
+                    <a href="dashboard.html?role=user4" class="role-btn user4">
+                        <div style="display: flex; gap: 10px; font-size: 2rem; margin-bottom: 12px; color: white;">
+                            <i class="fas fa-key"></i>
+                            <i class="fas fa-bolt"></i>
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <h3>Admin Utilitas</h3>
+                    </a>
+                    <a href="dashboard.html?role=manager" class="role-btn manager">
+                        <i class="fas fa-user-tie"></i>
+                        <h3>Supervisor</h3>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Section Administrator Sistem -->
+            <div class="section-container">
+                <h2 class="section-title">Administrator & Inventaris</h2>
+                <div class="role-selector admin-set">
+                    <a href="dashboard.html?role=admin" class="role-btn admin">
+                        <i class="fas fa-user-secret"></i>
+                        <h3>Admin</h3>
+                        <span class="badge">Administrator Sistem</span>
+                    </a>
+                    <a href="inventaris.html" class="role-btn inventaris">
+                        <i class="fas fa-boxes"></i>
+                        <h3>Inventaris Property</h3>
+                        <span class="badge">Kondisi & Laporan</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
