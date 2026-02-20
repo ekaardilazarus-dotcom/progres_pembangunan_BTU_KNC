@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Kondisi Kavling - Inventaris Property</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="inventaris.css">
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+</head>
+<body>
+    <!-- Password Protection -->
+    <div id="passwordOverlay">
+        <div class="password-box">
+            <i class="fas fa-lock" style="font-size: 3rem; color: #38bdf8; margin-bottom: 20px;"></i>
+            <h2>Akses Laporan Kondisi</h2>
+            <p style="color: #94a3b8; margin-top: 10px;">Silakan masukkan password untuk melanjutkan</p>
+            <input type="password" id="passInput" class="password-input" placeholder="Password">
+            <button onclick="checkPass()" class="btn-silver" style="width: 100%;">Masuk</button>
+            <p id="errorMsg" style="color: #f43f5e; margin-top: 15px; display: none;">Password Salah!</p>
+            <div style="margin-top: 20px;">
+                <a href="inventaris.html" style="color: #94a3b8; text-decoration: none;"><i class="fas fa-arrow-left"></i> Kembali ke Inventaris</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainApp" style="display: none;">
+        <!-- Loading Spinner -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <p>Memuat Data...</p>
+            </div>
+        </div>
+
+        <!-- Vertical Slider Overlay -->
+        <div id="sliderOverlay" class="slider-overlay" style="display: none;" onclick="closeSlider()">
+            <div class="slider-popup" onclick="event.stopPropagation()">
+                <div class="slider-header">
+                    <h4 id="sliderTitle">Kondisi</h4>
+                    <span id="sliderValue">0%</span>
+                </div>
+                <div class="slider-body">
+                    <input type="range" id="verticalSlider" min="0" max="100" step="1" orient="vertical" list="tickmarks">
+                    <datalist id="tickmarks">
+                        <option value="0"></option>
+                        <option value="25"></option>
+                        <option value="50"></option>
+                        <option value="75"></option>
+                        <option value="100"></option>
+                    </datalist>
+                    <div class="slider-labels">
+                        <span>100%</span>
+                        <span>75%</span>
+                        <span>50%</span>
+                        <span>25%</span>
+                        <span>0%</span>
+                    </div>
+                </div>
+                <button class="btn-save w-full" onclick="closeSlider()">Selesai</button>
+            </div>
+        </div>
+
+        <div class="header-nav">
+            <h1><i class="fas fa-file-alt"></i> Laporan Kondisi Kavling</h1>
+            <div class="nav-buttons">
+                <a href="inventaris.html" class="btn-silver" style="text-decoration: none; background: #334155;">
+                    <i class="fas fa-arrow-left"></i> Kembali ke Inventaris
+                </a>
+                <button onclick="logout()" class="btn-silver" style="background: #ef4444;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="inventaris-container">
+            <!-- Sidebar (1) -->
+            <div class="sidebar">
+                <div class="search-box">
+                    <label><i class="fas fa-search"></i> Cari kavling</label>
+                    <input type="text" class="search-input" placeholder="Ketik kode kavling...">
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Filter Kondisi Kavling</h4>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">Semua Kondisi</button>
+                        <button class="filter-btn" data-filter="layak">Kondisi Layak Huni (91%-100%)</button>
+                        <button class="filter-btn" data-filter="renov-ringan">Kondisi Butuh Renovasi Ringan (75%-90%)</button>
+                        <button class="filter-btn" data-filter="renov-banyak">Kondisi Butuh Renovasi Banyak (50%-80%)</button>
+                        <button class="filter-btn" data-filter="rusak">Kondisi Rusak Parah (20%-49%)</button>
+                        <button class="filter-btn" data-filter="tidak-layak">Kondisi Tidak Layak Huni (0%-19%)</button>
+                    </div>
+                </div>
+
+                <div class="info-card" style="border-left-color: #38bdf8; background: rgba(56, 189, 248, 0.1);">
+                    <h4 style="color: #38bdf8;">Informasi</h4>
+                    <p style="font-size: 0.85rem; color: #94a3b8;">
+                        Halaman ini digunakan untuk melihat laporan kondisi kavling berdasarkan kategori kondisi.
+                    </p>
+                </div>
+            </div>
+
+            <div class="main-content-table">
+                <table id="kavlingTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>BLOK</th>
+                            <th>LT</th>
+                            <th>LB</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Total Kondisi</th>
+                            <th>KONDISI HALAMAN</th>
+                            <th>PONDASI</th>
+                            <th>CAT LUAR</th>
+                            <th>CAT DALAM</th>
+                            <th>KERAMIK LANTAI</th>
+                            <th>PLAFOND</th>
+                            <th>RANGKA ATAP</th>
+                            <th>GENTENG</th>
+                            <th>TOILET</th>
+                            <th>DAPUR</th>
+                            <th>KUSEN PINTU</th>
+                            <th>DAUN PINTU</th>
+                            <th>KUSEN JENDELA</th>
+                            <th>DAUN JENDELA</th>
+                            <th>STOP KONTAK</th>
+                            <th>FITTING LAMPU</th>
+                            <th>KELISTRIKAN</th>
+                            <th>Meteran Listrik</th>
+                            <th>Meteran PDAM</th>
+                            <th>PIPA AIR BERSIH</th>
+                            <th>KONDISI LAINNYA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kavlingTableBody">
+                        <!-- Data akan dimuat secara dinamis -->
+                        <tr>
+                            <td colspan="28" style="text-align: center; padding: 50px;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #38bdf8; margin-bottom: 10px;"></i>
+                                <p>Sedang memuat data dari sheet InventarisUnit...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Kavling -->
+    <div id="addKavlingModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tambah Kavling Baru</h3>
+            </div>
+            <form id="addKavlingForm" onsubmit="submitAddKavling(event)">
+                <div class="form-group">
+                    <label>Alamat Kavling/Blok (Contoh: UJ100_123)</label>
+                    <input type="text" id="inputBlok" placeholder="Masukkan Blok" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>LT (Luas Tanah)</label>
+                        <input type="number" id="inputLT" placeholder="Contoh: 72" required>
+                    </div>
+                    <div class="form-group">
+                        <label>LB (Luas Bangunan)</label>
+                        <input type="number" id="inputLB" placeholder="Contoh: 36" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <input type="text" id="inputType" placeholder="Contoh: T_40" >
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="inputStatus" required>
+                            <option value="" disabled selected>Pilih Status</option>
+                            <option value="Terjual">Terjual</option>
+                            <option value="Stok">Stok</option>
+                            <option value="Tersewa">Tersewa</option>
+                            <option value="tidak tahu">tidak tahu</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeAddKavlingModal()">Batal</button>
+                    <button type="submit" class="btn-save">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit Kavling -->
+    <div id="editKavlingModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-edit">
+            <div class="modal-header">
+                <h3>Edit Kondisi Kavling: <span id="editBlokTitle"></span></h3>
+                <button type="button" class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body-scroll">
+                <form id="editKavlingForm">
+                    <input type="hidden" id="editOldBlok">
+                    
+                    <div class="edit-section">
+                        <h4>Data Utama</h4>
+                        <div class="form-group">
+                            <label>Nama Kavling / Blok</label>
+                            <input type="text" id="editBlok" placeholder="Contoh: UJ100_123">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>LT</label>
+                                <input type="number" id="editLT">
+                            </div>
+                            <div class="form-group">
+                                <label>LB</label>
+                                <input type="number" id="editLB">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Type</label>
+                                <input type="text" id="editType">
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="editStatus">
+                                    <option value="Terjual">Terjual</option>
+                                    <option value="Stok">Stok</option>
+                                    <option value="Tersewa">Tersewa</option>
+                                    <option value="tidak tahu">tidak tahu</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="edit-section">
+                        <h4>Kondisi Fisik</h4>
+                        <div class="form-row mb-4">
+                            <div class="form-group">
+                                <label>Total Kondisi % (Otomatis)</label>
+                                <div id="editTotalKondisiDisplay" class="percent-display-box readonly">0%</div>
+                                <input type="hidden" id="editTotalKondisi" value="0%">
+                            </div>
+                        </div>
+                        <div id="physicalConditionInputs"></div>
+                    </div>
+
+                    <div class="edit-section">
+                        <h4>Foto Kondisi Kavling</h4>
+                        <div id="photoGallery" class="photo-gallery"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-save" onclick="saveEditKavling()">Simpan Perubahan</button>
+                <button type="button" class="btn-delete" onclick="deleteKavlingInventaris()">Hapus Kavling</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/inventaris.js"></script>
+</body>
+</html>
