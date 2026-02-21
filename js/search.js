@@ -39,7 +39,19 @@ window.setupCustomSearch = function(inputId, listId, selectId) {
   newInput.addEventListener('input', (e) => {
     console.log(`Input ${inputId} changed:`, e.target.value);
     const searchTerm = e.target.value.toLowerCase();
-    const filtered = window.allKavlings.filter(k => k.toLowerCase().includes(searchTerm));
+    let filtered = window.allKavlings;
+    if (searchTerm) {
+      const termParts = window.parseKavlingParts(searchTerm);
+      const termBlock = termParts.block;
+      filtered = window.allKavlings.filter(k => {
+        const lower = k.toLowerCase();
+        const parts = window.parseKavlingParts(k);
+        if (termBlock) {
+          if (parts.block.startsWith(termBlock)) return true;
+        }
+        return lower.includes(searchTerm);
+      });
+    }
     renderSearchList(filtered, list, newInput, select);
     list.style.display = 'block';
   });
