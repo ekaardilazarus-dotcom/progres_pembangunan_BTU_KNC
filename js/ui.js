@@ -134,6 +134,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    if (typeof window.initUnsavedChangeListeners === 'function') {
+        window.initUnsavedChangeListeners();
+    }
 });
 
 // =============================================================================
@@ -176,7 +179,6 @@ window.hideGlobalLoading = function() {
 window.showStatusModal = function(type, title, message) {
     const modal = document.getElementById('statusModal');
     if (!modal) {
-        // Fallback if modal element is missing
         if (typeof showToast === 'function') {
             showToast(type, `${title}: ${message}`);
         } else {
@@ -189,21 +191,23 @@ window.showStatusModal = function(type, title, message) {
     const titleEl = document.getElementById('statusTitle');
     const msgEl = document.getElementById('statusMessage');
 
-    // Reset classes
     iconEl.className = '';
 
     if (type === 'success') {
         iconEl.className = 'fas fa-check-circle';
-        iconEl.style.color = '#10b981'; // Emerald 500
+        iconEl.style.color = '#10b981';
     } else if (type === 'error') {
         iconEl.className = 'fas fa-times-circle';
-        iconEl.style.color = '#f43f5e'; // Rose 500
+        iconEl.style.color = '#f43f5e';
     } else if (type === 'warning') {
         iconEl.className = 'fas fa-exclamation-triangle';
-        iconEl.style.color = '#f59e0b'; // Amber 500
+        iconEl.style.color = '#f59e0b';
+    } else if (type === 'loading') {
+        iconEl.className = 'fas fa-spinner fa-spin';
+        iconEl.style.color = '#38bdf8';
     } else {
         iconEl.className = 'fas fa-info-circle';
-        iconEl.style.color = '#38bdf8'; // Sky 400
+        iconEl.style.color = '#38bdf8';
     }
 
     if (titleEl) titleEl.textContent = title;
@@ -211,9 +215,124 @@ window.showStatusModal = function(type, title, message) {
 
     modal.style.display = 'flex';
     
-    // Auto focus on close button if possible, or just trap focus
     const closeBtn = modal.querySelector('button');
-    if (closeBtn) closeBtn.focus();
+    if (closeBtn) {
+        if (type === 'loading') {
+            closeBtn.style.display = 'none';
+        } else {
+            closeBtn.style.display = 'inline-flex';
+            closeBtn.focus();
+        }
+    }
+};
+
+window.unsavedChanges = window.unsavedChanges || {};
+window.unsavedChangeDetails = window.unsavedChangeDetails || {};
+
+window.markUnsavedChangeForElement = function(el) {
+    if (!window.selectedKavling) return;
+    const section = el.closest('.progress-section');
+    if (!section) return;
+    const tahap = section.getAttribute('data-tahap');
+    if (!tahap) return;
+    const page = el.closest('.page-content');
+    if (!page || !page.id) return;
+    const role = page.id.replace('Page', '');
+    const key = `${role}-tahap${tahap}`;
+    let label = el.getAttribute('data-task') || '';
+    if (!label) {
+        const itemTitle = el.closest('.task-item-standalone') && el.closest('.task-item-standalone').querySelector('.item-title');
+        if (itemTitle) label = itemTitle.textContent.trim();
+    }
+    if (!label && tahap === '4' && el.classList.contains('tahap-comments')) label = 'Keterangan Tahap 4';
+    if (!label && tahap === '4' && el.classList.contains('key-delivery-input')) label = 'Penyerahan Kunci';
+    if (!label && tahap === '4' && el.classList.contains('key-delivery-date')) label = 'Tanggal Pengembalian Kunci';
+    if (!label) label = el.id || 'Field';
+    if (!window.unsavedChanges[key]) window.unsavedChanges[key] = [];
+    if (!window.unsavedChanges[key].includes(label)) window.unsavedChanges[key].push(label);
+
+    if (!window.unsavedChangeDetails[key]) window.unsavedChangeDetails[key] = {};
+    let valueText = '';
+    if (el.type === 'checkbox') {
+        valueText = el.checked ? '100%' : '0%';
+    } else if (el.type === 'range') {
+        valueText = el.value + '%';
+    } else if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+        valueText = el.value;
+    } else if (el.tagName === 'BUTTON') {
+        const hiddenInput = el.closest('.task-item-standalone') && el.closest('.task-item-standalone').querySelector('input[type="hidden"]');
+        if (hiddenInput) valueText = hiddenInput.value;
+    }
+    window.unsavedChangeDetails[key][label] = valueText;
+};
+
+window.hasUnsavedChangesForTab = function(tabId) {
+    if (!tabId || !window.unsavedChanges) return false;
+    const parts = tabId.split('-tahap');
+    if (parts.length !== 2) return false;
+    const role = parts[0];
+    const tahap = parts[1];
+    const key = `${role}-tahap${tahap}`;
+    const arr = window.unsavedChanges[key];
+    return Array.isArray(arr) && arr.length > 0;
+};
+
+window.getUnsavedChangesForTab = function(tabId) {
+    if (!tabId || !window.unsavedChanges) return [];
+    const parts = tabId.split('-tahap');
+    if (parts.length !== 2) return [];
+    const role = parts[0];
+    const tahap = parts[1];
+    const key = `${role}-tahap${tahap}`;
+    const arr = window.unsavedChanges[key];
+    return Array.isArray(arr) ? arr.slice() : [];
+};
+
+window.clearUnsavedChangesForRoleTahap = function(role, tahap) {
+    if (!window.unsavedChanges && !window.unsavedChangeDetails) return;
+    const key = `${role}-tahap${tahap}`;
+    if (window.unsavedChanges) delete window.unsavedChanges[key];
+    if (window.unsavedChangeDetails) delete window.unsavedChangeDetails[key];
+};
+
+window.resetUnsavedChangesForRole = function(role) {
+    if (!role) return;
+    if (window.unsavedChanges) {
+        Object.keys(window.unsavedChanges).forEach(k => {
+            if (k.startsWith(role + '-tahap')) delete window.unsavedChanges[k];
+        });
+    }
+    if (window.unsavedChangeDetails) {
+        Object.keys(window.unsavedChangeDetails).forEach(k => {
+            if (k.startsWith(role + '-tahap')) delete window.unsavedChangeDetails[k];
+        });
+    }
+};
+
+window.updateSaveButtonsForRoleKavling = function(role, kavling) {
+    if (!role || !kavling) return;
+    const pageId = role + 'Page';
+    const page = document.getElementById(pageId);
+    if (!page) return;
+    ['1', '2', '3', '4'].forEach(function(tahap) {
+        const section = page.querySelector('.progress-section[data-tahap="' + tahap + '"]');
+        if (!section) return;
+        const btn = section.querySelector('.btn-save-section');
+        if (!btn) return;
+        btn.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap ' + tahap + ' ' + kavling;
+    });
+};
+
+window.initUnsavedChangeListeners = function() {
+    const elements = document.querySelectorAll('.progress-section input, .progress-section textarea, .progress-section button.tiles-btn, .progress-section button.system-btn, .progress-section button.table-btn');
+    elements.forEach(el => {
+        if (el.dataset.unsavedListenerAttached) return;
+        const eventName = el.tagName === 'BUTTON' ? 'click' : 'change';
+        el.addEventListener(eventName, function() {
+            window.markUnsavedChangeForElement(this);
+        });
+        el.dataset.unsavedListenerAttached = 'true';
+    });
 };
 
 window.toggleSystemButton = function(btn, state) {
@@ -316,7 +435,6 @@ window.updateTabsState = function() {
         
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            
             // 1. Handle Active Class on Buttons
             // Find the container of this button
             const container = this.closest('.pelaksana-tabs');
