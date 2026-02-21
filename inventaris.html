@@ -75,6 +75,20 @@
             </div>
         </div>
 
+        <div id="masterLoadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <p>Memuat Database Kavling...</p>
+            </div>
+        </div>
+
+        <div id="kavlingDetailLoadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <p>Mengambil data LT / LB / Type...</p>
+            </div>
+        </div>
+
         <div class="inventaris-container">
             <!-- Sidebar (1) -->
             <div class="sidebar">
@@ -111,12 +125,12 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>BLOK</th>
+                            <th id="thBlok" class="sortable" data-sort-key="blok" onclick="sortInventarisBy('blok')">BLOK</th>
                             <th>LT</th>
                             <th>LB</th>
                             <th>Type</th>
-                            <th>Status</th>
-                            <th>Total Kondisi</th>
+                            <th id="thStatus" class="sortable" data-sort-key="status" onclick="sortInventarisBy('status')">Status</th>
+                            <th id="thTotal" class="sortable" data-sort-key="total" onclick="sortInventarisBy('total')">Total Kondisi</th>
                             <th>KONDISI HALAMAN</th>
                             <th>PONDASI</th>
                             <th>CAT LUAR</th>
@@ -156,14 +170,32 @@
 
     <!-- Modal Tambah Kavling -->
     <div id="addKavlingModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content modal-edit">
             <div class="modal-header">
+                <button type="button" class="close-btn" onclick="closeAddKavlingModal()">&times;</button>
                 <h3>Tambah Kavling Baru</h3>
             </div>
             <form id="addKavlingForm" onsubmit="submitAddKavling(event)">
                 <div class="form-group">
                     <label>Alamat Kavling/Blok (Contoh: UJ100_123)</label>
-                    <input type="text" id="inputBlok" placeholder="Masukkan Blok" required>
+                    <div class="custom-search-container">
+                        <input
+                            type="text"
+                            id="inputBlok"
+                            class="search-input-custom"
+                            placeholder="Masukkan Blok"
+                            autocomplete="off"
+                            required
+                        >
+                        <div
+                            id="inputBlokList"
+                            class="custom-dropdown-list"
+                            style="display: none"
+                        ></div>
+                        <select id="inputBlokSelect" style="display: none">
+                            <option value="">-- Pilih Kavling --</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -180,20 +212,9 @@
                         <label>Type</label>
                         <input type="text" id="inputType" placeholder="Contoh: T_40" >
                     </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="inputStatus" required>
-                            <option value="" disabled selected>Pilih Status</option>
-                            <option value="Terjual">Terjual</option>
-                            <option value="Stok">Stok</option>
-                            <option value="Tersewa">Tersewa</option>
-                            <option value="tidak tahu">tidak tahu</option>
-                        </select>
-                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-cancel" onclick="closeAddKavlingModal()">Batal</button>
-                    <button type="submit" class="btn-save">Simpan Data</button>
+                    <button type="submit" class="btn-save" id="btnSaveAddKavling">Simpan Data Kavling</button>
                 </div>
             </form>
         </div>
@@ -234,15 +255,6 @@
                                 <label>Type</label>
                                 <input type="text" id="editType">
                             </div>
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select id="editStatus">
-                                    <option value="Terjual">Terjual</option>
-                                    <option value="Stok">Stok</option>
-                                    <option value="Tersewa">Tersewa</option>
-                                    <option value="tidak tahu">tidak tahu</option>
-                                </select>
-                            </div>
                         </div>
                     </div>
 
@@ -259,6 +271,7 @@
                                 <label>Total Kondisi % (Otomatis)</label>
                                 <div class="percent-display-box total-kondisi-display" id="editTotalKondisiDisplay">0%</div>
                                 <input type="hidden" id="editTotalKondisi" name="Total Kondisi">
+                                <div id="editStatusDisplay" class="status-display-label"></div>
                             </div>
                         </div>
                         <div id="physicalConditionInputs">
@@ -267,6 +280,7 @@
                     </div>
 
                     <div class="edit-section">
+                
                     </div>
                 </form>
             </div>
