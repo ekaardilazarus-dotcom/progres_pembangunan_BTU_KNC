@@ -38,18 +38,12 @@ window.setupCustomSearch = function(inputId, listId, selectId) {
 
   newInput.addEventListener('input', (e) => {
     console.log(`Input ${inputId} changed:`, e.target.value);
-    const searchTerm = e.target.value.toLowerCase();
+    const searchTerm = e.target.value.toLowerCase().trim();
     let filtered = window.allKavlings;
     if (searchTerm) {
-      const termParts = window.parseKavlingParts(searchTerm);
-      const termBlock = termParts.block;
       filtered = window.allKavlings.filter(k => {
         const lower = k.toLowerCase();
-        const parts = window.parseKavlingParts(k);
-        if (termBlock) {
-          if (parts.block.startsWith(termBlock)) return true;
-        }
-        return lower.includes(searchTerm);
+        return lower.startsWith(searchTerm);
       });
     }
     renderSearchList(filtered, list, newInput, select);
@@ -128,8 +122,16 @@ window.renderSearchList = function(items, listEl, inputEl, selectEl) {
     div.onclick = async function() {
       console.log('Selected item via onclick:', item);
 
-      // Tampilkan loading popup
-      showStatusModal('loading', 'Mohon Tunggu', `Sedang mengambil data kavling ${item}...`);
+      // Tampilkan loading popup jika fungsi tersedia
+      try {
+        if (typeof window.showStatusModal === 'function') {
+          window.showStatusModal('loading', 'Mohon Tunggu', `Sedang mengambil data kavling ${item}...`);
+        } else {
+          console.warn('showStatusModal tidak tersedia');
+        }
+      } catch (err) {
+        console.error('Gagal menampilkan modal loading:', err);
+      }
 
       inputEl.value = item;
       selectEl.value = item;
@@ -171,6 +173,12 @@ window.renderSearchList = function(items, listEl, inputEl, selectEl) {
           
           if (typeof loadProgressData === 'function') {
             loadProgressData(data.data);
+          }
+          if (typeof window.resetUnsavedChangesForRole === 'function') {
+            window.resetUnsavedChangesForRole(currentRole);
+          }
+          if (typeof window.updateSaveButtonsForRoleKavling === 'function') {
+            window.updateSaveButtonsForRoleKavling(currentRole, currentKavlingData.kavling);
           }
           
           // Fix: Ensure notes are updated for manager (progress handled by updateSupervisorStagesUI)
@@ -468,6 +476,12 @@ window.searchKavling = async function(isSync = false) {
         if (typeof loadProgressData === 'function') {
           loadProgressData(data.data);
         }
+      }
+      if (typeof window.resetUnsavedChangesForRole === 'function') {
+        window.resetUnsavedChangesForRole(currentRole);
+      }
+      if (typeof window.updateSaveButtonsForRoleKavling === 'function') {
+        window.updateSaveButtonsForRoleKavling(currentRole, currentKavlingData.kavling);
       }
 
       if (currentRole === 'manager') {
