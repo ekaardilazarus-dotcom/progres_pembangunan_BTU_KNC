@@ -1,20 +1,72 @@
-function checkPass() {
-    const pass = document.getElementById('passInput').value;
-    if (pass === 'F888') {
-        document.getElementById('passwordOverlay').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        sessionStorage.setItem('inventaris_auth', 'true');
-        loadInventarisData(); // Muat data setelah login
+async function checkPass() {
+    const passInput = document.getElementById('passInput');
+    if (!passInput) return;
+    const pass = passInput.value;
+    const path = (window.location.pathname || '').toLowerCase();
+    const isLaporan = path.includes('laporan_kondisi');
+    const isInventaris = path.includes('inventaris');
+
+    let isValid = false;
+    if (isInventaris) {
+        // Inventaris: wajib 8888, selalu minta saat reload
+        isValid = pass === '8888';
+    } else if (isLaporan) {
+        // Cek Laporan Kondisi: wajib F888
+        isValid = pass === 'F888';
+    } else {
+        // Halaman lain (fallback): izinkan kedua kode
+        isValid = (pass === '8888' || pass === 'F888');
+    }
+
+    if (isValid) {
+        const overlay = document.getElementById('passwordOverlay');
+        const mainApp = document.getElementById('mainApp');
+        if (overlay) overlay.style.display = 'none';
+        if (mainApp) mainApp.style.display = 'block';
+
+        const errorMsg = document.getElementById('errorMsg');
+        if (errorMsg) errorMsg.style.display = 'none';
+        passInput.value = '';
+
+        if (isInventaris) {
+            await loadMasterKavlingList();
+            await loadInventarisData();
+        } else if (isLaporan) {
+            await loadInventarisData();
+        }
     } else {
         const errorMsg = document.getElementById('errorMsg');
         if (errorMsg) errorMsg.style.display = 'block';
-        document.getElementById('passInput').value = '';
+        passInput.value = '';
+    }
+}
+
+async function loadMasterKavlingList() {
+    const overlay = document.getElementById('masterLoadingOverlay');
+    if (overlay) overlay.style.display = 'flex';
+    try {
+        const url = window.PROGRESS_APPS_SCRIPT_URL;
+        const result = await window.getDataFromServer(url, {
+            action: 'getKavlingList'
+        });
+
+        if (result && result.success && Array.isArray(result.kavlings)) {
+            masterKavlingList = result.kavlings;
+        } else {
+            console.warn('Gagal memuat database kavling master untuk Tambah Kavling');
+        }
+    } catch (error) {
+        console.error('Error load master kavling list:', error);
+    } finally {
+        if (overlay) overlay.style.display = 'none';
     }
 }
 
 // Global data store
 let allKavlingData = [];
 let currentEditPhotos = []; // Store base64 photos for current edit
+let masterKavlingList = []; // Database kavling utama (sama seperti Pelaksana)
+let lastAutoFilledKavling = '';
 
 // Mapping kolom fisik untuk modal edit (disesuaikan dengan urutan tabel/sheet)
 const PHYSICAL_COLUMNS = [
@@ -67,6 +119,23 @@ async function loadInventarisData() {
     }
 }
 
+function getKondisiClass(totalKondisi) {
+    let kondisiClass = 'tidak-layak';
+    if (totalKondisi >= 91) kondisiClass = 'layak';
+    else if (totalKondisi >= 75) kondisiClass = 'renov-ringan';
+    else if (totalKondisi >= 50) kondisiClass = 'renov-banyak';
+    else if (totalKondisi >= 20) kondisiClass = 'rusak';
+    return kondisiClass;
+}
+
+function getStatusLabelFromClass(kelas) {
+    if (kelas === 'layak') return 'Kondisi Layak Huni (91%-100%)';
+    if (kelas === 'renov-ringan') return 'Kondisi Butuh Renovasi Ringan (75%-90%)';
+    if (kelas === 'renov-banyak') return 'Kondisi Butuh Renovasi Banyak (50%-80%)';
+    if (kelas === 'rusak') return 'Kondisi Rusak Parah (20%-49%)';
+    return 'Kondisi Tidak Layak Huni (0%-19%)';
+}
+
 function renderTable(data) {
     const tbody = document.getElementById('kavlingTableBody');
     if (!tbody) return;
@@ -80,12 +149,7 @@ function renderTable(data) {
         // Total Kondisi sekarang ada di index 26 (kolom AA) di sheet InventarisUnit
         // Kita gunakan parseProgressValue untuk memastikan nilai 0-100
         const totalKondisi = window.parseProgressValue(row[26]);
-        
-        let kondisiClass = 'tidak-layak';
-        if (totalKondisi >= 91) kondisiClass = 'layak';
-        else if (totalKondisi >= 75) kondisiClass = 'renov-ringan';
-        else if (totalKondisi >= 50) kondisiClass = 'renov-banyak';
-        else if (totalKondisi >= 20) kondisiClass = 'Terpasang dan Rusak';
+        const kondisiClass = getKondisiClass(totalKondisi);
 
         // Susun ulang urutan kolom untuk tampilan tabel
         // Urutan sesuai judul tabel:
@@ -111,10 +175,23 @@ function renderTable(data) {
                 ${displayRow.map((cell, i) => {
                     const isClickable = i >= 0 && i <= 5; // BLOK s/d Total Kondisi
                     const cellClasses = isClickable ? 'clickable-cell' : 'pan-cell';
-                    
+                    if (i === 4) {
+                        const statusText = cell || '-';
+                        const statusClass = kondisiClass === 'layak' ? 'status-layak'
+                            : kondisiClass === 'renov-ringan' ? 'status-renov-ringan'
+                            : kondisiClass === 'renov-banyak' ? 'status-renov-banyak'
+                            : kondisiClass === 'rusak' ? 'status-rusak'
+                            : 'status-tidak-layak';
+                        return `<td class="${cellClasses} ${statusClass}" ${isClickable ? `onclick="openEditModal(${index})"` : ''}>${statusText}</td>`;
+                    }
                     if (i === 5) {
-                        const val = window.parseProgressValue(cell);
-                        return `<td class="${cellClasses}" ${isClickable ? `onclick="openEditModal(${index})"` : ''}>${val}%</td>`;
+                        const val = window.parseProgressValue(totalKondisiCell);
+                        let totalClass = '';
+                        if (val < 50) totalClass = 'total-kondisi-low';
+                        else if (val <= 70) totalClass = 'total-kondisi-medium';
+                        else if (val <= 90) totalClass = 'total-kondisi-high';
+                        else totalClass = 'total-kondisi-very-high';
+                        return `<td class="${cellClasses} ${totalClass}" ${isClickable ? `onclick="openEditModal(${index})"` : ''}>${val}%</td>`;
                     }
                     
                     let displayCell = cell || '-';
@@ -143,6 +220,55 @@ function renderTable(data) {
     }).join('');
 
     applyStickyColumns();
+}
+
+let currentSortState = {
+    key: null,
+    direction: 'asc'
+};
+
+function sortInventarisBy(key) {
+    if (!allKavlingData || allKavlingData.length === 0) return;
+    if (currentSortState.key === key) {
+        currentSortState.direction = currentSortState.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSortState.key = key;
+        currentSortState.direction = 'asc';
+    }
+    const dir = currentSortState.direction === 'asc' ? 1 : -1;
+    const sorted = [...allKavlingData].sort((a, b) => {
+        if (key === 'blok') {
+            const aParts = parseKavlingPartsForInventaris(a[0] || '');
+            const bParts = parseKavlingPartsForInventaris(b[0] || '');
+            if (aParts.block !== bParts.block) {
+                return aParts.block.localeCompare(bParts.block) * dir;
+            }
+            return (aParts.number - bParts.number) * dir;
+        }
+        if (key === 'status') {
+            const statusOrder = {
+                'Kondisi Layak Huni (91%-100%)': 4,
+                'Kondisi Butuh Renovasi Ringan (75%-90%)': 3,
+                'Kondisi Butuh Renovasi Banyak (50%-80%)': 2,
+                'Kondisi Rusak Parah (20%-49%)': 1,
+                'Kondisi Tidak Layak Huni (0%-19%)': 0
+            };
+            const aLabel = getStatusLabelFromClass(getKondisiClass(window.parseProgressValue(a[26])));
+            const bLabel = getStatusLabelFromClass(getKondisiClass(window.parseProgressValue(b[26])));
+            const aVal = statusOrder[aLabel] ?? -1;
+            const bVal = statusOrder[bLabel] ?? -1;
+            if (aVal === bVal) return 0;
+            return aVal > bVal ? dir : -dir;
+        }
+        if (key === 'total') {
+            const aVal = window.parseProgressValue(a[26]);
+            const bVal = window.parseProgressValue(b[26]);
+            if (aVal === bVal) return 0;
+            return aVal > bVal ? dir : -dir;
+        }
+        return 0;
+    });
+    renderTable(sorted);
 }
 
 function applyStickyColumns() {
@@ -179,24 +305,241 @@ function applyStickyColumns() {
 }
 
 // Modal Functions
-function openAddKavlingModal() {
+async function openAddKavlingModal() {
     document.getElementById('addKavlingModal').style.display = 'flex';
+    setupAddKavlingSearch();
+    if (!masterKavlingList || masterKavlingList.length === 0) {
+        await loadMasterKavlingList();
+    }
+    lastAutoFilledKavling = '';
+    updateAddKavlingButtonLabel();
+}
+
+function setupAddKavlingSearch() {
+    const input = document.getElementById('inputBlok');
+    const list = document.getElementById('inputBlokList');
+    const ltInput = document.getElementById('inputLT');
+    const lbInput = document.getElementById('inputLB');
+    if (!input || !list || !ltInput || !lbInput) return;
+    if (input.dataset.searchBound) return;
+    input.dataset.searchBound = 'true';
+
+    input.addEventListener('input', (e) => {
+        const val = e.target.value || '';
+        if (!val.trim()) {
+            list.style.display = 'none';
+            list.innerHTML = '';
+            lastAutoFilledKavling = '';
+            updateAddKavlingButtonLabel();
+            return;
+        }
+        renderAddKavlingList(val);
+        updateAddKavlingButtonLabel();
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            list.style.display = 'none';
+            handleAutoFillKavling();
+        }
+    });
+
+    ltInput.addEventListener('input', () => {
+        updateAddKavlingButtonLabel();
+    });
+
+    lbInput.addEventListener('input', () => {
+        updateAddKavlingButtonLabel();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !list.contains(e.target)) {
+            list.style.display = 'none';
+        }
+    });
+}
+
+function parseKavlingPartsForInventaris(str) {
+    const trimmed = String(str || '').trim();
+    if (/^\d+$/.test(trimmed)) {
+        return { block: '', number: parseInt(trimmed, 10) };
+    }
+    const complexMatch = trimmed.match(/^([A-Za-z]+\d*)[_ ]*(\d+)$/);
+    if (complexMatch) {
+        return { block: complexMatch[1].toUpperCase(), number: parseInt(complexMatch[2], 10) };
+    }
+    const simpleMatch = trimmed.match(/([A-Za-z]+)[_ ]*(\d+)/);
+    if (simpleMatch) {
+        return { block: simpleMatch[1].toUpperCase(), number: parseInt(simpleMatch[2], 10) };
+    }
+    return { block: trimmed.toUpperCase(), number: 0 };
+}
+
+function renderAddKavlingList(searchTerm) {
+    const list = document.getElementById('inputBlokList');
+    const input = document.getElementById('inputBlok');
+    if (!list || !input) return;
+
+    const term = (searchTerm || '').toLowerCase().trim();
+    let items = masterKavlingList || [];
+
+    if (term) {
+        const termParts = parseKavlingPartsForInventaris(term);
+        const termBlock = termParts.block;
+        items = items.filter(k => {
+            const lower = k.toLowerCase();
+            const parts = parseKavlingPartsForInventaris(k);
+            if (termBlock) {
+                if (parts.block.startsWith(termBlock)) return true;
+            }
+            return lower.includes(term);
+        });
+        items.sort((a, b) => {
+            const aLower = a.toLowerCase();
+            const bLower = b.toLowerCase();
+            const aStarts = aLower.startsWith(term);
+            const bStarts = bLower.startsWith(term);
+            const aParts = parseKavlingPartsForInventaris(a);
+            const bParts = parseKavlingPartsForInventaris(b);
+            if (aStarts && !bStarts) return -1;
+            if (!aStarts && bStarts) return 1;
+            if (aParts.block !== bParts.block) {
+                return aParts.block.localeCompare(bParts.block);
+            }
+            return aParts.number - bParts.number;
+        });
+    } else {
+        items = [...items].sort((a, b) => {
+            const aParts = parseKavlingPartsForInventaris(a);
+            const bParts = parseKavlingPartsForInventaris(b);
+            if (aParts.block !== bParts.block) {
+                return aParts.block.localeCompare(bParts.block);
+            }
+            return aParts.number - bParts.number;
+        });
+    }
+
+    list.innerHTML = '';
+
+    if (items.length === 0) {
+        const noResult = document.createElement('div');
+        noResult.className = 'custom-dropdown-item no-results';
+        noResult.textContent = 'Tidak ada kavling ditemukan';
+        list.appendChild(noResult);
+        list.style.display = 'block';
+        return;
+    }
+
+    const maxItems = 5;
+    items.slice(0, maxItems).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'custom-dropdown-item';
+        div.textContent = item;
+        div.addEventListener('click', () => {
+            input.value = item;
+            list.style.display = 'none';
+            handleAutoFillKavling();
+        });
+        list.appendChild(div);
+    });
+
+    if (items.length > maxItems) {
+        const more = document.createElement('div');
+        more.className = 'custom-dropdown-item no-results';
+        more.textContent = `...dan ${items.length - maxItems} lainnya (ketik untuk mencari)`;
+        list.appendChild(more);
+    }
+
+    list.style.display = 'block';
+}
+
+async function handleAutoFillKavling() {
+    const textInput = document.getElementById('inputBlok');
+    if (!textInput) return;
+    const value = textInput.value.trim();
+    if (!value || value.length < 1) return;
+
+    const detailOverlay = document.getElementById('kavlingDetailLoadingOverlay');
+    if (detailOverlay) detailOverlay.style.display = 'flex';
+
+    const url = window.PROGRESS_APPS_SCRIPT_URL;
+    try {
+        const result = await window.getDataFromServer(url, {
+            action: 'getKavlingData',
+            kavling: value
+        });
+
+        if (result && result.success) {
+            const ltField = document.getElementById('inputLT');
+            const lbField = document.getElementById('inputLB');
+            const typeField = document.getElementById('inputType');
+
+            if (ltField) {
+                ltField.value = result.lt || '';
+            }
+            if (lbField) {
+                lbField.value = result.lb || '';
+            }
+            if (typeField) {
+                typeField.value = result.type || '';
+            }
+
+            if (result.blok && (!textInput.value || textInput.value === value)) {
+                textInput.value = result.blok;
+            }
+
+            lastAutoFilledKavling = result.kavling || result.blok || value;
+            updateAddKavlingButtonLabel();
+        }
+    } catch (error) {
+        console.error('Auto fill kavling failed:', error);
+    } finally {
+        if (detailOverlay) detailOverlay.style.display = 'none';
+    }
 }
 
 function closeAddKavlingModal() {
     document.getElementById('addKavlingModal').style.display = 'none';
     document.getElementById('addKavlingForm').reset();
+    lastAutoFilledKavling = '';
+    updateAddKavlingButtonLabel();
+}
+
+function updateAddKavlingButtonLabel() {
+    const btn = document.getElementById('btnSaveAddKavling');
+    if (!btn) return;
+    const blokVal = (document.getElementById('inputBlok')?.value || '').trim();
+    const ltVal = (document.getElementById('inputLT')?.value || '').trim();
+    const lbVal = (document.getElementById('inputLB')?.value || '').trim();
+
+    if (ltVal && lbVal && lastAutoFilledKavling && blokVal && blokVal === lastAutoFilledKavling) {
+        btn.innerText = `Simpan Data Kavling (${blokVal})`;
+    } else {
+        btn.innerText = 'Simpan Data Kavling';
+    }
 }
 
 async function submitAddKavling(event) {
     event.preventDefault();
-    
+    const blokVal = document.getElementById('inputBlok').value.trim();
+    if (!blokVal || blokVal.length < 4) {
+        alert('Alamat kavling minimal 4 karakter.');
+        return;
+    }
+    let ltVal = document.getElementById('inputLT').value;
+    let lbVal = document.getElementById('inputLB').value;
+    let typeVal = document.getElementById('inputType').value;
+    if (!ltVal) ltVal = '-';
+    if (!lbVal) lbVal = '-';
+    if (!typeVal) typeVal = '-';
+
     const formData = {
-        blok: document.getElementById('inputBlok').value,
-        lt: document.getElementById('inputLT').value,
-        lb: document.getElementById('inputLB').value,
-        type: document.getElementById('inputType').value,
-        status: document.getElementById('inputStatus').value,
+        blok: blokVal,
+        lt: ltVal,
+        lb: lbVal,
+        type: typeVal,
+        status: '',
         action: 'addKavling'
     };
 
@@ -237,7 +580,6 @@ function openEditModal(index) {
     document.getElementById('editLT').value = row[1];
     document.getElementById('editLB').value = row[2];
     document.getElementById('editType').value = row[3];
-    document.getElementById('editStatus').value = row[4];
 
     // Render Physical Condition Inputs
     const physicalContainer = document.getElementById('physicalConditionInputs');
@@ -387,6 +729,25 @@ function updateAutoCalc() {
         }
     }
     if (hidden) hidden.value = finalTotal + '%';
+
+    const statusLabel = document.getElementById('editStatusDisplay');
+    if (statusLabel) {
+        const statusClass = getKondisiClass(parseFloat(finalTotal));
+        const labelText = getStatusLabelFromClass(statusClass);
+        statusLabel.innerText = labelText;
+        statusLabel.className = 'status-display-label';
+        if (statusClass === 'layak') {
+            statusLabel.classList.add('status-layak');
+        } else if (statusClass === 'renov-ringan') {
+            statusLabel.classList.add('status-renov-ringan');
+        } else if (statusClass === 'renov-banyak') {
+            statusLabel.classList.add('status-renov-banyak');
+        } else if (statusClass === 'rusak') {
+            statusLabel.classList.add('status-rusak');
+        } else {
+            statusLabel.classList.add('status-tidak-layak');
+        }
+    }
 }
 
 function closeEditModal() {
@@ -465,8 +826,7 @@ async function saveEditKavling() {
         blok: newBlok,
         "LT": document.getElementById('editLT').value,
         "LB": document.getElementById('editLB').value,
-        "Type": document.getElementById('editType').value,
-        "Status": document.getElementById('editStatus').value,
+        "Type": document.getElementById('editType').value
     };
 
     // Collect physical conditions
@@ -502,8 +862,11 @@ async function saveEditKavling() {
         }
     });
 
-    // Save Total Kondisi
-    updateData["Total Kondisi"] = document.getElementById('editTotalKondisi').value;
+    const totalKondisiValue = document.getElementById('editTotalKondisi').value;
+    updateData["Total Kondisi"] = totalKondisiValue;
+    const totalNumeric = window.parseProgressValue(totalKondisiValue);
+    const kondisiClass = getKondisiClass(totalNumeric);
+    updateData["Status"] = getStatusLabelFromClass(kondisiClass);
 
     // Upload Foto menggunakan JSONP ber-chunk untuk menghindari limit URL
     const url = window.PROGRESS_APPS_SCRIPT_URL;
@@ -740,6 +1103,11 @@ function setupTablePanScroll() {
         isDown = false;
         container.classList.remove('is-panning');
     });
+
+    container.addEventListener('dblclick', function() {
+        container.scrollLeft = 0;
+        container.scrollTop = 0;
+    });
 }
 
 // Search Logic
@@ -758,16 +1126,7 @@ function setupSearch() {
     });
 }
 
-// Check session on load
 document.addEventListener('DOMContentLoaded', function() {
-    if (sessionStorage.getItem('inventaris_auth') === 'true') {
-        const passwordOverlay = document.getElementById('passwordOverlay');
-        const mainApp = document.getElementById('mainApp');
-        if (passwordOverlay) passwordOverlay.style.display = 'none';
-        if (mainApp) mainApp.style.display = 'block';
-        loadInventarisData();
-    }
-
     const passInput = document.getElementById('passInput');
     if (passInput) {
         passInput.addEventListener('keypress', function (e) {
@@ -781,6 +1140,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function logout() {
-    sessionStorage.removeItem('inventaris_auth');
     window.location.href = 'index.html';
 }
