@@ -80,14 +80,6 @@ body {
     font-size: 0.9rem;
     font-weight: 500;
 }
-.filter-section .filter-buttons button:nth-child(1) {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-}
-.filter-section .filter-buttons button:nth-child(3) {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-}
 .filter-section .filter-buttons .filter-btn[data-filter="all"] {
     text-align: center;
 }
@@ -233,6 +225,26 @@ tr:hover {
     font-size: 1.3rem;
     cursor: default;
 }
+.status-display-label {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.status-layak {
+    color: #10b981;
+}
+.status-renov-ringan {
+    color: #3b82f6;
+}
+.status-renov-banyak {
+    color: #f59e0b;
+}
+.status-rusak {
+    color: #f97316;
+}
+.status-tidak-layak {
+    color: #ef4444;
+}
 .total-kondisi-low {
     background: rgba(248, 113, 113, 0.2);
     border-color: #f87171;
@@ -314,8 +326,25 @@ td {
     padding: 12px;
     text-align: left;
     border: 1px solid #334155; /* Garis pembatas vertikal & horizontal */
-    white-space: nowrap; /* Mencegah isi sel membungkus */
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
     font-size: 0.9rem;
+}
+
+.sortable {
+    cursor: pointer;
+}
+
+.sortable:after {
+    content: ' ⇅';
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+#kavlingTable th:nth-child(6),
+#kavlingTable td:nth-child(6) {
+    max-width: 130px;
 }
 
 .main-content-table {
