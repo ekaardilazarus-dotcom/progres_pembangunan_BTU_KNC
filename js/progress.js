@@ -595,9 +595,62 @@ window.loadProgressData = function(progressData) {
              const percentBox = container.querySelector('.slider-percent-box');
              if (percentBox) percentBox.textContent = num + '%';
           }
+          // Centang otomatis checkbox "set ke 100%" jika nilai 100%
+          const sliderId = slider.id;
+          if (sliderId) {
+            const check100 = pageElement.querySelector(`.check-100[data-slider="${sliderId}"]`);
+            if (check100) {
+              check100.checked = num === 100;
+            }
+          }
         }
       }
     });
+  }
+
+  if (progressData.tahap4) {
+    const tahap4Section = pageElement.querySelector('.progress-section[data-tahap="4"]');
+    if (tahap4Section) {
+      const commentEl = tahap4Section.querySelector('.tahap-comments');
+      if (commentEl && progressData.tahap4['KETERANGAN'] !== undefined) {
+        commentEl.value = progressData.tahap4['KETERANGAN'];
+      }
+      const deliveryInput = tahap4Section.querySelector('.key-delivery-input');
+      if (deliveryInput) {
+        const recipientVal =
+          progressData.tahap4['Penyerahan Kunci dari Pelaksana Ke'] ||
+          progressData.tahap4['PENYERAHAN KUNCI'] ||
+          progressData.tahap4['KEY_RECIPIENT'];
+        if (recipientVal !== undefined) {
+          deliveryInput.value = recipientVal;
+        }
+      }
+      const dateInput = tahap4Section.querySelector('.key-delivery-date');
+      if (dateInput) {
+        const rawDate =
+          progressData.tahap4['Tanggal Penyerahan Kunci dari Pelaksana'] ||
+          progressData.tahap4['TANGGAL_PENYERAHAN_KUNCI'] ||
+          progressData.tahap4['KEY_RETURN_DATE'];
+        if (rawDate) {
+          const dateStr = String(rawDate).trim();
+          let htmlDate = '';
+          const m = dateStr.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+          if (m) {
+            htmlDate = m[3] + '-' + m[2] + '-' + m[1];
+          } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            htmlDate = dateStr;
+          }
+          if (htmlDate) {
+            dateInput.value = htmlDate;
+          }
+        }
+      }
+    }
+  }
+
+  // Setelah semua nilai slider dan checkbox ter-load, hitung ulang
+  if (typeof window.updateProgress === 'function') {
+    window.updateProgress(rolePage);
   }
 };
 
@@ -690,11 +743,23 @@ window.saveTahap1 = async function() {
   if (currentKavlingData.type) tahapData['TYPE'] = currentKavlingData.type;
 
   if (saveButton) {
-    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    let labelsAndValues = [];
+    if (window.unsavedChangeDetails) {
+      const key = `${currentRole}-tahap1`;
+      const details = window.unsavedChangeDetails[key];
+      if (details && Object.keys(details).length > 0) {
+        labelsAndValues = Object.keys(details).map(label => `${label}: ${details[label]}`);
+      }
+    }
+    let inner = `<i class="fas fa-spinner fa-spin"></i> Menyimpan Tahap 1 ${selectedKavling}...`;
+    if (labelsAndValues.length > 0) {
+      inner += `<div class="save-summary-text">Tersimpan: ${labelsAndValues.join(', ')}</div>`;
+    }
+    saveButton.innerHTML = inner;
     saveButton.disabled = true;
   }
 
-  showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 1...');
+  showGlobalLoading(`Mohon Tunggu, Sedang Menyimpan Tahap 1 ${selectedKavling}...`);
 
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
@@ -720,6 +785,9 @@ window.saveTahap1 = async function() {
       }
 
       if (typeof updateProgress === 'function') updateProgress(rolePage);
+      if (typeof window.clearUnsavedChangesForRoleTahap === 'function') {
+        window.clearUnsavedChangesForRoleTahap(currentRole, '1');
+      }
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 1');
     }
@@ -728,7 +796,7 @@ window.saveTahap1 = async function() {
     showToast('error', 'Gagal menyimpan: ' + error.message);
   } finally {
     if (saveButton) {
-      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 1';
+      saveButton.innerHTML = `<i class="fas fa-save"></i> Simpan Tahap 1 ${selectedKavling}`;
       saveButton.disabled = false;
     }
   }
@@ -814,11 +882,23 @@ window.saveTahap2 = async function() {
   if (currentKavlingData.type) tahapData['TYPE'] = currentKavlingData.type;
 
   if (saveButton) {
-    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    let labelsAndValues = [];
+    if (window.unsavedChangeDetails) {
+      const key = `${currentRole}-tahap2`;
+      const details = window.unsavedChangeDetails[key];
+      if (details && Object.keys(details).length > 0) {
+        labelsAndValues = Object.keys(details).map(label => `${label}: ${details[label]}`);
+      }
+    }
+    let inner = `<i class="fas fa-spinner fa-spin"></i> Menyimpan Tahap 2 ${selectedKavling}...`;
+    if (labelsAndValues.length > 0) {
+      inner += `<div class="save-summary-text">Tersimpan: ${labelsAndValues.join(', ')}</div>`;
+    }
+    saveButton.innerHTML = inner;
     saveButton.disabled = true;
   }
 
-  showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 2...');
+  showGlobalLoading(`Mohon Tunggu, Sedang Menyimpan Tahap 2 ${selectedKavling}...`);
 
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
@@ -844,6 +924,9 @@ window.saveTahap2 = async function() {
       }
 
       if (typeof updateProgress === 'function') updateProgress(rolePage);
+      if (typeof window.clearUnsavedChangesForRoleTahap === 'function') {
+        window.clearUnsavedChangesForRoleTahap(currentRole, '2');
+      }
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 2');
     }
@@ -852,7 +935,7 @@ window.saveTahap2 = async function() {
     showToast('error', 'Gagal menyimpan: ' + error.message);
   } finally {
     if (saveButton) {
-      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 2';
+      saveButton.innerHTML = `<i class="fas fa-save"></i> Simpan Tahap 2 ${selectedKavling}`;
       saveButton.disabled = false;
     }
   }
@@ -913,11 +996,23 @@ window.saveTahap3 = async function() {
   if (currentKavlingData.type) tahapData['TYPE'] = currentKavlingData.type;
 
   if (saveButton) {
-    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    let labelsAndValues = [];
+    if (window.unsavedChangeDetails) {
+      const key = `${currentRole}-tahap3`;
+      const details = window.unsavedChangeDetails[key];
+      if (details && Object.keys(details).length > 0) {
+        labelsAndValues = Object.keys(details).map(label => `${label}: ${details[label]}`);
+      }
+    }
+    let inner = `<i class="fas fa-spinner fa-spin"></i> Menyimpan Tahap 3 ${selectedKavling}...`;
+    if (labelsAndValues.length > 0) {
+      inner += `<div class="save-summary-text">Tersimpan: ${labelsAndValues.join(', ')}</div>`;
+    }
+    saveButton.innerHTML = inner;
     saveButton.disabled = true;
   }
 
-  showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 3...');
+  showGlobalLoading(`Mohon Tunggu, Sedang Menyimpan Tahap 3 ${selectedKavling}...`);
 
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
@@ -943,6 +1038,9 @@ window.saveTahap3 = async function() {
       }
 
       if (typeof updateProgress === 'function') updateProgress(rolePage);
+      if (typeof window.clearUnsavedChangesForRoleTahap === 'function') {
+        window.clearUnsavedChangesForRoleTahap(currentRole, '3');
+      }
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 3');
     }
@@ -951,7 +1049,7 @@ window.saveTahap3 = async function() {
     showToast('error', 'Gagal menyimpan: ' + error.message);
   } finally {
     if (saveButton) {
-      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 3';
+      saveButton.innerHTML = `<i class="fas fa-save"></i> Simpan Tahap 3 ${selectedKavling}`;
       saveButton.disabled = false;
     }
   }
@@ -968,6 +1066,7 @@ window.saveTahap4 = async function() {
   const tahap4Section = document.querySelector(`#${rolePage} .progress-section[data-tahap="4"]`);
   if (!tahap4Section) return;
 
+  const subTasks = tahap4Section.querySelectorAll('.sub-task');
   const commentEl = tahap4Section.querySelector('.tahap-comments');
   const deliveryEl = tahap4Section.querySelector('.key-delivery-input');
   const dateEl = tahap4Section.querySelector('.key-delivery-date');
@@ -988,6 +1087,17 @@ window.saveTahap4 = async function() {
   }
 
   const tahapData = {};
+
+  subTasks.forEach(input => {
+    const taskName = input.getAttribute('data-task');
+    if (!taskName) return;
+
+    if (input.type === 'checkbox') {
+      tahapData[taskName] = input.checked;
+    } else if (input.type === 'range') {
+      tahapData[taskName] = input.value + '%';
+    }
+  });
 
   // Handle Completion checkbox
   if (completionCheckbox) {
@@ -1023,24 +1133,26 @@ window.saveTahap4 = async function() {
     tahapData['KERAMIK DINDING TOILET & DAPUR'] = tilesInput.value;
   }
   
-  // Handle Tanggal Penyerahan Kunci
   if (dateEl && dateEl.value.trim()) {
     const dateValue = dateEl.value.trim();
-
-    // Validasi format dd/mm/yyyy
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateValue)) {
-      tahapData['TANGGAL_PENYERAHAN_KUNCI'] = dateValue;
-      console.log('Tanggal valid:', dateValue);
+    let finalDate = '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+      const p = dateValue.split('-');
+      finalDate = p[2] + '/' + p[1] + '/' + p[0];
     } else {
-      // Jika format tidak valid, kirim string kosong
+      const m = dateValue.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+      if (m) {
+        finalDate = m[1] + '/' + m[2] + '/' + m[3];
+      }
+    }
+    if (finalDate) {
+      tahapData['TANGGAL_PENYERAHAN_KUNCI'] = finalDate;
+    } else {
       tahapData['TANGGAL_PENYERAHAN_KUNCI'] = '';
-      console.log('Format tanggal tidak valid, dikirim kosong');
-      showToast('warning', 'Format tanggal harus dd/mm/yyyy (contoh: 25/12/2023)');
+      showToast('warning', 'Format tanggal tidak dikenali, gunakan date picker');
     }
   } else if (dateEl) {
-    // Jika input kosong atau hanya spasi
     tahapData['TANGGAL_PENYERAHAN_KUNCI'] = '';
-    console.log('Tanggal kosong, dikirim string kosong');
   }
 
   // Debug data yang akan dikirim
@@ -1052,11 +1164,23 @@ window.saveTahap4 = async function() {
   if (currentKavlingData.type) tahapData['TYPE'] = currentKavlingData.type;
 
   if (saveButton) {
-    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    let labelsAndValues = [];
+    if (window.unsavedChangeDetails) {
+      const key = `${currentRole}-tahap4`;
+      const details = window.unsavedChangeDetails[key];
+      if (details && Object.keys(details).length > 0) {
+        labelsAndValues = Object.keys(details).map(label => `${label}: ${details[label]}`);
+      }
+    }
+    let inner = `<i class="fas fa-spinner fa-spin"></i> Menyimpan Tahap 4 ${selectedKavling}...`;
+    if (labelsAndValues.length > 0) {
+      inner += `<div class="save-summary-text">Tersimpan: ${labelsAndValues.join(', ')}</div>`;
+    }
+    saveButton.innerHTML = inner;
     saveButton.disabled = true;
   }
 
-  showGlobalLoading('Mohon Tunggu, Sedang Menyimpan Tahap 4...');
+  showGlobalLoading(`Mohon Tunggu, Sedang Menyimpan Tahap 4 ${selectedKavling}...`);
 
   try {
     const result = await getDataFromServer(PROGRESS_APPS_SCRIPT_URL, {
@@ -1114,6 +1238,9 @@ window.saveTahap4 = async function() {
         if (typeof searchKavling === 'function') await searchKavling(); // Ini akan memuat ulang data dengan progress terbaru
         if (typeof updateProgress === 'function') updateProgress(rolePage); // Update perhitungan progress lokal
       }, 300);
+      if (typeof window.clearUnsavedChangesForRoleTahap === 'function') {
+        window.clearUnsavedChangesForRoleTahap(currentRole, '4');
+      }
 
     } else {
       showToast('error', result.message || 'Gagal menyimpan tahap 4');
@@ -1124,7 +1251,7 @@ window.saveTahap4 = async function() {
     showToast('error', 'Gagal menyimpan: ' + error.message);
   } finally {
     if (saveButton) {
-      saveButton.innerHTML = '<i class="fas fa-save"></i> Simpan Tahap 4';
+      saveButton.innerHTML = `<i class="fas fa-save"></i> Simpan Tahap 4 ${selectedKavling}`;
       saveButton.disabled = false;
     }
   }
@@ -1250,13 +1377,36 @@ document.addEventListener('click', function(e) {
     
     console.log(`State updated for ${taskName}: ${hiddenInput.value}`);
     
-    // Trigger update UI to recalculate progress
     const section = container.closest('.progress-section');
     if (section) {
-        const tahap = section.getAttribute('data-tahap');
-        if (typeof window.updateTahapProgressUI === 'function') {
-            window.updateTahapProgressUI(section, tahap);
-        }
+      const tahap = section.getAttribute('data-tahap');
+      if (typeof window.updateTahapProgressUI === 'function') {
+        window.updateTahapProgressUI(section, tahap);
+      }
     }
+  }
+});
+
+document.addEventListener('click', function(e) {
+  const saveBtn = e.target.closest('.btn-save-section');
+  if (!saveBtn) return;
+
+  if (typeof currentRole === 'undefined' || !currentRole) return;
+  if (currentRole === 'user4') return;
+
+  const section = saveBtn.closest('.progress-section');
+  if (!section) return;
+
+  const tahap = section.getAttribute('data-tahap');
+  if (!tahap) return;
+
+  if (tahap === '1' && typeof window.saveTahap1 === 'function') {
+    window.saveTahap1();
+  } else if (tahap === '2' && typeof window.saveTahap2 === 'function') {
+    window.saveTahap2();
+  } else if (tahap === '3' && typeof window.saveTahap3 === 'function') {
+    window.saveTahap3();
+  } else if (tahap === '4' && typeof window.saveTahap4 === 'function') {
+    window.saveTahap4();
   }
 });
