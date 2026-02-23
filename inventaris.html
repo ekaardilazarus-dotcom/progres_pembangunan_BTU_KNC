@@ -246,10 +246,18 @@
                                 <label>Type</label>
                                 <input type="text" id="editType">
                             </div>
+                            <div class="form-group">
+                                <label>Status Bentuk Kavling</label>
+                                <select id="editStatusBentuk" required onchange="updatePhysicalSectionVisibility()">
+                                    <option value="" disabled selected>Pilih Status Bentuk</option>
+                                    <option value="Rumah Kavling">Rumah Kavling</option>
+                                    <option value="Tanah Kavling">Tanah Kavling</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="edit-section">
+                    <div class="edit-section" id="physicalSection">
                         <h4>
                             Kondisi Fisik (
                             <span class="kondisi-label-min">0% "Rusak"</span>
