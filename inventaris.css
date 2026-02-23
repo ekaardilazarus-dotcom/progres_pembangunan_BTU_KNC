@@ -9,8 +9,8 @@ body {
     display: grid;
     grid-template-columns: 1fr 4fr;
     gap: 20px;
-    max-width: 1400px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
     height: calc(100vh - 100px);
 }
 .header-nav {
@@ -245,6 +245,9 @@ tr:hover {
 .status-tidak-layak {
     color: #ef4444;
 }
+.status-tanah {
+    color: #9ca3af;
+}
 .total-kondisi-low {
     background: rgba(248, 113, 113, 0.2);
     border-color: #f87171;
@@ -342,9 +345,29 @@ td {
     color: #64748b;
 }
 
+#kavlingTable th:nth-child(5),
+#kavlingTable td:nth-child(5) {
+    max-width: 80px;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
 #kavlingTable th:nth-child(6),
 #kavlingTable td:nth-child(6) {
-    max-width: 130px;
+    max-width: 22ch;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Batasi lebar dan wrap untuk IMB + semua kolom kondisi fisik */
+#kavlingTable th:nth-child(n+8),
+#kavlingTable td:nth-child(n+8) {
+    max-width: 22ch;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 .main-content-table {
@@ -569,6 +592,21 @@ td {
 .btn-delete:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 15px rgba(248, 113, 113, 0.4);
+}
+
+.btn-refresh {
+    padding: 8px 10px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+.btn-refresh:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(34, 197, 94, 0.4);
 }
 
 /* Proporsi tombol di modal edit: Simpan : Hapus = 3 : 1 */
