@@ -72,12 +72,12 @@
                     <h4>Filter Kondisi Kavling</h4>
                     <div class="filter-buttons">
                         <button class="filter-btn active" data-filter="all">Semua Kondisi</button>
-                        <button class="filter-btn" data-filter="layak">Kondisi Layak Huni (90%-100%)</button>
-                        <button class="filter-btn" data-filter="renov-ringan">Kondisi Butuh Renovasi (76%-89%)</button>
-                        <button class="filter-btn" data-filter="renov-banyak">Kondisi Butuh Renovasi Banyak (50%-75%)</button>
-                        <button class="filter-btn" data-filter="rusak">Kondisi Rusak Parah (20%-49%)</button>
-                        <button class="filter-btn" data-filter="tidak-layak">Kondisi Tidak Layak Huni (1%-19%)</button>
-                        <button class="filter-btn" data-filter="tanah">Kondisi Tanah (0%)</button>
+                        <button class="filter-btn" data-filter="layak">Kondisi Baik (90%-100%)</button>
+                        <button class="filter-btn" data-filter="renov-ringan">Kondisi Butuh Renovasi Ringan (76%-89%)</button>
+                        <button class="filter-btn" data-filter="renov-banyak">Kondisi Butuh Renovasi Berat (50%-75%)</button>
+                        <button class="filter-btn" data-filter="rusak">Kondisi Rusak Parah (19%-49%)</button>
+                        <button class="filter-btn" data-filter="tidak-layak">Kondisi Rusak Bangun Ulang (2%-18%)</button>
+                        <button class="filter-btn" data-filter="tanah">Kondisi Tanah-Siap Bangun (0%-1%)</button>
                     </div>
                 </div>
 
@@ -224,24 +224,24 @@
                                 <input type="text" id="editType">
                             </div>
                             <div class="form-group">
-                                <label>Status</label>
-                                <select id="editStatus">
-                                    <option value="Terjual">Terjual</option>
-                                    <option value="Stok">Stok</option>
-                                    <option value="Tersewa">Tersewa</option>
-                                    <option value="tidak tahu">tidak tahu</option>
+                                <label>Status Bentuk Kavling</label>
+                                <select id="editStatusBentuk" required onchange="updatePhysicalSectionVisibility()">
+                                    <option value="" disabled selected>Pilih Status Bentuk</option>
+                                    <option value="Rumah Kavling">Rumah Kavling</option>
+                                    <option value="Tanah Kavling">Tanah Kavling</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
-                    <div class="edit-section">
+                    <div class="edit-section" id="physicalSection">
                         <h4>Kondisi Fisik</h4>
                         <div class="form-row mb-4">
                             <div class="form-group">
                                 <label>Total Kondisi % (Otomatis)</label>
                                 <div id="editTotalKondisiDisplay" class="percent-display-box readonly">0%</div>
                                 <input type="hidden" id="editTotalKondisi" value="0%">
+                                <div id="editStatusDisplay" class="status-display-label"></div>
                             </div>
                         </div>
                         <div id="physicalConditionInputs"></div>
