@@ -356,6 +356,23 @@ function applyStickyColumns() {
     const headerRow = table.tHead.rows[0];
     const bodyRows = table.tBodies[0].rows;
     const stickyCols = [0, 1, 2, 3, 4, 5, 6]; // No, BLOK, LT, LB, Type, Status, Total Kondisi
+
+    // Reset gaya sticky sebelumnya supaya perhitungan offset tidak bertumpuk
+    Array.from(headerRow.children).forEach(cell => {
+        cell.style.position = '';
+        cell.style.left = '';
+        cell.style.zIndex = '';
+        cell.style.background = '';
+    });
+    Array.from(bodyRows).forEach(row => {
+        Array.from(row.children).forEach(cell => {
+            cell.style.position = '';
+            cell.style.left = '';
+            cell.style.zIndex = '';
+            cell.style.background = '';
+        });
+    });
+
     const leftOffsets = {};
 
     stickyCols.forEach(colIndex => {
