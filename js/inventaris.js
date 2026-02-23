@@ -120,20 +120,22 @@ async function loadInventarisData() {
 }
 
 function getKondisiClass(totalKondisi) {
-    let kondisiClass = 'tidak-layak';
-    if (totalKondisi >= 91) kondisiClass = 'layak';
-    else if (totalKondisi >= 75) kondisiClass = 'renov-ringan';
-    else if (totalKondisi >= 50) kondisiClass = 'renov-banyak';
-    else if (totalKondisi >= 20) kondisiClass = 'rusak';
-    return kondisiClass;
+    if (totalKondisi === 0) return 'tanah';
+    if (totalKondisi >= 90) return 'layak';
+    if (totalKondisi >= 76) return 'renov-ringan';
+    if (totalKondisi >= 50) return 'renov-banyak';
+    if (totalKondisi >= 20) return 'rusak';
+    if (totalKondisi >= 1) return 'tidak-layak';
+    return 'tanah';
 }
 
 function getStatusLabelFromClass(kelas) {
-    if (kelas === 'layak') return 'Kondisi Layak Huni (91%-100%)';
-    if (kelas === 'renov-ringan') return 'Kondisi Butuh Renovasi Ringan (75%-90%)';
-    if (kelas === 'renov-banyak') return 'Kondisi Butuh Renovasi Banyak (50%-80%)';
+    if (kelas === 'layak') return 'Kondisi Layak Huni (90%-100%)';
+    if (kelas === 'renov-ringan') return 'Kondisi Butuh Renovasi (76%-89%)';
+    if (kelas === 'renov-banyak') return 'Kondisi Butuh Renovasi Banyak (50%-75%)';
     if (kelas === 'rusak') return 'Kondisi Rusak Parah (20%-49%)';
-    return 'Kondisi Tidak Layak Huni (0%-19%)';
+    if (kelas === 'tidak-layak') return 'Kondisi Tidak Layak Huni (1%-19%)';
+    return 'Kondisi Tanah (0%)';
 }
 
 function renderTable(data) {
@@ -141,31 +143,33 @@ function renderTable(data) {
     if (!tbody) return;
 
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="28" style="text-align: center; padding: 50px;">Tidak ada data ditemukan.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="29" style="text-align: center; padding: 50px;">Tidak ada data ditemukan.</td></tr>';
         return;
     }
 
     tbody.innerHTML = data.map((row, index) => {
-        // Total Kondisi sekarang ada di index 26 (kolom AA) di sheet InventarisUnit
+        // Total Kondisi sekarang ada di index 27 (kolom AB) di sheet InventarisUnit
         // Kita gunakan parseProgressValue untuk memastikan nilai 0-100
-        const totalKondisi = window.parseProgressValue(row[26]);
+        const totalKondisi = window.parseProgressValue(row[27]);
         const kondisiClass = getKondisiClass(totalKondisi);
 
         // Susun ulang urutan kolom untuk tampilan tabel
         // Urutan sesuai judul tabel:
-        // BLOK, LT, LB, Type, Status, Total Kondisi, lalu semua kolom fisik
+        // BLOK, LT, LB, Type, Status, Total Kondisi, Nomor IMB/PBG/SLF, lalu semua kolom fisik
         const baseColumns = [
             row[0] || '', // BLOK
             row[1] || '', // LT
             row[2] || '', // LB
             row[3] || '', // Type
-            row[4] || ''  // Status
+            row[5] || ''  // Status (kolom F di sheet, index 5)
         ];
-        const totalKondisiCell = row[26] || ''; // Total Kondisi (AA)
-        const physicalColumns = PHYSICAL_COLUMNS.map((_, idx) => row[idx + 5] || '');
+        const totalKondisiCell = row[27] || ''; // Total Kondisi (AB)
+        const imbCell = row[4] || ''; // Nomor IMB/PBG/SLF (kolom E)
+        const physicalColumns = PHYSICAL_COLUMNS.map((_, idx) => row[idx + 6] || '');
         const displayRow = [
             ...baseColumns,
             totalKondisiCell,
+            imbCell,
             ...physicalColumns
         ];
 
@@ -173,7 +177,7 @@ function renderTable(data) {
             <tr data-kondisi="${kondisiClass}" data-row-index="${index}">
                 <td class="pan-cell">${index + 1}</td>
                 ${displayRow.map((cell, i) => {
-                    const isClickable = i >= 0 && i <= 5; // BLOK s/d Total Kondisi
+                    const isClickable = i >= 0 && i <= 5; // BLOK s/d Total Kondisi (IMB tidak clickable)
                     const cellClasses = isClickable ? 'clickable-cell' : 'pan-cell';
                     if (i === 4) {
                         const statusText = cell || '-';
@@ -181,7 +185,8 @@ function renderTable(data) {
                             : kondisiClass === 'renov-ringan' ? 'status-renov-ringan'
                             : kondisiClass === 'renov-banyak' ? 'status-renov-banyak'
                             : kondisiClass === 'rusak' ? 'status-rusak'
-                            : 'status-tidak-layak';
+                            : kondisiClass === 'tidak-layak' ? 'status-tidak-layak'
+                            : 'status-tanah';
                         return `<td class="${cellClasses} ${statusClass}" ${isClickable ? `onclick="openEditModal(${index})"` : ''}>${statusText}</td>`;
                     }
                     if (i === 5) {
@@ -247,22 +252,23 @@ function sortInventarisBy(key) {
         }
         if (key === 'status') {
             const statusOrder = {
-                'Kondisi Layak Huni (91%-100%)': 4,
-                'Kondisi Butuh Renovasi Ringan (75%-90%)': 3,
-                'Kondisi Butuh Renovasi Banyak (50%-80%)': 2,
-                'Kondisi Rusak Parah (20%-49%)': 1,
-                'Kondisi Tidak Layak Huni (0%-19%)': 0
+                'Kondisi Layak Huni (90%-100%)': 5,
+                'Kondisi Butuh Renovasi (76%-89%)': 4,
+                'Kondisi Butuh Renovasi Banyak (50%-75%)': 3,
+                'Kondisi Rusak Parah (20%-49%)': 2,
+                'Kondisi Tidak Layak Huni (1%-19%)': 1,
+                'Kondisi Tanah (0%)': 0
             };
-            const aLabel = getStatusLabelFromClass(getKondisiClass(window.parseProgressValue(a[26])));
-            const bLabel = getStatusLabelFromClass(getKondisiClass(window.parseProgressValue(b[26])));
+            const aLabel = getStatusLabelFromClass(getKondisiClass(window.parseProgressValue(a[27])));
+            const bLabel = getStatusLabelFromClass(getKondisiClass(window.parseProgressValue(b[27])));
             const aVal = statusOrder[aLabel] ?? -1;
             const bVal = statusOrder[bLabel] ?? -1;
             if (aVal === bVal) return 0;
             return aVal > bVal ? dir : -dir;
         }
         if (key === 'total') {
-            const aVal = window.parseProgressValue(a[26]);
-            const bVal = window.parseProgressValue(b[26]);
+            const aVal = window.parseProgressValue(a[27]);
+            const bVal = window.parseProgressValue(b[27]);
             if (aVal === bVal) return 0;
             return aVal > bVal ? dir : -dir;
         }
