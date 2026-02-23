@@ -124,22 +124,21 @@ function refreshInventarisData() {
 }
 
 function getKondisiClass(totalKondisi) {
-    if (totalKondisi === 0) return 'tanah';
     if (totalKondisi >= 90) return 'layak';
     if (totalKondisi >= 76) return 'renov-ringan';
     if (totalKondisi >= 50) return 'renov-banyak';
-    if (totalKondisi >= 20) return 'rusak';
-    if (totalKondisi >= 1) return 'tidak-layak';
+    if (totalKondisi >= 19) return 'rusak';
+    if (totalKondisi >= 2) return 'tidak-layak';
     return 'tanah';
 }
 
 function getStatusLabelFromClass(kelas) {
-    if (kelas === 'layak') return 'Kondisi Layak Huni (90%-100%)';
-    if (kelas === 'renov-ringan') return 'Kondisi Butuh Renovasi (76%-89%)';
-    if (kelas === 'renov-banyak') return 'Kondisi Butuh Renovasi Banyak (50%-75%)';
-    if (kelas === 'rusak') return 'Kondisi Rusak Parah (20%-49%)';
-    if (kelas === 'tidak-layak') return 'Kondisi Tidak Layak Huni (1%-19%)';
-    return 'Kondisi Tanah (0%)';
+    if (kelas === 'layak') return 'Kondisi Baik (90%-100%)';
+    if (kelas === 'renov-ringan') return 'Kondisi Butuh Renovasi Ringan (76%-89%)';
+    if (kelas === 'renov-banyak') return 'Kondisi Butuh Renovasi Berat (50%-75%)';
+    if (kelas === 'rusak') return 'Kondisi Rusak Parah (19%-49%)';
+    if (kelas === 'tidak-layak') return 'Kondisi Rusak Bangun Ulang (2%-18%)';
+    return 'Kondisi Tanah-Siap Bangun (0%-1%)';
 }
 
 function renderTable(data) {
@@ -265,12 +264,12 @@ function downloadLaporanKondisiToExcel() {
     const activeFilterBtn = document.querySelector('.filter-btn.active');
     if (activeFilterBtn) {
         const filterVal = (activeFilterBtn.getAttribute('data-filter') || 'all').toLowerCase();
-        if (filterVal === 'layak') filterSuffix = 'Kondisi_Layak_Huni_90-100';
-        else if (filterVal === 'renov-ringan') filterSuffix = 'Butuh_Renovasi_76-89';
-        else if (filterVal === 'renov-banyak') filterSuffix = 'Butuh_Renovasi_Banyak_50-75';
-        else if (filterVal === 'rusak') filterSuffix = 'Rusak_Parah_20-49';
-        else if (filterVal === 'tidak-layak') filterSuffix = 'Tidak_Layak_Huni_1-19';
-        else if (filterVal === 'tanah') filterSuffix = 'Kondisi_Tanah_0';
+        if (filterVal === 'layak') filterSuffix = 'Kondisi_Baik_90-100';
+        else if (filterVal === 'renov-ringan') filterSuffix = 'Renovasi_Ringan_76-89';
+        else if (filterVal === 'renov-banyak') filterSuffix = 'Renovasi_Berat_50-75';
+        else if (filterVal === 'rusak') filterSuffix = 'Rusak_Parah_19-49';
+        else if (filterVal === 'tidak-layak') filterSuffix = 'Rusak_Bangun_Ulang_2-18';
+        else if (filterVal === 'tanah') filterSuffix = 'Tanah_Siap_Bangun_0-1';
         else filterSuffix = 'Semua';
     }
 
@@ -676,6 +675,18 @@ function openEditModal(index) {
     document.getElementById('editLB').value = row[2];
     document.getElementById('editType').value = row[3];
 
+    const bentukSelect = document.getElementById('editStatusBentuk');
+    if (bentukSelect) {
+        const existingStatus = row[5] || '';
+        if (existingStatus.includes('Tanah Kavling')) {
+            bentukSelect.value = 'Tanah Kavling';
+        } else if (existingStatus.includes('Rumah Kavling')) {
+            bentukSelect.value = 'Rumah Kavling';
+        } else {
+            bentukSelect.value = 'Rumah Kavling';
+        }
+    }
+
     // Render Physical Condition Inputs
     const physicalContainer = document.getElementById('physicalConditionInputs');
     physicalContainer.innerHTML = '';
@@ -769,28 +780,78 @@ function openEditModal(index) {
     renderPhotoGallery();
     updateAutoCalc(); // Hitung total awal
 
+    if (typeof updatePhysicalSectionVisibility === 'function') {
+        updatePhysicalSectionVisibility();
+    }
+
     document.getElementById('editKavlingModal').style.display = 'flex';
+}
+
+function updatePhysicalSectionVisibility() {
+    const bentukSelect = document.getElementById('editStatusBentuk');
+    const physicalSection = document.getElementById('physicalSection');
+    const isTanah = bentukSelect && bentukSelect.value === 'Tanah Kavling';
+
+    if (physicalSection) {
+        physicalSection.style.display = isTanah ? 'none' : '';
+    }
+
+    const totalDisplay = document.getElementById('editTotalKondisiDisplay');
+    const totalHidden = document.getElementById('editTotalKondisi');
+    const statusLabel = document.getElementById('editStatusDisplay');
+
+    if (isTanah) {
+        if (totalDisplay) {
+            totalDisplay.innerText = '0%';
+            totalDisplay.classList.remove('total-kondisi-low', 'total-kondisi-medium', 'total-kondisi-high', 'total-kondisi-very-high');
+            totalDisplay.classList.add('total-kondisi-low');
+        }
+        if (totalHidden) totalHidden.value = '0%';
+        if (statusLabel) {
+            const statusClass = getKondisiClass(0);
+            const labelText = getStatusLabelFromClass(statusClass);
+            statusLabel.innerText = labelText;
+            statusLabel.className = 'status-display-label status-tanah';
+        }
+    } else {
+        if (typeof updateAutoCalc === 'function') {
+            updateAutoCalc();
+        }
+    }
 }
 
 function updateAutoCalc() {
     let total = 0;
-    const items = PHYSICAL_COLUMNS.length;
-    
-    // Hitung jumlah item selain meteran
-    const meteranCols = PHYSICAL_COLUMNS.filter(c => c.toLowerCase() === 'meteran listrik' || c.toLowerCase() === 'meteran pdam');
-    const otherCols = PHYSICAL_COLUMNS.filter(c => c.toLowerCase() !== 'meteran listrik' && c.toLowerCase() !== 'meteran pdam');
-    
-    // Sisa bobot setelah dikurangi meteran (1% total untuk 2 meteran)
-    const meteranWeight = 0.5;
-    const totalMeteranWeight = meteranCols.length * meteranWeight;
-    const remainingWeight = 100 - totalMeteranWeight;
-    const weightPerItem = remainingWeight / otherCols.length;
+    const weightMap = {
+        "KONDISI HALAMAN": 25 / 10,
+        "CAT LUAR": 25 / 10,
+        "CAT DALAM": 25 / 10,
+        "STOP KONTAK": 25 / 10,
+        "FITTING LAMPU": 25 / 10,
+        "KELISTRIKAN": 25 / 10,
+        "Meteran Listrik": 25 / 10,
+        "Meteran PDAM": 25 / 10,
+        "PIPA AIR BERSIH": 25 / 10,
+        "KONDISI LAINNYA": 25 / 10,
+        "PONDASI": 15 / 4,
+        "KERAMIK LANTAI": 15 / 4,
+        "TOILET": 15 / 4,
+        "DAPUR": 15 / 4,
+        "PLAFOND": 60 / 7,
+        "RANGKA ATAP": 60 / 7,
+        "GENTENG": 60 / 7,
+        "KUSEN PINTU": 60 / 7,
+        "DAUN PINTU": 60 / 7,
+        "KUSEN JENDELA": 60 / 7,
+        "DAUN JENDELA": 60 / 7
+    };
 
     PHYSICAL_COLUMNS.forEach(colName => {
         const percentInput = document.querySelector(`#physicalConditionInputs [name="${colName}_percent"]`);
         const selectBox = document.querySelector(`#physicalConditionInputs select[name="${colName}"]`);
         const isMeteran = colName.toLowerCase() === 'meteran listrik' || colName.toLowerCase() === 'meteran pdam';
-        
+        const weight = weightMap[colName] || 0;
+
         if (isMeteran) {
             if (selectBox && percentInput) {
                 const status = selectBox.value;
@@ -800,18 +861,18 @@ function updateAutoCalc() {
                 else if (status === 'Belum Ada') percent = 0;
                 else percent = 90;
                 percentInput.value = percent;
-                total += (percent / 100) * meteranWeight;
+                total += (percent / 100) * weight;
             }
         } else {
             if (percentInput) {
                 const val = parseFloat(percentInput.value) || 0;
-                // Hitung kontribusi ke total: (NilaiInput / 100) * BobotItem
-                total += (val / 100) * weightPerItem;
+                total += (val / 100) * weight;
             }
         }
     });
 
-    const finalTotal = Math.min(100, Math.max(0, total)).toFixed(2);
+    const clamped = Math.min(100, Math.max(0, total));
+    const finalTotal = Math.round(clamped);
     const display = document.getElementById('editTotalKondisiDisplay');
     const hidden = document.getElementById('editTotalKondisi');
     
@@ -833,7 +894,7 @@ function updateAutoCalc() {
 
     const statusLabel = document.getElementById('editStatusDisplay');
     if (statusLabel) {
-        const statusClass = getKondisiClass(parseFloat(finalTotal));
+        const statusClass = getKondisiClass(finalTotal);
         const labelText = getStatusLabelFromClass(statusClass);
         statusLabel.innerText = labelText;
         statusLabel.className = 'status-display-label';
@@ -922,6 +983,13 @@ function readFileAsDataURL(file) {
 async function saveEditKavling() {
     const oldBlok = document.getElementById('editOldBlok').value;
     const newBlok = document.getElementById('editBlok').value;
+    const bentukSelect = document.getElementById('editStatusBentuk');
+    const bentukVal = bentukSelect ? bentukSelect.value : 'Rumah Kavling';
+
+    if (bentukSelect && !bentukVal) {
+        alert('Status Bentuk Kavling wajib diisi.');
+        return;
+    }
     const updateData = {
         oldBlok: oldBlok,
         blok: newBlok,
@@ -932,42 +1000,54 @@ async function saveEditKavling() {
 
     // Collect physical conditions
     let emptyFields = [];
-    PHYSICAL_COLUMNS.forEach(colName => {
-        const textInput = document.querySelector(`#physicalConditionInputs input[name="${colName}"]`);
-        const percentInput = document.querySelector(`#physicalConditionInputs input[name="${colName}_percent"]`);
-        const selectBox = document.querySelector(`#physicalConditionInputs select[name="${colName}"]`);
-        
-        if (textInput && percentInput) {
-            const textVal = textInput.value.trim();
-            const percentVal = window.parseProgressValue(percentInput.value);
+    if (bentukVal === 'Tanah Kavling') {
+        PHYSICAL_COLUMNS.forEach(colName => {
+            updateData[colName] = '-';
+        });
+    } else {
+        PHYSICAL_COLUMNS.forEach(colName => {
+            const textInput = document.querySelector(`#physicalConditionInputs input[name="${colName}"]`);
+            const percentInput = document.querySelector(`#physicalConditionInputs input[name="${colName}_percent"]`);
+            const selectBox = document.querySelector(`#physicalConditionInputs select[name="${colName}"]`);
             
-            // Tandai jika kosong tapi < 100% (hanya untuk info, bukan blokir)
-            if (percentVal < 100 && !textVal) {
-                emptyFields.push(colName);
-                textInput.style.borderColor = '#ef4444'; // Beri border merah
-            } else {
-                textInput.style.borderColor = ''; // Reset border
-            }
+            if (textInput && percentInput) {
+                const textVal = textInput.value.trim();
+                const percentVal = window.parseProgressValue(percentInput.value);
+                
+                if (percentVal < 100 && !textVal) {
+                    emptyFields.push(colName);
+                    textInput.style.borderColor = '#ef4444';
+                } else {
+                    textInput.style.borderColor = '';
+                }
 
-            // Format: "XX%-Keterangan"
-            if (textVal) {
+                if (textVal) {
+                    updateData[colName] = `${percentVal}%-${textVal}`;
+                } else {
+                    updateData[colName] = `${percentVal}%`;
+                }
+            } else if (selectBox && percentInput) {
+                const textVal = selectBox.value;
+                const percentVal = percentInput.value || 0;
                 updateData[colName] = `${percentVal}%-${textVal}`;
-            } else {
-                updateData[colName] = `${percentVal}%`;
             }
-        } else if (selectBox && percentInput) {
-            // Khusus Meteran (Dropdown)
-            const textVal = selectBox.value;
-            const percentVal = percentInput.value || 0;
-            updateData[colName] = `${percentVal}%-${textVal}`;
-        }
-    });
+        });
+    }
 
-    const totalKondisiValue = document.getElementById('editTotalKondisi').value;
+    let totalKondisiValue;
+    let totalNumeric;
+    if (bentukVal === 'Tanah Kavling') {
+        totalKondisiValue = '0%';
+        totalNumeric = 0;
+    } else {
+        totalKondisiValue = document.getElementById('editTotalKondisi').value;
+        totalNumeric = window.parseProgressValue(totalKondisiValue);
+    }
     updateData["Total Kondisi"] = totalKondisiValue;
-    const totalNumeric = window.parseProgressValue(totalKondisiValue);
     const kondisiClass = getKondisiClass(totalNumeric);
-    updateData["Status"] = getStatusLabelFromClass(kondisiClass);
+    const statusLabel = getStatusLabelFromClass(kondisiClass);
+    const bentukLabel = bentukVal || 'Rumah Kavling';
+    updateData["Status"] = `${bentukLabel} - ${statusLabel}`;
 
     // Upload Foto menggunakan JSONP ber-chunk untuk menghindari limit URL
     const url = window.PROGRESS_APPS_SCRIPT_URL;
@@ -1044,11 +1124,8 @@ async function saveEditKavling() {
         });
 
         if (result && result.success) {
-            let msg = 'Data berhasil diperbarui!';
-            if (emptyFields.length > 0) {
-                msg += '\n\nCatatan: Beberapa isian < 100% masih kosong (ditandai merah).';
-            }
-            alert(msg);
+            const blokName = newBlok || oldBlok || '';
+            alert(`Data "${blokName}" sudah disimpan`);
             closeEditModal();
             loadInventarisData();
         } else {
