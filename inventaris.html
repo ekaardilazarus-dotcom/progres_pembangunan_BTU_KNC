@@ -11,22 +11,7 @@
     <script src="js/utils.js"></script>
 </head>
 <body>
-    <!-- Password Protection -->
-    <div id="passwordOverlay">
-        <div class="password-box">
-            <i class="fas fa-lock" style="font-size: 3rem; color: #38bdf8; margin-bottom: 20px;"></i>
-            <h2>Akses Inventaris</h2>
-            <p style="color: #94a3b8; margin-top: 10px;">Silakan masukkan password untuk melanjutkan</p>
-            <input type="password" id="passInput" class="password-input" placeholder="Password">
-            <button onclick="checkPass()" class="btn-silver" style="width: 100%;">Masuk</button>
-            <p id="errorMsg" style="color: #f43f5e; margin-top: 15px; display: none;">Password Salah!</p>
-            <div style="margin-top: 20px;">
-                <a href="index.html" style="color: #94a3b8; text-decoration: none;"><i class="fas fa-arrow-left"></i> Kembali</a>
-            </div>
-        </div>
-    </div>
-
-    <div id="mainApp" style="display: none;">
+    <div id="mainApp">
         <!-- Loading Spinner -->
         <div id="loadingOverlay" class="loading-overlay" style="display: none;">
             <div class="spinner-container">
@@ -109,6 +94,9 @@
                         <button class="btn-silver w-full" onclick="window.location.href='laporan_kondisi.html'">
                             <i class="fas fa-file-alt mr-2"></i> Cek Laporan Kondisi
                         </button>
+                        <button class="btn-refresh w-full" onclick="refreshInventarisData()">
+                            <i class="fas fa-sync-alt mr-2"></i> Refresh Data
+                        </button>
                     </div>
                 </div>
 
@@ -131,7 +119,6 @@
                             <th>Type</th>
                             <th id="thStatus" class="sortable" data-sort-key="status" onclick="sortInventarisBy('status')">Status</th>
                             <th id="thTotal" class="sortable" data-sort-key="total" onclick="sortInventarisBy('total')">Total Kondisi</th>
-                            <th>Nomor IMB/PBG/SLF</th>
                             <th>KONDISI HALAMAN</th>
                             <th>PONDASI</th>
                             <th>CAT LUAR</th>
@@ -153,12 +140,15 @@
                             <th>Meteran PDAM</th>
                             <th>PIPA AIR BERSIH</th>
                             <th>KONDISI LAINNYA</th>
+                            <th id="thSkema" class="sortable" data-sort-key="skema" onclick="sortInventarisBy('skema')">SKEMA PENJUALAN</th>
+                            <th id="thSertifikat" class="sortable" data-sort-key="sertifikat" onclick="sortInventarisBy('sertifikat')">NOMOR SERTIFIKAT</th>
+                            <th id="thIMB" class="sortable" data-sort-key="imb" onclick="sortInventarisBy('imb')">Nomor IMB/PBG/SLF</th>
                         </tr>
                     </thead>
                     <tbody id="kavlingTableBody">
                         <!-- Data akan dimuat secara dinamis -->
                         <tr>
-                            <td colspan="29" style="text-align: center; padding: 50px;">
+                            <td colspan="31" style="text-align: center; padding: 50px;">
                                 <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #38bdf8; margin-bottom: 10px;"></i>
                                 <p>Sedang memuat data dari sheet InventarisUnit...</p>
                             </td>
