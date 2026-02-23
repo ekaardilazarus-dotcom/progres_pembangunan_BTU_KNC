@@ -11,7 +11,7 @@ const defaultDisplayNames = {
 const MAX_REVISI_PHOTOS = 6;
 window.USER_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx08smViAL2fT_P0ZCljaM8NGyDPZvhZiWt2EeIy1MYsjoWnSMEyXwoS6jydO-_J8OH/exec';
 // Base URL untuk Progress dan Utilitas
-window.BASE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxz04vLzWp5UPC3EQB4JTf6xRoU18rXAWQX0DY4Etkly4tzZ4x8U_9qSrGI6Un0XvGpXw/exec';
+window.BASE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx2S3TiQfB154Q0d-EUGlBVyvO7EQoF-yPSlnsj4YEvM5Qt1y1bWKICo5tJlz6cdEX6HA/exec';
 window.PROGRESS_APPS_SCRIPT_URL = window.BASE_APPS_SCRIPT_URL;
 window.ADMIN_UTILITAS_URL = window.BASE_APPS_SCRIPT_URL;
 window.ADMIN_UTILITAS_URL_SUPERVISOR = window.BASE_APPS_SCRIPT_URL;
