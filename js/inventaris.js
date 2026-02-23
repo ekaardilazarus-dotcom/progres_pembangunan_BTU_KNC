@@ -107,7 +107,7 @@ async function loadInventarisData() {
         console.error('Error loading data:', error);
         tbody.innerHTML = `
             <tr>
-                <td colspan="28" style="text-align: center; padding: 50px; color: #f43f5e;">
+                <td colspan="31" style="text-align: center; padding: 50px; color: #f43f5e;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
                     <p>Gagal memuat data: ${error.message}</p>
                     <button onclick="loadInventarisData()" class="btn-silver" style="margin-top: 15px;">Coba Lagi</button>
@@ -117,6 +117,10 @@ async function loadInventarisData() {
     } finally {
         if (loading) loading.style.display = 'none';
     }
+}
+
+function refreshInventarisData() {
+    loadInventarisData();
 }
 
 function getKondisiClass(totalKondisi) {
@@ -143,7 +147,7 @@ function renderTable(data) {
     if (!tbody) return;
 
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="29" style="text-align: center; padding: 50px;">Tidak ada data ditemukan.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="31" style="text-align: center; padding: 50px;">Tidak ada data ditemukan.</td></tr>';
         return;
     }
 
@@ -165,12 +169,16 @@ function renderTable(data) {
         ];
         const totalKondisiCell = row[27] || ''; // Total Kondisi (AB)
         const imbCell = row[4] || ''; // Nomor IMB/PBG/SLF (kolom E)
+        const skemaCell = row[28] || ''; // Skema Penjualan (kolom AC)
+        const sertifikatCell = row[29] || ''; // Nomor Sertifikat (kolom AD)
         const physicalColumns = PHYSICAL_COLUMNS.map((_, idx) => row[idx + 6] || '');
         const displayRow = [
             ...baseColumns,
             totalKondisiCell,
-            imbCell,
-            ...physicalColumns
+            ...physicalColumns,
+            skemaCell,
+            sertifikatCell,
+            imbCell
         ];
 
         return `
@@ -227,6 +235,52 @@ function renderTable(data) {
     applyStickyColumns();
 }
 
+function downloadLaporanKondisiToExcel() {
+    const table = document.getElementById('kavlingTable');
+    if (!table || !table.tHead || !table.tBodies.length) return;
+
+    const headerCells = Array.from(table.tHead.rows[0].cells);
+    const headers = headerCells.map(th => (th.textContent || '').trim().replace(/\s+/g, ' '));
+
+    const bodyRows = Array.from(table.tBodies[0].rows).filter(row => row.style.display !== 'none');
+    if (bodyRows.length === 0) return;
+
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    csvContent += headers.join(';') + '\n';
+
+    bodyRows.forEach(row => {
+        const cells = Array.from(row.cells).map(td => {
+            const raw = (td.textContent || '').trim().replace(/\s+/g, ' ');
+            const escaped = raw.replace(/"/g, '""');
+            return `"${escaped}"`;
+        });
+        csvContent += cells.join(';') + '\n';
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    const dateStr = new Date().toISOString().split('T')[0];
+    
+    let filterSuffix = 'Semua';
+    const activeFilterBtn = document.querySelector('.filter-btn.active');
+    if (activeFilterBtn) {
+        const filterVal = (activeFilterBtn.getAttribute('data-filter') || 'all').toLowerCase();
+        if (filterVal === 'layak') filterSuffix = 'Kondisi_Layak_Huni_90-100';
+        else if (filterVal === 'renov-ringan') filterSuffix = 'Butuh_Renovasi_76-89';
+        else if (filterVal === 'renov-banyak') filterSuffix = 'Butuh_Renovasi_Banyak_50-75';
+        else if (filterVal === 'rusak') filterSuffix = 'Rusak_Parah_20-49';
+        else if (filterVal === 'tidak-layak') filterSuffix = 'Tidak_Layak_Huni_1-19';
+        else if (filterVal === 'tanah') filterSuffix = 'Kondisi_Tanah_0';
+        else filterSuffix = 'Semua';
+    }
+
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Laporan_Kondisi_Kavling_${filterSuffix}_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 let currentSortState = {
     key: null,
     direction: 'asc'
@@ -269,6 +323,24 @@ function sortInventarisBy(key) {
         if (key === 'total') {
             const aVal = window.parseProgressValue(a[27]);
             const bVal = window.parseProgressValue(b[27]);
+            if (aVal === bVal) return 0;
+            return aVal > bVal ? dir : -dir;
+        }
+        if (key === 'imb') {
+            const aVal = (a[4] || '').toString().toLowerCase();
+            const bVal = (b[4] || '').toString().toLowerCase();
+            if (aVal === bVal) return 0;
+            return aVal > bVal ? dir : -dir;
+        }
+        if (key === 'skema') {
+            const aVal = (a[28] || '').toString().toLowerCase();
+            const bVal = (b[28] || '').toString().toLowerCase();
+            if (aVal === bVal) return 0;
+            return aVal > bVal ? dir : -dir;
+        }
+        if (key === 'sertifikat') {
+            const aVal = (a[29] || '').toString().toLowerCase();
+            const bVal = (b[29] || '').toString().toLowerCase();
             if (aVal === bVal) return 0;
             return aVal > bVal ? dir : -dir;
         }
@@ -592,8 +664,7 @@ function openEditModal(index) {
     physicalContainer.innerHTML = '';
     
     PHYSICAL_COLUMNS.forEach((colName, i) => {
-        // Kolom fisik sekarang mulai dari index 5 (kolom F) sampai 25
-        const val = row[i + 5] || '';
+        const val = row[i + 6] || '';
         
         // Parsing "XX%-Keterangan" atau format lama
         let percentVal = 0;
@@ -625,10 +696,16 @@ function openEditModal(index) {
             else if (percentVal >= 95) selectedStatus = "Terpasang dan Berfungsi";
             else if (percentVal > 0 && percentVal <= 15) selectedStatus = "Terpasang dan Rusak";
 
-            let defaultPercent = 90;
-            if (selectedStatus === 'Terpasang dan Berfungsi') defaultPercent = 100;
-            else if (selectedStatus === 'Terpasang dan Rusak') defaultPercent = 10;
-            const meteranPercent = percentVal || defaultPercent;
+            let meteranPercent = 0;
+            if (selectedStatus === 'Terpasang dan Berfungsi') {
+                meteranPercent = percentVal || 100;
+            } else if (selectedStatus === 'Terpasang dan Rusak') {
+                meteranPercent = percentVal || 10;
+            } else if (selectedStatus === 'Belum Ada') {
+                meteranPercent = 0;
+            } else {
+                meteranPercent = percentVal || 90;
+            }
 
             div.innerHTML = `
                 <div class="form-group physical-meter-group">
@@ -660,15 +737,15 @@ function openEditModal(index) {
     });
 
     currentEditPhotos = [];
-    if (row[27]) {
+    if (row[28]) {
         try {
-            const parsed = JSON.parse(row[27]);
+            const parsed = JSON.parse(row[28]);
             currentEditPhotos = Array.isArray(parsed) 
               ? parsed.map(p => ({ data: p, processing: false })) 
               : [];
         } catch (e) {
-            if (row[27].includes(',')) {
-                currentEditPhotos = row[27].split(',').map(p => ({ data: p, processing: false }));
+            if (row[28].includes(',')) {
+                currentEditPhotos = row[28].split(',').map(p => ({ data: p, processing: false }));
             }
         }
     }
@@ -703,6 +780,7 @@ function updateAutoCalc() {
                 let percent = 0;
                 if (status === 'Terpasang dan Berfungsi') percent = 100;
                 else if (status === 'Terpasang dan Rusak') percent = 10;
+                else if (status === 'Belum Ada') percent = 0;
                 else percent = 90;
                 percentInput.value = percent;
                 total += (percent / 100) * meteranWeight;
@@ -1134,10 +1212,23 @@ function setupSearch() {
 
 document.addEventListener('DOMContentLoaded', function() {
     const passInput = document.getElementById('passInput');
+    const path = (window.location.pathname || '').toLowerCase();
+    const isLaporan = path.includes('laporan_kondisi');
+    const isInventaris = path.includes('inventaris');
+
     if (passInput) {
         passInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') checkPass();
         });
+    } else {
+        if (isInventaris) {
+            (async () => {
+                await loadMasterKavlingList();
+                await loadInventarisData();
+            })();
+        } else if (isLaporan) {
+            loadInventarisData();
+        }
     }
 
     setupFilters();
