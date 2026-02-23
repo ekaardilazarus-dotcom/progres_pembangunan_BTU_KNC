@@ -11,22 +11,7 @@
     <script src="js/utils.js"></script>
 </head>
 <body>
-    <!-- Password Protection -->
-    <div id="passwordOverlay">
-        <div class="password-box">
-            <i class="fas fa-lock" style="font-size: 3rem; color: #38bdf8; margin-bottom: 20px;"></i>
-            <h2>Akses Laporan Kondisi</h2>
-            <p style="color: #94a3b8; margin-top: 10px;">Silakan masukkan password untuk melanjutkan</p>
-            <input type="password" id="passInput" class="password-input" placeholder="Password">
-            <button onclick="checkPass()" class="btn-silver" style="width: 100%;">Masuk</button>
-            <p id="errorMsg" style="color: #f43f5e; margin-top: 15px; display: none;">Password Salah!</p>
-            <div style="margin-top: 20px;">
-                <a href="inventaris.html" style="color: #94a3b8; text-decoration: none;"><i class="fas fa-arrow-left"></i> Kembali ke Inventaris</a>
-            </div>
-        </div>
-    </div>
-
-    <div id="mainApp" style="display: none;">
+    <div id="mainApp">
         <!-- Loading Spinner -->
         <div id="loadingOverlay" class="loading-overlay" style="display: none;">
             <div class="spinner-container">
@@ -87,11 +72,12 @@
                     <h4>Filter Kondisi Kavling</h4>
                     <div class="filter-buttons">
                         <button class="filter-btn active" data-filter="all">Semua Kondisi</button>
-                        <button class="filter-btn" data-filter="layak">Kondisi Layak Huni (91%-100%)</button>
-                        <button class="filter-btn" data-filter="renov-ringan">Kondisi Butuh Renovasi Ringan (75%-90%)</button>
-                        <button class="filter-btn" data-filter="renov-banyak">Kondisi Butuh Renovasi Banyak (50%-80%)</button>
+                        <button class="filter-btn" data-filter="layak">Kondisi Layak Huni (90%-100%)</button>
+                        <button class="filter-btn" data-filter="renov-ringan">Kondisi Butuh Renovasi (76%-89%)</button>
+                        <button class="filter-btn" data-filter="renov-banyak">Kondisi Butuh Renovasi Banyak (50%-75%)</button>
                         <button class="filter-btn" data-filter="rusak">Kondisi Rusak Parah (20%-49%)</button>
-                        <button class="filter-btn" data-filter="tidak-layak">Kondisi Tidak Layak Huni (0%-19%)</button>
+                        <button class="filter-btn" data-filter="tidak-layak">Kondisi Tidak Layak Huni (1%-19%)</button>
+                        <button class="filter-btn" data-filter="tanah">Kondisi Tanah (0%)</button>
                     </div>
                 </div>
 
@@ -104,16 +90,22 @@
             </div>
 
             <div class="main-content-table">
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                    <button class="btn-silver" style="background: #16a34a; color: #f9fafb; display: inline-flex; align-items: center; gap: 6px;" onclick="downloadLaporanKondisiToExcel()">
+                        <i class="fas fa-file-excel"></i>
+                        <span>Download Excel</span>
+                    </button>
+                </div>
                 <table id="kavlingTable">
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>BLOK</th>
+                            <th id="thBlokLaporan" class="sortable" data-sort-key="blok" onclick="sortInventarisBy('blok')">BLOK</th>
                             <th>LT</th>
                             <th>LB</th>
                             <th>Type</th>
-                            <th>Status</th>
-                            <th>Total Kondisi</th>
+                            <th id="thStatusLaporan" class="sortable" data-sort-key="status" onclick="sortInventarisBy('status')">Status</th>
+                            <th id="thTotalLaporan" class="sortable" data-sort-key="total" onclick="sortInventarisBy('total')">Total Kondisi</th>
                             <th>KONDISI HALAMAN</th>
                             <th>PONDASI</th>
                             <th>CAT LUAR</th>
@@ -135,12 +127,15 @@
                             <th>Meteran PDAM</th>
                             <th>PIPA AIR BERSIH</th>
                             <th>KONDISI LAINNYA</th>
+                            <th id="thSkemaLaporan" class="sortable" data-sort-key="skema" onclick="sortInventarisBy('skema')">SKEMA PENJUALAN</th>
+                            <th id="thSertifikatLaporan" class="sortable" data-sort-key="sertifikat" onclick="sortInventarisBy('sertifikat')">NOMOR SERTIFIKAT</th>
+                            <th id="thIMBLaporan" class="sortable" data-sort-key="imb" onclick="sortInventarisBy('imb')">Nomor IMB/PBG/SLF</th>
                         </tr>
                     </thead>
                     <tbody id="kavlingTableBody">
                         <!-- Data akan dimuat secara dinamis -->
                         <tr>
-                            <td colspan="28" style="text-align: center; padding: 50px;">
+                            <td colspan="31" style="text-align: center; padding: 50px;">
                                 <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #38bdf8; margin-bottom: 10px;"></i>
                                 <p>Sedang memuat data dari sheet InventarisUnit...</p>
                             </td>
