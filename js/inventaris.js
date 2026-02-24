@@ -963,6 +963,46 @@ function renderPhotoGallery() {
     });
 }
 
+function updateInlineQrPreview(link) {
+    const box = document.getElementById('fotoQrBox');
+    const placeholder = document.getElementById('fotoQrPlaceholder');
+    const img = document.getElementById('fotoQrImage');
+    if (!box || !placeholder || !img) return;
+    if (!link || !window.QRious) {
+        box.classList.remove('has-link');
+        box.dataset.link = '';
+        img.style.display = 'none';
+        img.src = '';
+        placeholder.style.display = 'block';
+        return;
+    }
+    const dataUrl = generateQrDataUrl(link, 140);
+    if (!dataUrl) {
+        box.classList.remove('has-link');
+        box.dataset.link = '';
+        img.style.display = 'none';
+        img.src = '';
+        placeholder.style.display = 'block';
+        return;
+    }
+    placeholder.style.display = 'none';
+    img.src = dataUrl;
+    img.style.display = 'block';
+    box.classList.add('has-link');
+    box.dataset.link = link;
+}
+
+function openFotoQrLink() {
+    const box = document.getElementById('fotoQrBox');
+    if (!box) return;
+    const link = box.dataset.link;
+    if (!link) return;
+    try {
+        window.open(link, '_blank', 'noopener');
+    } catch (e) {
+    }
+}
+
 function handleFotoInputChange() {
     const input = document.getElementById('editFotoLink');
     const container = document.getElementById('folderPhotoInlineContainer');
@@ -978,13 +1018,16 @@ function handleFotoInputChange() {
         frameWrapper.style.display = 'none';
         frame.src = '';
         lastFolderEmbedSrc = '';
+        updateInlineQrPreview('');
         return;
     }
     const parts = raw.split(/[\n,;]+/).map(p => p.trim()).filter(Boolean);
 
     const folderParts = parts.filter(p => p.startsWith('https://drive.google.com/drive/'));
+    let folderLink = '';
     if (folderParts.length > 0) {
         const firstUrl = folderParts[0];
+        folderLink = firstUrl;
         const folderId = getDriveFolderIdFromUrl(firstUrl);
         if (folderId) {
             const embedUrl = 'https://drive.google.com/embeddedfolderview?id=' + encodeURIComponent(folderId) + '#grid';
@@ -1028,6 +1071,14 @@ function handleFotoInputChange() {
     });
     currentEditPhotos = fileSrcs;
     renderPhotoGallery();
+
+    let qrTarget = '';
+    if (folderLink) {
+        qrTarget = folderLink;
+    } else if (fileLinks.length > 0) {
+        qrTarget = fileLinks[0];
+    }
+    updateInlineQrPreview(qrTarget);
 }
 
 function getDriveFolderIdFromUrl(urlStr) {
@@ -1060,6 +1111,18 @@ function getDriveFileIdFromUrl(urlStr) {
     } catch (e) {
         return null;
     }
+}
+
+function generateQrDataUrl(text, size) {
+    if (!window.QRious || !text) return '';
+    var canvas = document.createElement('canvas');
+    var qr = new QRious({
+        element: canvas,
+        value: text,
+        size: size || 180,
+        level: 'L'
+    });
+    return canvas.toDataURL('image/png');
 }
 
 function downloadKavlingPdf() {
@@ -1185,15 +1248,18 @@ function downloadKavlingPdf() {
         doc.write('<div class="small-text">Scan QR Code berikut untuk membuka folder atau file foto kondisi kavling di Google Drive.</div>');
         doc.write('<div class="photo-grid">');
         if (folderLink) {
-            const qrFolder = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(folderLink);
-            doc.write('<div class="photo-grid-item">');
-            doc.write('<img src="' + qrFolder + '" alt="QR Folder Foto">');
-            doc.write('<div class="photo-caption">Folder Foto Google Drive</div>');
-            doc.write('</div>');
+            var qrFolder = generateQrDataUrl(folderLink, 180);
+            if (qrFolder) {
+                doc.write('<div class="photo-grid-item">');
+                doc.write('<img src="' + qrFolder + '" alt="QR Folder Foto">');
+                doc.write('<div class="photo-caption">Folder Foto Google Drive</div>');
+                doc.write('</div>');
+            }
         }
-        const maxFileQr = 6;
+        var maxFileQr = 6;
         fileLinks.slice(0, maxFileQr).forEach(function (link, idx) {
-            const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(link);
+            var qrUrl = generateQrDataUrl(link, 150);
+            if (!qrUrl) return;
             doc.write('<div class="photo-grid-item">');
             doc.write('<img src="' + qrUrl + '" alt="QR Foto ' + (idx + 1) + '">');
             doc.write('<div class="photo-caption">Foto ' + (idx + 1) + '</div>');
