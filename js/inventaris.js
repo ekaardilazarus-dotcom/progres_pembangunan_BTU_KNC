@@ -714,6 +714,7 @@ function openEditModal(index) {
         
         const div = document.createElement('div');
         div.className = isMeteran ? 'physical-input-row physical-meter' : 'physical-input-row';
+        div.setAttribute('data-col-name', colName);
         
         if (isMeteran) {
             let selectedStatus = "Belum Ada";
@@ -793,7 +794,23 @@ function updatePhysicalSectionVisibility() {
     const isTanah = bentukSelect && bentukSelect.value === 'Tanah Kavling';
 
     if (physicalSection) {
-        physicalSection.style.display = isTanah ? 'none' : '';
+        const rows = physicalSection.querySelectorAll('#physicalConditionInputs .physical-input-row');
+        rows.forEach(row => {
+            const colName = (row.getAttribute('data-col-name') || '').toUpperCase();
+            if (isTanah) {
+                if (colName === 'KONDISI LAINNYA') {
+                    row.style.display = '';
+                    const percentGroup = row.querySelector('.physical-percent');
+                    if (percentGroup) percentGroup.style.display = 'none';
+                } else {
+                    row.style.display = 'none';
+                }
+            } else {
+                row.style.display = '';
+                const percentGroup = row.querySelector('.physical-percent');
+                if (percentGroup) percentGroup.style.display = '';
+            }
+        });
     }
 
     const totalDisplay = document.getElementById('editTotalKondisiDisplay');
@@ -1002,7 +1019,13 @@ async function saveEditKavling() {
     let emptyFields = [];
     if (bentukVal === 'Tanah Kavling') {
         PHYSICAL_COLUMNS.forEach(colName => {
-            updateData[colName] = '-';
+            if (colName === 'KONDISI LAINNYA') {
+                const textInput = document.querySelector(`#physicalConditionInputs input[name="${colName}"]`);
+                const textVal = textInput ? textInput.value.trim() : '';
+                updateData[colName] = textVal || '-';
+            } else {
+                updateData[colName] = '-';
+            }
         });
     } else {
         PHYSICAL_COLUMNS.forEach(colName => {
