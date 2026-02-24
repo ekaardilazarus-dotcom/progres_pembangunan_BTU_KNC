@@ -280,15 +280,24 @@
 
                     <div class="edit-section">
                         <h4>Foto Kondisi Kavling</h4>
-                        <div class="form-group">
-                            <label>Link Foto (Google Drive)</label>
-                            <textarea
-                                id="editFotoLink"
-                                placeholder="Tempel link foto Google Drive di sini"
-                                rows="3"
-                                style="width: 100%; resize: vertical;"
-                                oninput="handleFotoInputChange()"
-                            ></textarea>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Link Foto (Google Drive)</label>
+                                <textarea
+                                    id="editFotoLink"
+                                    placeholder="Tempel link foto Google Drive di sini"
+                                    rows="3"
+                                    style="width: 100%; resize: vertical;"
+                                    oninput="handleFotoInputChange()"
+                                ></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>QR Link Foto</label>
+                                <div id="fotoQrBox" class="foto-qr-box" onclick="openFotoQrLink()">
+                                    <div id="fotoQrPlaceholder" class="foto-qr-placeholder">QR akan muncul setelah link valid</div>
+                                    <img id="fotoQrImage" alt="QR Link Foto" style="display: none;">
+                                </div>
+                            </div>
                         </div>
                         <div id="folderPhotoInlineContainer" class="folder-photo-inline" style="display: none;">
                             <div id="folderPhotoLoading" class="folder-photo-loading">
@@ -302,6 +311,11 @@
                             </div>
                         </div>
                         <div id="photoGallery" class="photo-gallery"></div>
+                        <div class="form-group">
+                            <button type="button" class="btn-silver w-full" onclick="downloadKavlingPdf()">
+                                Download PDF Kavling Ini
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -322,6 +336,7 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="js/inventaris.js"></script>
 </body>
 </html>
