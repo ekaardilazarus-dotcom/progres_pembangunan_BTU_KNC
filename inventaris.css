@@ -451,6 +451,32 @@ td {
     border: 0;
     background: #020617;
 }
+.foto-qr-box {
+    width: 100%;
+    min-height: 120px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #020617;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    box-sizing: border-box;
+}
+.foto-qr-box.has-link {
+    cursor: pointer;
+}
+.foto-qr-placeholder {
+    font-size: 0.8rem;
+    color: #64748b;
+    text-align: center;
+    padding: 4px;
+}
+.foto-qr-box img {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+}
 .password-box {
     background: #1e293b;
     padding: 40px;
