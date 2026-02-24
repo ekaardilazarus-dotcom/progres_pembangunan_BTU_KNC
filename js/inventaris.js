@@ -797,18 +797,23 @@ function updatePhysicalSectionVisibility() {
         const rows = physicalSection.querySelectorAll('#physicalConditionInputs .physical-input-row');
         rows.forEach(row => {
             const colName = (row.getAttribute('data-col-name') || '').toUpperCase();
+            const percentGroup = row.querySelector('.physical-percent');
+            const descGroup = row.querySelector('.physical-desc');
+
             if (isTanah) {
                 if (colName === 'KONDISI LAINNYA') {
                     row.style.display = '';
-                    const percentGroup = row.querySelector('.physical-percent');
+                    row.style.gridTemplateColumns = '1fr';
                     if (percentGroup) percentGroup.style.display = 'none';
+                    if (descGroup) descGroup.style.gridColumn = '1 / -1';
                 } else {
                     row.style.display = 'none';
                 }
             } else {
                 row.style.display = '';
-                const percentGroup = row.querySelector('.physical-percent');
+                row.style.gridTemplateColumns = '';
                 if (percentGroup) percentGroup.style.display = '';
+                if (descGroup) descGroup.style.gridColumn = '';
             }
         });
     }
