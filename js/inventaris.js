@@ -64,9 +64,10 @@ async function loadMasterKavlingList() {
 
 // Global data store
 let allKavlingData = [];
-let currentEditPhotos = []; // Store base64 photos for current edit
+let currentEditPhotos = [];
 let masterKavlingList = []; // Database kavling utama (sama seperti Pelaksana)
 let lastAutoFilledKavling = '';
+let lastFolderEmbedSrc = '';
 
 // Mapping kolom fisik untuk modal edit (disesuaikan dengan urutan tabel/sheet)
 const PHYSICAL_COLUMNS = [
@@ -766,18 +767,23 @@ function openEditModal(index) {
     });
 
     currentEditPhotos = [];
-    if (row[28]) {
-        try {
-            const parsed = JSON.parse(row[28]);
-            currentEditPhotos = Array.isArray(parsed) 
-              ? parsed.map(p => ({ data: p, processing: false })) 
-              : [];
-        } catch (e) {
-            if (row[28].includes(',')) {
-                currentEditPhotos = row[28].split(',').map(p => ({ data: p, processing: false }));
+    const fotoRaw = row[30] || '';
+    const fotoInput = document.getElementById('editFotoLink');
+    if (fotoInput) {
+        let displayValue = fotoRaw || '';
+        if (fotoRaw) {
+            try {
+                const parsedForInput = JSON.parse(fotoRaw);
+                if (Array.isArray(parsedForInput)) {
+                    displayValue = parsedForInput.join(', ');
+                }
+            } catch (e) {
+                displayValue = fotoRaw;
             }
         }
+        fotoInput.value = displayValue;
     }
+    handleFotoInputChange();
     renderPhotoGallery();
     updateAutoCalc(); // Hitung total awal
 
@@ -942,54 +948,131 @@ function renderPhotoGallery() {
     const gallery = document.getElementById('photoGallery');
     if (!gallery) return;
     gallery.innerHTML = '';
-    
-    currentEditPhotos.forEach((photo, index) => {
+    if (!currentEditPhotos || currentEditPhotos.length === 0) return;
+
+    currentEditPhotos.forEach((src, index) => {
+        if (!src) return;
         const div = document.createElement('div');
         div.className = 'photo-item';
-        if (typeof photo === 'string') {
-            const isUrl = photo.startsWith('http://') || photo.startsWith('https://');
-            const src = isUrl ? photo : (photo.startsWith('data:') ? photo : 'data:image/jpeg;base64,' + photo);
-            div.innerHTML = `
-                <img src="${src}" alt="Foto ${index + 1}">
-                <button type="button" class="remove-photo" onclick="removePhoto(${index})">&times;</button>
-            `;
-        } else {
-            const isProcessing = photo && photo.processing;
-            const isUploading = photo && photo.uploading;
-            if (isProcessing || isUploading) {
-                let label = 'Mengupload foto...';
-                if (isProcessing) {
-                    const prog = typeof photo.progress === 'number' ? photo.progress : 0;
-                    label = `Mengompres ${prog}%`;
-                }
-                div.innerHTML = `
-                    <div class="photo-progress" style="position:absolute;top:4px;left:4px;right:4px;z-index:10;padding:2px 4px;background:rgba(15,23,42,0.9);border-radius:4px;font-size:0.7rem;color:#e5e7eb;text-align:center;">
-                        ${label}
-                    </div>
-                    <div class="photo-loading" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;border:1px dashed #64748b;border-radius:8px;background:#0b1220;">
-                        <i class="fas fa-spinner fa-spin" style="color:#94a3b8;font-size:20px;"></i>
-                    </div>
-                `;
-            } else {
-                const val = photo && photo.data ? photo.data : '';
-                const isUrl2 = val && (val.startsWith('http://') || val.startsWith('https://'));
-                const src = val ? (isUrl2 ? val : (val.startsWith('data:') ? val : 'data:image/jpeg;base64,' + val)) : '';
-                div.innerHTML = `
-                    <img src="${src}" alt="Foto ${index + 1}">
-                    <button type="button" class="remove-photo" onclick="removePhoto(${index})">&times;</button>
-                `;
-            }
-        }
+        div.innerHTML = `
+            <img src="${src}" alt="Foto ${index + 1}" onclick="openFullscreenImage('${src.replace(/"/g, '&quot;')}')">
+        `;
         gallery.appendChild(div);
     });
-    
-    const info = document.getElementById('photoCountInfo');
-    if (info) info.innerText = `${currentEditPhotos.length}/6 Foto`;
 }
 
-function removePhoto(index) {
-    currentEditPhotos.splice(index, 1);
+function handleFotoInputChange() {
+    const input = document.getElementById('editFotoLink');
+    const container = document.getElementById('folderPhotoInlineContainer');
+    const loading = document.getElementById('folderPhotoLoading');
+    const frameWrapper = document.getElementById('folderPhotoFrameWrapper');
+    const frame = document.getElementById('folderPhotoFrame');
+    if (!input || !container || !loading || !frameWrapper || !frame) return;
+    const raw = input.value.trim();
+    currentEditPhotos = [];
+    if (!raw) {
+        container.style.display = 'none';
+        loading.style.display = 'none';
+        frameWrapper.style.display = 'none';
+        frame.src = '';
+        lastFolderEmbedSrc = '';
+        return;
+    }
+    const parts = raw.split(/[\n,;]+/).map(p => p.trim()).filter(Boolean);
+
+    const folderParts = parts.filter(p => p.startsWith('https://drive.google.com/drive/'));
+    if (folderParts.length > 0) {
+        const firstUrl = folderParts[0];
+        const folderId = getDriveFolderIdFromUrl(firstUrl);
+        if (folderId) {
+            const embedUrl = 'https://drive.google.com/embeddedfolderview?id=' + encodeURIComponent(folderId) + '#grid';
+            container.style.display = 'block';
+            if (embedUrl === lastFolderEmbedSrc && frame.src === embedUrl) {
+                loading.style.display = 'none';
+                frameWrapper.style.display = 'block';
+            } else {
+                lastFolderEmbedSrc = embedUrl;
+                loading.style.display = 'flex';
+                frameWrapper.style.display = 'block';
+                frame.onload = function () {
+                    loading.style.display = 'none';
+                    frameWrapper.style.display = 'block';
+                };
+                frame.src = embedUrl;
+            }
+        } else {
+            container.style.display = 'none';
+            loading.style.display = 'none';
+            frameWrapper.style.display = 'none';
+            frame.src = '';
+            lastFolderEmbedSrc = '';
+        }
+    } else {
+        container.style.display = 'none';
+        loading.style.display = 'none';
+        frameWrapper.style.display = 'none';
+        frame.src = '';
+        lastFolderEmbedSrc = '';
+    }
+
+    const fileLinks = parts.filter(p => p.startsWith('https://drive.google.com/file/') || p.includes('id='));
+    const fileSrcs = [];
+    fileLinks.forEach(link => {
+        const fileId = getDriveFileIdFromUrl(link);
+        if (fileId) {
+            const imgUrl = 'https://drive.google.com/uc?export=view&id=' + encodeURIComponent(fileId);
+            fileSrcs.push(imgUrl);
+        }
+    });
+    currentEditPhotos = fileSrcs;
     renderPhotoGallery();
+}
+
+function getDriveFolderIdFromUrl(urlStr) {
+    try {
+        const u = new URL(urlStr);
+        const path = u.pathname || '';
+        const matchFolders = path.match(/\/folders\/([^/]+)/);
+        if (matchFolders && matchFolders[1]) {
+            return matchFolders[1];
+        }
+        const idParam = u.searchParams.get('id');
+        if (idParam) return idParam;
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function getDriveFileIdFromUrl(urlStr) {
+    try {
+        const u = new URL(urlStr);
+        const path = u.pathname || '';
+        const matchFile = path.match(/\/file\/d\/([^/]+)/);
+        if (matchFile && matchFile[1]) {
+            return matchFile[1];
+        }
+        const idParam = u.searchParams.get('id');
+        if (idParam) return idParam;
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function openFullscreenImage(src) {
+    const modal = document.getElementById('fullscreenImageModal');
+    const img = document.getElementById('fullscreenImage');
+    if (!modal || !img) return;
+    img.src = src;
+    modal.style.display = 'flex';
+}
+
+function closeFullscreenImage() {
+    const modal = document.getElementById('fullscreenImageModal');
+    const img = document.getElementById('fullscreenImage');
+    if (modal) modal.style.display = 'none';
+    if (img) img.src = '';
 }
 
 
@@ -1077,68 +1160,14 @@ async function saveEditKavling() {
     const bentukLabel = bentukVal || 'Rumah Kavling';
     updateData["Status"] = `${bentukLabel} - ${statusLabel}`;
 
-    // Upload Foto menggunakan JSONP ber-chunk untuk menghindari limit URL
-    const url = window.PROGRESS_APPS_SCRIPT_URL;
-    if (currentEditPhotos && currentEditPhotos.length > 0) {
-        const normalizedPhotos = currentEditPhotos
-            .map(p => {
-                const val = typeof p === 'string' ? p : (p && p.data ? p.data : null);
-                if (!val) return null;
-                const isUrl = val.startsWith('http://') || val.startsWith('https://');
-                if (isUrl) {
-                    return { t: 'u', v: val };
-                }
-                let base = val;
-                const idx = base.indexOf('base64,');
-                if (idx !== -1) {
-                    base = base.substring(idx + 7);
-                }
-                if (!base) return null;
-                return { t: 'b', v: base };
-            })
-            .filter(Boolean);
-        const photoJson = JSON.stringify(normalizedPhotos);
-        const session = 'P' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-        const chunkSize = 1200; // sedikit lebih besar agar jumlah request berkurang
-        const total = Math.ceil(photoJson.length / chunkSize);
-
-        currentEditPhotos = currentEditPhotos.map(p => {
-            if (typeof p === 'string') {
-                return { data: p, uploading: true };
-            }
-            return Object.assign({}, p, { uploading: true });
-        });
-        renderPhotoGallery();
-
-        for (let i = 0; i < total; i++) {
-            const chunk = photoJson.slice(i * chunkSize, (i + 1) * chunkSize);
-            try {
-                const btnSave = document.querySelector('.modal-edit .btn-save');
-                if (btnSave) btnSave.innerText = `Mengupload data foto ${i + 1}/${total}...`;
-                await window.getDataFromServer(url, {
-                    action: 'saveInventarisPhotoChunk',
-                    blok: newBlok,
-                    oldBlok: oldBlok,
-                    session: session,
-                    index: i,
-                    total: total,
-                    chunk: chunk
-                });
-            } catch (e) {
-                console.error('Gagal upload foto chunk', i + 1, 'dari', total, e);
-            }
-        }
-
-        currentEditPhotos = currentEditPhotos.map(p => {
-            if (typeof p === 'string') return p;
-            const copy = Object.assign({}, p);
-            delete copy.uploading;
-            return copy;
-        });
-        renderPhotoGallery();
+    const fotoInput = document.getElementById('editFotoLink');
+    if (fotoInput) {
+        const fotoValue = fotoInput.value.trim();
+        updateData["FOTO FOTO"] = fotoValue;
     }
 
     try {
+        const url = window.PROGRESS_APPS_SCRIPT_URL;
         const btnSave = document.querySelector('.modal-edit .btn-save');
         btnSave.disabled = true;
         btnSave.innerText = 'Menyimpan...';
