@@ -255,6 +255,27 @@
 
                     <div class="edit-section">
                         <h4>Foto Kondisi Kavling</h4>
+                        <div class="form-group">
+                            <label>Link Foto (Google Drive)</label>
+                            <textarea
+                                id="editFotoLink"
+                                placeholder="Tempel link foto Google Drive di sini"
+                                rows="3"
+                                style="width: 100%; resize: vertical;"
+                                oninput="handleFotoInputChange()"
+                            ></textarea>
+                        </div>
+                        <div id="folderPhotoInlineContainer" class="folder-photo-inline" style="display: none;">
+                            <div id="folderPhotoLoading" class="folder-photo-loading">
+                                <div class="loading-bar">
+                                    <div class="loading-bar-inner"></div>
+                                </div>
+                                <div class="loading-text">Memuat foto dari folder Google Drive...</div>
+                            </div>
+                            <div id="folderPhotoFrameWrapper" class="folder-photo-frame-wrapper" style="display: none;">
+                                <iframe id="folderPhotoFrame" loading="lazy"></iframe>
+                            </div>
+                        </div>
                         <div id="photoGallery" class="photo-gallery"></div>
                     </div>
                 </form>
@@ -262,6 +283,17 @@
             <div class="modal-footer">
                 <button type="button" class="btn-save" onclick="saveEditKavling()">Simpan Perubahan</button>
                 <button type="button" class="btn-delete" onclick="deleteKavlingInventaris()">Hapus Kavling</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="fullscreenImageModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 95%; width: 95%; max-height: 95vh; background: transparent; box-shadow: none; display: flex; flex-direction: column; align-items: center;">
+            <div style="flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                <img id="fullscreenImage" src="" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-save" onclick="closeFullscreenImage()">Tutup</button>
             </div>
         </div>
     </div>
