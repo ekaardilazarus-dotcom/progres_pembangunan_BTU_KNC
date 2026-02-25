@@ -148,7 +148,7 @@ function renderTable(data) {
     if (!tbody) return;
 
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="31" style="text-align: center; padding: 50px;">Tidak ada data ditemukan.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="32" style="text-align: center; padding: 50px;">Tidak ada data ditemukan.</td></tr>';
         return;
     }
 
@@ -168,7 +168,8 @@ function renderTable(data) {
             row[3] || '', // Type
             row[5] || ''  // Status (kolom F di sheet, index 5)
         ];
-        const totalKondisiCell = row[27] || ''; // Total Kondisi (AB)
+        const totalKondisiCell = row[27] || '';
+        const pelaksanaCell = row[31] || '';
         const imbCell = row[4] || ''; // Nomor IMB/PBG/SLF (kolom E)
         const skemaCell = row[28] || ''; // Skema Penjualan (kolom AC)
         const sertifikatCell = row[29] || ''; // Nomor Sertifikat (kolom AD)
@@ -176,6 +177,7 @@ function renderTable(data) {
         const displayRow = [
             ...baseColumns,
             totalKondisiCell,
+            pelaksanaCell,
             ...physicalColumns,
             skemaCell,
             sertifikatCell,
@@ -1696,6 +1698,7 @@ function downloadSuratPengecekan() {
     doc.write('.blok{min-width:90px;}');
     doc.write('.ltlb{width:44px;text-align:center;}');
     doc.write('.type{width:60px;text-align:center;}');
+    doc.write('.pelaksana{width:60px;text-align:center;}');
     doc.write('.item{width:24px;text-align:center;font-size:6.5pt;}');
     doc.write('.square{display:inline-block;width:10px;height:10px;border:1px solid #9ca3af;border-radius:2px;}');
     doc.write('@page{size:A4 landscape;margin:10mm;}');
@@ -1709,6 +1712,7 @@ function downloadSuratPengecekan() {
     doc.write('<th class="ltlb">LT</th>');
     doc.write('<th class="ltlb">LB</th>');
     doc.write('<th class="type">Type</th>');
+    doc.write('<th class="pelaksana">% Pelaksana</th>');
     items.forEach(function(lbl){ doc.write('<th class="item">' + lbl + '</th>'); });
     doc.write('</tr></thead><tbody>');
     rows.forEach((row, idx) => {
@@ -1717,12 +1721,14 @@ function downloadSuratPengecekan() {
         const lt = (cells[2] && cells[2].textContent || '').trim();
         const lb = (cells[3] && cells[3].textContent || '').trim();
         const type = (cells[4] && cells[4].textContent || '').trim();
+        const pelaksana = (cells[7] && cells[7].textContent || '').trim();
         doc.write('<tr>');
         doc.write('<td class="narrow">' + (idx + 1) + '</td>');
         doc.write('<td class="blok">' + blok + '</td>');
         doc.write('<td class="ltlb">' + lt + '</td>');
         doc.write('<td class="ltlb">' + lb + '</td>');
         doc.write('<td class="type">' + type + '</td>');
+        doc.write('<td class="pelaksana">' + pelaksana + '</td>');
         items.forEach(function(){ doc.write('<td class="item"><span class="square"></span></td>'); });
         doc.write('</tr>');
     });
