@@ -1506,17 +1506,8 @@ function setupFilters() {
             filterButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
 
-            const filterValue = this.getAttribute('data-filter');
-            const tableRows = document.querySelectorAll('#kavlingTable tbody tr');
-
-            tableRows.forEach(row => {
-                if (filterValue === 'all') {
-                    row.style.display = '';
-                } else {
-                    const rowKondisi = row.getAttribute('data-kondisi');
-                    row.style.display = (rowKondisi === filterValue) ? '' : 'none';
-                }
-            });
+            applySearchAndFilter();
+            updateFilterCounts();
         });
     });
 }
@@ -1578,13 +1569,8 @@ function setupSearch() {
     if (!searchInput) return;
 
     searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const tableRows = document.querySelectorAll('#kavlingTable tbody tr');
-
-        tableRows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
-        });
+        applySearchAndFilter();
+        updateFilterCounts();
     });
 }
 
@@ -1612,8 +1598,136 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFilters();
     setupSearch();
     setupTablePanScroll();
+    ensureFilterBaseLabels();
+    updateFilterCounts();
 });
 
 function logout() {
     window.location.href = 'index.html';
+}
+
+function getActiveFilterValue() {
+    const activeBtn = document.querySelector('.filter-btn.active');
+    if (!activeBtn) return 'all';
+    return activeBtn.getAttribute('data-filter') || 'all';
+}
+
+function applySearchAndFilter() {
+    const input = document.querySelector('.search-input');
+    const termRaw = input ? input.value : '';
+    const term = String(termRaw || '').trim().toUpperCase();
+    const filterVal = getActiveFilterValue();
+    const rows = document.querySelectorAll('#kavlingTable tbody tr');
+    rows.forEach(row => {
+        const blokCell = row.cells && row.cells.length > 1 ? row.cells[1] : null;
+        const blokText = blokCell ? String(blokCell.textContent || '').trim().toUpperCase() : '';
+        const prefixMatch = term ? blokText.startsWith(term) : true;
+        const kondisi = row.getAttribute('data-kondisi') || '';
+        const filterMatch = filterVal === 'all' ? true : kondisi === filterVal;
+        row.style.display = prefixMatch && filterMatch ? '' : 'none';
+    });
+}
+
+function ensureFilterBaseLabels() {
+    const btns = document.querySelectorAll('.filter-btn');
+    btns.forEach(btn => {
+        if (!btn.getAttribute('data-base-label')) {
+            const base = (btn.textContent || '').trim();
+            btn.setAttribute('data-base-label', base);
+        }
+    });
+}
+
+function updateFilterCounts() {
+    const path = (window.location.pathname || '').toLowerCase();
+    const isLaporan = path.includes('laporan_kondisi');
+    const btns = document.querySelectorAll('.filter-btn');
+    if (!isLaporan || btns.length === 0) return;
+    const input = document.querySelector('.search-input');
+    const termRaw = input ? input.value : '';
+    const term = String(termRaw || '').trim().toUpperCase();
+    const rows = Array.from(document.querySelectorAll('#kavlingTable tbody tr'));
+    const countMap = {
+        all: 0,
+        layak: 0,
+        'renov-ringan': 0,
+        'renov-banyak': 0,
+        rusak: 0,
+        'tidak-layak': 0,
+        tanah: 0
+    };
+    rows.forEach(row => {
+        const blokCell = row.cells && row.cells.length > 1 ? row.cells[1] : null;
+        const blokText = blokCell ? String(blokCell.textContent || '').trim().toUpperCase() : '';
+        const prefixMatch = term ? blokText.startsWith(term) : true;
+        if (!prefixMatch) return;
+        const kondisi = row.getAttribute('data-kondisi') || 'all';
+        countMap.all += 1;
+        if (countMap.hasOwnProperty(kondisi)) {
+            countMap[kondisi] += 1;
+        }
+    });
+    btns.forEach(btn => {
+        const base = btn.getAttribute('data-base-label') || (btn.textContent || '').trim();
+        const key = btn.getAttribute('data-filter') || 'all';
+        const val = countMap.hasOwnProperty(key) ? countMap[key] : countMap.all;
+        btn.innerHTML = `${base} (${val})`;
+    });
+}
+
+function downloadSuratPengecekan() {
+    const rows = Array.from(document.querySelectorAll('#kavlingTable tbody tr'))
+        .filter(r => r.style.display !== 'none');
+    if (rows.length === 0) return;
+    const dateStr = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+    const win = window.open('', '_blank');
+    if (!win) return;
+    const doc = win.document;
+    const items = PHYSICAL_COLUMNS;
+    doc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Surat Pengecekan Kavling</title>');
+    doc.write('<style>');
+    doc.write('body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;margin:0;padding:16px;}');
+    doc.write('h1{font-size:14pt;margin:0 0 6px 0;color:#111827;}');
+    doc.write('.sub{font-size:8pt;color:#6b7280;margin-bottom:12px;}');
+    doc.write('.table{width:100%;border-collapse:collapse;font-size:7pt;}');
+    doc.write('.table th,.table td{border:1px solid #e5e7eb;padding:3px 4px;vertical-align:middle;text-align:left;}');
+    doc.write('.table th{background:#f3f4f6;font-weight:600;color:#111827;}');
+    doc.write('.narrow{width:22px;text-align:center;}');
+    doc.write('.blok{min-width:90px;}');
+    doc.write('.ltlb{width:44px;text-align:center;}');
+    doc.write('.type{width:60px;text-align:center;}');
+    doc.write('.item{width:24px;text-align:center;font-size:6.5pt;}');
+    doc.write('.square{display:inline-block;width:10px;height:10px;border:1px solid #9ca3af;border-radius:2px;}');
+    doc.write('@page{size:A4 landscape;margin:10mm;}');
+    doc.write('@media print{button{display:none;}}');
+    doc.write('</style></head><body>');
+    doc.write('<h1>Surat Pengecekan Kavling</h1>');
+    doc.write('<div class="sub">Tanggal: ' + dateStr + '</div>');
+    doc.write('<table class="table"><thead><tr>');
+    doc.write('<th class="narrow">No</th>');
+    doc.write('<th class="blok">Nama Blok</th>');
+    doc.write('<th class="ltlb">LT</th>');
+    doc.write('<th class="ltlb">LB</th>');
+    doc.write('<th class="type">Type</th>');
+    items.forEach(function(lbl){ doc.write('<th class="item">' + lbl + '</th>'); });
+    doc.write('</tr></thead><tbody>');
+    rows.forEach((row, idx) => {
+        const cells = Array.from(row.cells);
+        const blok = (cells[1] && cells[1].textContent || '').trim();
+        const lt = (cells[2] && cells[2].textContent || '').trim();
+        const lb = (cells[3] && cells[3].textContent || '').trim();
+        const type = (cells[4] && cells[4].textContent || '').trim();
+        doc.write('<tr>');
+        doc.write('<td class="narrow">' + (idx + 1) + '</td>');
+        doc.write('<td class="blok">' + blok + '</td>');
+        doc.write('<td class="ltlb">' + lt + '</td>');
+        doc.write('<td class="ltlb">' + lb + '</td>');
+        doc.write('<td class="type">' + type + '</td>');
+        items.forEach(function(){ doc.write('<td class="item"><span class="square"></span></td>'); });
+        doc.write('</tr>');
+    });
+    doc.write('</tbody></table>');
+    doc.write('</body></html>');
+    doc.close();
+    try { win.focus(); } catch(e) {}
 }
