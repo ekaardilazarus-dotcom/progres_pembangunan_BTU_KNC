@@ -54,9 +54,18 @@
                 <a href="inventaris.html" class="btn-silver" style="text-decoration: none; background: #334155;">
                     <i class="fas fa-arrow-left"></i> Kembali ke Inventaris
                 </a>
+                <button class="btn-silver" style="background: #3b82f6; color: #f9fafb; display: inline-flex; align-items: center; gap: 6px;" onclick="downloadSuratPengecekan()">
+                    <i class="fas fa-file-download"></i>
+                    <span>Download Surat Pengecekan</span>
+                </button>
+                <button class="btn-silver" style="background: #16a34a; color: #f9fafb; display: inline-flex; align-items: center; gap: 6px;" onclick="downloadLaporanKondisiToExcel()">
+                        <i class="fas fa-file-excel"></i>
+                        <span>Download Excel Seluruh Data</span>
+                    </button>
                 <button onclick="logout()" class="btn-silver" style="background: #ef4444;">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
+
             </div>
         </div>
 
@@ -91,10 +100,6 @@
 
             <div class="main-content-table">
                 <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-                    <button class="btn-silver" style="background: #16a34a; color: #f9fafb; display: inline-flex; align-items: center; gap: 6px;" onclick="downloadLaporanKondisiToExcel()">
-                        <i class="fas fa-file-excel"></i>
-                        <span>Download Excel</span>
-                    </button>
                 </div>
                 <table id="kavlingTable">
                     <thead>
