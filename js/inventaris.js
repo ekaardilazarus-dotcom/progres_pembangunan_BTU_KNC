@@ -41,6 +41,9 @@ async function checkPass() {
     }
 }
 
+const INVENTARIS_CACHE_KEY = 'inventaris_kavling_data_v1';
+const INVENTARIS_CACHE_TTL_MS = 5 * 60 * 1000;
+
 async function loadMasterKavlingList() {
     const overlay = document.getElementById('masterLoadingOverlay');
     if (overlay) overlay.style.display = 'flex';
@@ -64,11 +67,19 @@ async function loadMasterKavlingList() {
 
 // Global data store
 let allKavlingData = [];
+let filteredKavlingData = []; // Data yang sudah di-filter (pencarian/filter kondisi)
 let currentEditPhotos = [];
 let masterKavlingList = [];
 let lastAutoFilledKavling = '';
 let lastFolderEmbedSrc = '';
 let currentEditIndex = -1;
+
+// Pagination state
+let currentPage = 1;
+const rowsPerPage = 50;
+
+// Debounce timer for search
+let searchDebounceTimer;
 
 // Mapping kolom fisik untuk modal edit (disesuaikan dengan urutan tabel/sheet)
 const PHYSICAL_COLUMNS = [
@@ -79,50 +90,91 @@ const PHYSICAL_COLUMNS = [
     "Meteran PDAM", "PIPA AIR BERSIH", "KONDISI LAINNYA"
 ];
 
-async function loadInventarisData() {
+async function loadInventarisData(forceRefresh = false) {
     const tbody = document.getElementById('kavlingTableBody');
     const loading = document.getElementById('loadingOverlay');
     if (!tbody) return;
 
-    if (loading) loading.style.display = 'flex';
+    const now = Date.now();
+    let usedCache = false;
 
-    try {
-        const url = window.PROGRESS_APPS_SCRIPT_URL;
-        const result = await window.getDataFromServer(url, {
-            action: 'getKavlingData',
-            sheetName: 'InventarisUnit'
-        });
+    if (!forceRefresh) {
+        try {
+            const cached = JSON.parse(localStorage.getItem(INVENTARIS_CACHE_KEY) || 'null');
+            if (cached && Array.isArray(cached.data) && typeof cached.timestamp === 'number') {
+                if (now - cached.timestamp < INVENTARIS_CACHE_TTL_MS) {
+                    allKavlingData = cached.data;
+                    applySearchAndFilter();
+                    usedCache = true;
+                }
+            }
+        } catch (_) {}
+    }
 
-        // Tangani jika result adalah array langsung atau objek {success, data}
-        let dataToRender = [];
-        if (Array.isArray(result)) {
-            dataToRender = result;
-        } else if (result && result.data && Array.isArray(result.data)) {
-            dataToRender = result.data;
-        } else if (result && !result.success) {
-            throw new Error(result.message || 'Gagal mengambil data');
+    if (!usedCache && loading) loading.style.display = 'flex';
+
+    const fetchAndRender = async () => {
+        try {
+            const url = window.PROGRESS_APPS_SCRIPT_URL;
+            const result = await window.getDataFromServer(url, {
+                action: 'getKavlingData',
+                sheetName: 'InventarisUnit'
+            });
+
+            let dataToRender = [];
+            let rawData = [];
+            if (Array.isArray(result)) {
+                rawData = result;
+            } else if (result && result.data && Array.isArray(result.data)) {
+                rawData = result.data;
+            } else if (result && !result.success) {
+                throw new Error(result.message || 'Gagal mengambil data');
+            }
+
+            // Bersihkan data: berhenti jika kolom BLOK (index 0) kosong
+            for (let row of rawData) {
+                const blok = String(row[0] || '').trim();
+                if (!blok) break; // Berhenti total jika ketemu baris kosong di kolom A
+                dataToRender.push(row);
+            }
+
+            allKavlingData = dataToRender;
+            applySearchAndFilter();
+
+            try {
+                localStorage.setItem(INVENTARIS_CACHE_KEY, JSON.stringify({
+                    timestamp: Date.now(),
+                    data: allKavlingData
+                }));
+            } catch (_) {}
+        } catch (error) {
+            console.error('Error loading data:', error);
+            if (!usedCache) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="31" style="text-align: center; padding: 50px; color: #f43f5e;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                            <p>Gagal memuat data: ${error.message}</p>
+                            <button onclick="loadInventarisData()" class="btn-silver" style="margin-top: 15px;">Coba Lagi</button>
+                        </td>
+                    </tr>
+                `;
+            }
+        } finally {
+            if (!usedCache && loading) loading.style.display = 'none';
         }
+    };
 
-        allKavlingData = dataToRender;
-        renderTable(allKavlingData);
-    } catch (error) {
-        console.error('Error loading data:', error);
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="31" style="text-align: center; padding: 50px; color: #f43f5e;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                    <p>Gagal memuat data: ${error.message}</p>
-                    <button onclick="loadInventarisData()" class="btn-silver" style="margin-top: 15px;">Coba Lagi</button>
-                </td>
-            </tr>
-        `;
-    } finally {
-        if (loading) loading.style.display = 'none';
+    if (usedCache) {
+        fetchAndRender();
+    } else {
+        await fetchAndRender();
     }
 }
 
 function refreshInventarisData() {
-    loadInventarisData();
+    try { localStorage.removeItem(INVENTARIS_CACHE_KEY); } catch (_) {}
+    loadInventarisData(true);
 }
 
 function getKondisiClass(totalKondisi) {
@@ -147,20 +199,29 @@ function renderTable(data) {
     const tbody = document.getElementById('kavlingTableBody');
     if (!tbody) return;
 
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="32" style="text-align: center; padding: 50px;">Tidak ada data ditemukan.</td></tr>';
+        updatePaginationUI(0);
         return;
     }
 
-    tbody.innerHTML = data.map((row, index) => {
-        // Total Kondisi sekarang ada di index 27 (kolom AB) di sheet InventarisUnit
-        // Kita gunakan parseProgressValue untuk memastikan nilai 0-100
+    // Pagination logic
+    const totalItems = data.length;
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    
+    // Ensure currentPage is within bounds
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+    const paginatedData = data.slice(startIndex, endIndex);
+
+    tbody.innerHTML = paginatedData.map((row, i) => {
+        const originalIndex = allKavlingData.indexOf(row);
         const totalKondisi = window.parseProgressValue(row[27]);
         const kondisiClass = getKondisiClass(totalKondisi);
 
-        // Susun ulang urutan kolom untuk tampilan tabel
-        // Urutan sesuai judul tabel:
-        // BLOK, LT, LB, Type, Status, Total Kondisi, Nomor IMB/PBG/SLF, lalu semua kolom fisik
         const baseColumns = [
             row[0] || '', // BLOK
             row[1] || '', // LT
@@ -184,13 +245,16 @@ function renderTable(data) {
             imbCell
         ];
 
+        // Hitung nomor urut (No) berdasarkan halaman
+        const rowNumber = startIndex + i + 1;
+
         return `
-            <tr data-kondisi="${kondisiClass}" data-row-index="${index}">
-                <td class="pan-cell">${index + 1}</td>
-                ${displayRow.map((cell, i) => {
-                    const isClickable = i >= 0 && i <= 5; // BLOK s/d Total Kondisi (IMB tidak clickable)
+            <tr data-kondisi="${kondisiClass}" data-row-index="${originalIndex}">
+                <td class="pan-cell">${rowNumber}</td>
+                ${displayRow.map((cell, cellIdx) => {
+                    const isClickable = cellIdx >= 0 && cellIdx <= 5;
                     const cellClasses = isClickable ? 'clickable-cell' : 'pan-cell';
-                    if (i === 4) {
+                    if (cellIdx === 4) {
                         const statusText = cell || '-';
                         const statusClass = kondisiClass === 'layak' ? 'status-layak'
                             : kondisiClass === 'renov-ringan' ? 'status-renov-ringan'
@@ -198,22 +262,16 @@ function renderTable(data) {
                             : kondisiClass === 'rusak' ? 'status-rusak'
                             : kondisiClass === 'tidak-layak' ? 'status-tidak-layak'
                             : 'status-tanah';
-                        return `<td class="${cellClasses} ${statusClass}" ${isClickable ? `onclick="openEditModal(${index})"` : ''}>${statusText}</td>`;
+                        return `<td class="${cellClasses} ${statusClass}" ${isClickable ? `onclick="openEditModal(${originalIndex})"` : ''}>${statusText}</td>`;
                     }
-                    if (i === 5) {
+                    if (cellIdx === 5) {
                         const val = window.parseProgressValue(totalKondisiCell);
-                        let totalClass = '';
-                        if (val < 50) totalClass = 'total-kondisi-low';
-                        else if (val <= 70) totalClass = 'total-kondisi-medium';
-                        else if (val <= 90) totalClass = 'total-kondisi-high';
-                        else totalClass = 'total-kondisi-very-high';
-                        return `<td class="${cellClasses} ${totalClass}" ${isClickable ? `onclick="openEditModal(${index})"` : ''}>${val}%</td>`;
+                        return `<td class="${cellClasses}" ${isClickable ? `onclick="openEditModal(${originalIndex})"` : ''}>${val}%</td>`;
                     }
                     
                     let displayCell = cell || '-';
-                    if (i > 5 && cell) {
+                    if (cellIdx > 5 && cell) {
                         const str = String(cell).trim();
-                        // Format "angka" atau "angka%-teks"
                         const percentDescMatch = str.match(/^(\d+(\.\d+)?)%-?(.*)$/);
                         if (percentDescMatch) {
                             const rawNum = percentDescMatch[1];
@@ -221,7 +279,6 @@ function renderTable(data) {
                             const numVal = window.parseProgressValue(rawNum);
                             displayCell = desc ? `${numVal}% - ${desc}` : `${numVal}%`;
                         } else if (/^\d+(\.\d+)?$/.test(str)) {
-                            // Angka murni (misalnya 0.6 atau 60)
                             const numVal = window.parseProgressValue(str);
                             displayCell = `${numVal}%`;
                         } else {
@@ -229,35 +286,111 @@ function renderTable(data) {
                         }
                     }
 
-                    return `<td class="${cellClasses}" ${isClickable ? `onclick="openEditModal(${index})"` : ''}>${displayCell}</td>`;
+                    return `<td class="${cellClasses}" ${isClickable ? `onclick="openEditModal(${originalIndex})"` : ''}>${displayCell}</td>`;
                 }).join('')}
             </tr>
         `;
     }).join('');
 
-    applyStickyColumns();
+    updatePaginationUI(totalItems);
+}
+
+function updatePaginationUI(totalItems) {
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    const info = document.getElementById('paginationInfo');
+
+    if (info) {
+        if (totalItems === 0) {
+            info.innerText = 'Tidak ada data';
+        } else {
+            const start = (currentPage - 1) * rowsPerPage + 1;
+            const end = Math.min(currentPage * rowsPerPage, totalItems);
+            info.innerText = `Menampilkan ${start}-${end} dari ${totalItems} kavling (Hal ${currentPage}/${totalPages})`;
+        }
+    }
+
+    if (prevBtn) prevBtn.disabled = (currentPage <= 1);
+    if (nextBtn) nextBtn.disabled = (currentPage >= totalPages);
+}
+
+function nextPage() {
+    const totalPages = Math.ceil(filteredKavlingData.length / rowsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        renderTable(filteredKavlingData);
+        scrollToTopTable();
+    }
+}
+
+function prevPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        renderTable(filteredKavlingData);
+        scrollToTopTable();
+    }
+}
+
+function scrollToTopTable() {
+    const container = document.querySelector('.main-content-table');
+    if (container) container.scrollTop = 0;
 }
 
 function downloadLaporanKondisiToExcel() {
-    const table = document.getElementById('kavlingTable');
-    if (!table || !table.tHead || !table.tBodies.length) return;
+    const data = filteredKavlingData;
+    if (data.length === 0) return;
 
+    // Header tabel
+    const table = document.getElementById('kavlingTable');
+    if (!table || !table.tHead) return;
     const headerCells = Array.from(table.tHead.rows[0].cells);
     const headers = headerCells.map(th => (th.textContent || '').trim().replace(/\s+/g, ' '));
-
-    const bodyRows = Array.from(table.tBodies[0].rows).filter(row => row.style.display !== 'none');
-    if (bodyRows.length === 0) return;
 
     let csvContent = 'data:text/csv;charset=utf-8,';
     csvContent += headers.join(';') + '\n';
 
-    bodyRows.forEach(row => {
-        const cells = Array.from(row.cells).map(td => {
-            const raw = (td.textContent || '').trim().replace(/\s+/g, ' ');
+    data.forEach((row, idx) => {
+        // Format data row untuk CSV (mengikuti urutan renderTable)
+        const totalKondisi = window.parseProgressValue(row[27]);
+        const kondisiClass = getKondisiClass(totalKondisi);
+        const statusLabel = getStatusLabelFromClass(kondisiClass);
+
+        const physicalValues = PHYSICAL_COLUMNS.map((_, i) => {
+            const val = row[i + 6] || '';
+            if (!val) return '-';
+            const str = String(val).trim();
+            const match = str.match(/^(\d+(\.\d+)?)%-?(.*)$/);
+            if (match) {
+                const num = window.parseProgressValue(match[1]);
+                const desc = match[3].trim();
+                return desc ? `${num}% - ${desc}` : `${num}%`;
+            }
+            if (/^\d+(\.\d+)?$/.test(str)) return window.parseProgressValue(str) + '%';
+            return str;
+        });
+
+        const csvRow = [
+            idx + 1, // No
+            row[0] || '-', // BLOK
+            row[1] || '-', // LT
+            row[2] || '-', // LB
+            row[3] || '-', // Type
+            statusLabel, // Status
+            totalKondisi + '%', // Total Kondisi
+            row[31] ? (window.parseProgressValue(row[31]) + '%') : '-', // % Pelaksana
+            ...physicalValues,
+            row[28] || '-', // SKEMA PENJUALAN
+            row[29] || '-', // NOMOR SERTIFIKAT
+            row[4] || '-' // Nomor IMB/PBG/SLF
+        ];
+
+        const escapedRow = csvRow.map(cell => {
+            const raw = String(cell).replace(/\s+/g, ' ');
             const escaped = raw.replace(/"/g, '""');
             return `"${escaped}"`;
         });
-        csvContent += cells.join(';') + '\n';
+        csvContent += escapedRow.join(';') + '\n';
     });
 
     const encodedUri = encodeURI(csvContent);
@@ -349,57 +482,8 @@ function sortInventarisBy(key) {
         }
         return 0;
     });
-    renderTable(sorted);
-}
-
-function applyStickyColumns() {
-    const table = document.getElementById('kavlingTable');
-    if (!table || !table.tHead || !table.tBodies.length) return;
-
-    const headerRow = table.tHead.rows[0];
-    const bodyRows = table.tBodies[0].rows;
-    const stickyCols = [0, 1, 2, 3, 4, 5, 6]; // No, BLOK, LT, LB, Type, Status, Total Kondisi
-
-    // Reset gaya sticky sebelumnya supaya perhitungan offset tidak bertumpuk
-    Array.from(headerRow.children).forEach(cell => {
-        cell.style.position = '';
-        cell.style.left = '';
-        cell.style.zIndex = '';
-        cell.style.background = '';
-    });
-    Array.from(bodyRows).forEach(row => {
-        Array.from(row.children).forEach(cell => {
-            cell.style.position = '';
-            cell.style.left = '';
-            cell.style.zIndex = '';
-            cell.style.background = '';
-        });
-    });
-
-    const leftOffsets = {};
-
-    stickyCols.forEach(colIndex => {
-        const cell = headerRow.children[colIndex];
-        if (!cell) return;
-        const left = cell.offsetLeft;
-        leftOffsets[colIndex] = left;
-        cell.style.position = 'sticky';
-        cell.style.left = left + 'px';
-        cell.style.zIndex = 3;
-        cell.style.background = '#0f172a';
-    });
-
-    Array.from(bodyRows).forEach(row => {
-        stickyCols.forEach(colIndex => {
-            const cell = row.children[colIndex];
-            if (!cell) return;
-            const left = leftOffsets[colIndex];
-            cell.style.position = 'sticky';
-            cell.style.left = left + 'px';
-            cell.style.background = '#020617';
-            cell.style.zIndex = 1;
-        });
-    });
+    allKavlingData = sorted;
+    applySearchAndFilter();
 }
 
 // Modal Functions
@@ -836,7 +920,6 @@ function updatePhysicalSectionVisibility() {
         if (totalDisplay) {
             totalDisplay.innerText = '0%';
             totalDisplay.classList.remove('total-kondisi-low', 'total-kondisi-medium', 'total-kondisi-high', 'total-kondisi-very-high');
-            totalDisplay.classList.add('total-kondisi-low');
         }
         if (totalHidden) totalHidden.value = '0%';
         if (statusLabel) {
@@ -911,16 +994,6 @@ function updateAutoCalc() {
     if (display) {
         display.innerText = finalTotal + '%';
         display.classList.remove('total-kondisi-low', 'total-kondisi-medium', 'total-kondisi-high', 'total-kondisi-very-high');
-        const numeric = parseFloat(finalTotal);
-        if (numeric < 50) {
-            display.classList.add('total-kondisi-low');
-        } else if (numeric <= 70) {
-            display.classList.add('total-kondisi-medium');
-        } else if (numeric <= 90) {
-            display.classList.add('total-kondisi-high');
-        } else {
-            display.classList.add('total-kondisi-very-high');
-        }
     }
     if (hidden) hidden.value = finalTotal + '%';
 
@@ -1509,7 +1582,6 @@ function setupFilters() {
             this.classList.add('active');
 
             applySearchAndFilter();
-            updateFilterCounts();
         });
     });
 }
@@ -1571,8 +1643,11 @@ function setupSearch() {
     if (!searchInput) return;
 
     searchInput.addEventListener('input', function() {
-        applySearchAndFilter();
-        updateFilterCounts();
+        // Debouncing logic
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+            applySearchAndFilter();
+        }, 300); // 300ms delay
     });
 }
 
@@ -1619,15 +1694,25 @@ function applySearchAndFilter() {
     const termRaw = input ? input.value : '';
     const term = String(termRaw || '').trim().toUpperCase();
     const filterVal = getActiveFilterValue();
-    const rows = document.querySelectorAll('#kavlingTable tbody tr');
-    rows.forEach(row => {
-        const blokCell = row.cells && row.cells.length > 1 ? row.cells[1] : null;
-        const blokText = blokCell ? String(blokCell.textContent || '').trim().toUpperCase() : '';
+    
+    // Filter data array, bukan DOM
+    filteredKavlingData = allKavlingData.filter(row => {
+        // Blok (index 0)
+        const blokText = String(row[0] || '').trim().toUpperCase();
         const prefixMatch = term ? blokText.startsWith(term) : true;
-        const kondisi = row.getAttribute('data-kondisi') || '';
+        
+        // Kondisi (index 27)
+        const totalKondisi = window.parseProgressValue(row[27]);
+        const kondisi = getKondisiClass(totalKondisi);
         const filterMatch = filterVal === 'all' ? true : kondisi === filterVal;
-        row.style.display = prefixMatch && filterMatch ? '' : 'none';
+        
+        return prefixMatch && filterMatch;
     });
+
+    // Reset ke halaman 1 saat filter berubah
+    currentPage = 1;
+    renderTable(filteredKavlingData);
+    updateFilterCounts();
 }
 
 function ensureFilterBaseLabels() {
@@ -1645,10 +1730,11 @@ function updateFilterCounts() {
     const isLaporan = path.includes('laporan_kondisi');
     const btns = document.querySelectorAll('.filter-btn');
     if (!isLaporan || btns.length === 0) return;
+    
     const input = document.querySelector('.search-input');
     const termRaw = input ? input.value : '';
     const term = String(termRaw || '').trim().toUpperCase();
-    const rows = Array.from(document.querySelectorAll('#kavlingTable tbody tr'));
+    
     const countMap = {
         all: 0,
         layak: 0,
@@ -1658,17 +1744,21 @@ function updateFilterCounts() {
         'tidak-layak': 0,
         tanah: 0
     };
-    rows.forEach(row => {
-        const blokCell = row.cells && row.cells.length > 1 ? row.cells[1] : null;
-        const blokText = blokCell ? String(blokCell.textContent || '').trim().toUpperCase() : '';
+
+    allKavlingData.forEach(row => {
+        const blokText = String(row[0] || '').trim().toUpperCase();
         const prefixMatch = term ? blokText.startsWith(term) : true;
         if (!prefixMatch) return;
-        const kondisi = row.getAttribute('data-kondisi') || 'all';
+
+        const totalKondisi = window.parseProgressValue(row[27]);
+        const kondisi = getKondisiClass(totalKondisi);
+        
         countMap.all += 1;
         if (countMap.hasOwnProperty(kondisi)) {
             countMap[kondisi] += 1;
         }
     });
+
     btns.forEach(btn => {
         const base = btn.getAttribute('data-base-label') || (btn.textContent || '').trim();
         const key = btn.getAttribute('data-filter') || 'all';
@@ -1678,9 +1768,8 @@ function updateFilterCounts() {
 }
 
 function downloadSuratPengecekan() {
-    const rows = Array.from(document.querySelectorAll('#kavlingTable tbody tr'))
-        .filter(r => r.style.display !== 'none');
-    if (rows.length === 0) return;
+    const data = filteredKavlingData;
+    if (data.length === 0) return;
     const dateStr = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
     const win = window.open('', '_blank');
     if (!win) return;
@@ -1715,13 +1804,14 @@ function downloadSuratPengecekan() {
     doc.write('<th class="pelaksana">% Pelaksana</th>');
     items.forEach(function(lbl){ doc.write('<th class="item">' + lbl + '</th>'); });
     doc.write('</tr></thead><tbody>');
-    rows.forEach((row, idx) => {
-        const cells = Array.from(row.cells);
-        const blok = (cells[1] && cells[1].textContent || '').trim();
-        const lt = (cells[2] && cells[2].textContent || '').trim();
-        const lb = (cells[3] && cells[3].textContent || '').trim();
-        const type = (cells[4] && cells[4].textContent || '').trim();
-        const pelaksana = (cells[7] && cells[7].textContent || '').trim();
+    
+    data.forEach((row, idx) => {
+        const blok = row[0] || '';
+        const lt = row[1] || '';
+        const lb = row[2] || '';
+        const type = row[3] || '';
+        const pelaksana = row[31] ? (window.parseProgressValue(row[31]) + '%') : '-';
+        
         doc.write('<tr>');
         doc.write('<td class="narrow">' + (idx + 1) + '</td>');
         doc.write('<td class="blok">' + blok + '</td>');
