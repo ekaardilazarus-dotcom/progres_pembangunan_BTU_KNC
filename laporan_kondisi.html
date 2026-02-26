@@ -96,6 +96,19 @@
                         Halaman ini digunakan untuk melihat laporan kondisi kavling berdasarkan kategori kondisi.
                     </p>
                 </div>
+
+                <!-- Pagination Controls in Sidebar -->
+                <div class="pagination-container sidebar-pagination">
+                    <div id="paginationInfo" class="pagination-info">Menampilkan data...</div>
+                    <div class="pagination-buttons">
+                        <button id="prevPageBtn" class="btn-pagination" onclick="prevPage()" disabled>
+                            <i class="fas fa-chevron-left"></i> Prev
+                        </button>
+                        <button id="nextPageBtn" class="btn-pagination" onclick="nextPage()" disabled>
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="main-content-table">
