@@ -191,7 +191,7 @@ function getStatusLabelFromClass(kelas) {
     if (kelas === 'renov-ringan') return 'Kondisi Butuh Renovasi Ringan (76%-89%)';
     if (kelas === 'renov-banyak') return 'Kondisi Butuh Renovasi Berat (50%-75%)';
     if (kelas === 'rusak') return 'Kondisi Rusak Parah (19%-49%)';
-    if (kelas === 'tidak-layak') return 'Kondisi Rusak Bangun Ulang (2%-18%)';
+    if (kelas === 'tidak-layak') return 'Kondisi dalam pembangunan / perlu bangun ulang (2%-18%)';
     return 'Kondisi Tanah-Siap Bangun (0%-1%)';
 }
 
@@ -442,12 +442,12 @@ function sortInventarisBy(key) {
         }
         if (key === 'status') {
             const statusOrder = {
-                'Kondisi Layak Huni (90%-100%)': 5,
-                'Kondisi Butuh Renovasi (76%-89%)': 4,
-                'Kondisi Butuh Renovasi Banyak (50%-75%)': 3,
-                'Kondisi Rusak Parah (20%-49%)': 2,
-                'Kondisi Tidak Layak Huni (1%-19%)': 1,
-                'Kondisi Tanah (0%)': 0
+                'Kondisi Baik (90%-100%)': 5,
+                'Kondisi Butuh Renovasi Ringan (76%-89%)': 4,
+                'Kondisi Butuh Renovasi Berat (50%-75%)': 3,
+                'Kondisi Rusak Parah (19%-49%)': 2,
+                'Kondisi dalam pembangunan / perlu bangun ulang (2%-18%)': 1,
+                'Kondisi Tanah-Siap Bangun (0%-1%)': 0
             };
             const aLabel = getStatusLabelFromClass(getKondisiClass(window.parseProgressValue(a[27])));
             const bLabel = getStatusLabelFromClass(getKondisiClass(window.parseProgressValue(b[27])));
