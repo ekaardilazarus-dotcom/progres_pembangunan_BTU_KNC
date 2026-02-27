@@ -58,9 +58,17 @@
                     <i class="fas fa-file-download"></i>
                     <span>Download Surat Pengecekan</span>
                 </button>
+                <button class="btn-silver" style="background: #10b981; color: #f9fafb; display: inline-flex; align-items: center; gap: 6px;" onclick="showDownloadMultiKavlingPopup()">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>Laporan Kavling</span>
+                </button>
+                <button class="btn-silver" style="background: #0ea5e9; color: #f9fafb; display: inline-flex; align-items: center; gap: 6px;" onclick="downloadVisibleKavlingsPdf()">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>Laporan seluruh kavling yang tampil</span>
+                </button>
                 <button class="btn-silver" style="background: #16a34a; color: #f9fafb; display: inline-flex; align-items: center; gap: 6px;" onclick="downloadLaporanKondisiToExcel()">
                         <i class="fas fa-file-excel"></i>
-                        <span>Download Excel Seluruh Data</span>
+                        <span>Download Excel data Saat ini</span>
                     </button>
                 <button onclick="logout()" class="btn-silver" style="background: #ef4444;">
                     <i class="fas fa-sign-out-alt"></i> Logout
@@ -95,6 +103,12 @@
                     <p style="font-size: 0.85rem; color: #94a3b8;">
                         Halaman ini digunakan untuk melihat laporan kondisi kavling berdasarkan kategori kondisi.
                     </p>
+                </div>
+                <div class="filter-section" style="margin-top: 8px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;color:#0f172a;">
+                        <input type="checkbox" id="stokOnlyToggle">
+                        <span>STOK</span>
+                    </label>
                 </div>
 
                 <!-- Pagination Controls in Sidebar -->
@@ -334,6 +348,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
     <script src="js/inventaris.js"></script>
 </body>
 </html>
