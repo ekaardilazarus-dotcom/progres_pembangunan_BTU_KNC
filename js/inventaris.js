@@ -341,17 +341,117 @@ function downloadLaporanKondisiToExcel() {
     const data = filteredKavlingData;
     if (data.length === 0) return;
 
-    // Header tabel
     const table = document.getElementById('kavlingTable');
     if (!table || !table.tHead) return;
     const headerCells = Array.from(table.tHead.rows[0].cells);
-    const headers = headerCells.map(th => (th.textContent || '').trim().replace(/\s+/g, ' '));
+    const headers = headerCells.map(th => (th.textContent || '').trim().replace(/\s+/g, ' ')).concat(['QR']);
 
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += headers.join(';') + '\n';
+    const dateStr = new Date().toISOString().split('T')[0];
+    let filterSuffix = 'Semua';
+    const activeFilterBtn = document.querySelector('.filter-btn.active');
+    if (activeFilterBtn) {
+        const filterVal = (activeFilterBtn.getAttribute('data-filter') || 'all').toLowerCase();
+        if (filterVal === 'layak') filterSuffix = 'Kondisi_Baik_90-100';
+        else if (filterVal === 'renov-ringan') filterSuffix = 'Renovasi_Ringan_76-89';
+        else if (filterVal === 'renov-banyak') filterSuffix = 'Renovasi_Berat_50-75';
+        else if (filterVal === 'rusak') filterSuffix = 'Rusak_Parah_19-49';
+        else if (filterVal === 'tidak-layak') filterSuffix = 'Rusak_Bangun_Ulang_2-18';
+        else if (filterVal === 'tanah') filterSuffix = 'Tanah_Siap_Bangun_0-1';
+        else filterSuffix = 'Semua';
+    }
+
+    if (window.ExcelJS) {
+        const wb = new window.ExcelJS.Workbook();
+        const ws = wb.addWorksheet('Laporan');
+        ws.columns = headers.map(h => ({ header: h, width: 18 }));
+        const toColLetter = (n) => {
+            let s = '';
+            while (n > 0) {
+                let m = (n - 1) % 26;
+                s = String.fromCharCode(65 + m) + s;
+                n = Math.floor((n - 1) / 26);
+            }
+            return s;
+        };
+        data.forEach((row, idx) => {
+            const totalKondisi = window.parseProgressValue(row[27]);
+            const kondisiClass = getKondisiClass(totalKondisi);
+            const statusLabel = getStatusLabelFromClass(kondisiClass);
+            const physicalValues = PHYSICAL_COLUMNS.map((_, i) => {
+                const val = row[i + 6] || '';
+                if (!val) return '-';
+                const str = String(val).trim();
+                const match = str.match(/^(\d+(\.\d+)?)%-?(.*)$/);
+                if (match) {
+                    const num = window.parseProgressValue(match[1]);
+                    const desc = match[3].trim();
+                    return desc ? `${num}% - ${desc}` : `${num}%`;
+                }
+                if (/^\d+(\.\d+)?$/.test(str)) return window.parseProgressValue(str) + '%';
+                return str;
+            });
+            const rowCells = [
+                idx + 1,
+                row[0] || '-',
+                row[1] || '-',
+                row[2] || '-',
+                row[3] || '-',
+                statusLabel,
+                totalKondisi + '%',
+                row[31] ? (window.parseProgressValue(row[31]) + '%') : '-',
+                ...physicalValues,
+                row[28] || '-',
+                row[29] || '-',
+                row[4] || '-',
+                ''
+            ];
+            const r = ws.addRow(rowCells);
+            r.height = 80;
+            let qrLink = '';
+            const fotoRaw = row[30] || '';
+            if (fotoRaw) {
+                try {
+                    const arr = JSON.parse(fotoRaw);
+                    if (Array.isArray(arr)) {
+                        const found = arr.find(v => typeof v === 'string' && v.indexOf('http') === 0);
+                        if (found) qrLink = found;
+                    }
+                } catch (_) {
+                    const m = String(fotoRaw).match(/https?:\/\/\S+/);
+                    if (m) qrLink = m[0];
+                }
+            }
+            if (qrLink) {
+                const dataUrl = generateQrDataUrl(qrLink, 180);
+                const imgId = wb.addImage({ base64: dataUrl, extension: 'png' });
+                const qrCol = headers.length;
+                const colLetter = toColLetter(qrCol);
+                const rowNumber = r.number;
+                ws.addImage(imgId, `${colLetter}${rowNumber}:${colLetter}${rowNumber}`);
+                const cell = ws.getCell(`${colLetter}${rowNumber}`);
+                cell.value = { text: 'Link', hyperlink: qrLink };
+                cell.font = { color: { argb: 'FF1D4ED8' }, underline: true };
+            }
+        });
+        wb.xlsx.writeBuffer().then(buffer => {
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Laporan_Kondisi_Kavling_${filterSuffix}_${dateStr}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+        return;
+    }
+
+    let html = '<html><head><meta charset="UTF-8"><style>table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:6px;font-family:Arial;font-size:11px}th{background:#e5e7eb;text-align:left}img{display:block}</style></head><body><table><thead><tr>';
+    headers.forEach(h => { html += '<th>' + String(h) + '</th>'; });
+    html += '</tr></thead><tbody>';
 
     data.forEach((row, idx) => {
-        // Format data row untuk CSV (mengikuti urutan renderTable)
         const totalKondisi = window.parseProgressValue(row[27]);
         const kondisiClass = getKondisiClass(totalKondisi);
         const statusLabel = getStatusLabelFromClass(kondisiClass);
@@ -370,48 +470,52 @@ function downloadLaporanKondisiToExcel() {
             return str;
         });
 
-        const csvRow = [
-            idx + 1, // No
-            row[0] || '-', // BLOK
-            row[1] || '-', // LT
-            row[2] || '-', // LB
-            row[3] || '-', // Type
-            statusLabel, // Status
-            totalKondisi + '%', // Total Kondisi
-            row[31] ? (window.parseProgressValue(row[31]) + '%') : '-', // % Pelaksana
+        let qrLink = '';
+        const fotoRaw = row[30] || '';
+        if (fotoRaw) {
+            try {
+                const arr = JSON.parse(fotoRaw);
+                if (Array.isArray(arr)) {
+                    const found = arr.find(v => typeof v === 'string' && v.indexOf('http') === 0);
+                    if (found) qrLink = found;
+                }
+            } catch (_) {
+                const m = String(fotoRaw).match(/https?:\/\/\S+/);
+                if (m) qrLink = m[0];
+            }
+        }
+        const qrHtml = qrLink ? generateQrTableHtml(qrLink, 120, 33) : '';
+
+        const rowCells = [
+            idx + 1,
+            row[0] || '-',
+            row[1] || '-',
+            row[2] || '-',
+            row[3] || '-',
+            statusLabel,
+            totalKondisi + '%',
+            row[31] ? (window.parseProgressValue(row[31]) + '%') : '-',
             ...physicalValues,
-            row[28] || '-', // SKEMA PENJUALAN
-            row[29] || '-', // NOMOR SERTIFIKAT
-            row[4] || '-' // Nomor IMB/PBG/SLF
+            row[28] || '-',
+            row[29] || '-',
+            row[4] || '-'
         ];
 
-        const escapedRow = csvRow.map(cell => {
-            const raw = String(cell).replace(/\s+/g, ' ');
-            const escaped = raw.replace(/"/g, '""');
-            return `"${escaped}"`;
-        });
-        csvContent += escapedRow.join(';') + '\n';
+        html += '<tr>';
+        rowCells.forEach(cell => { html += '<td>' + String(cell).replace(/\s+/g, ' ') + '</td>'; });
+        if (qrHtml) {
+            html += '<td>' + qrHtml + '<div>' + qrLink + '</div></td>';
+        } else {
+            html += '<td>-</td>';
+        }
+        html += '</tr>';
     });
 
-    const encodedUri = encodeURI(csvContent);
+    html += '</tbody></table></body></html>';
+    const encodedUri = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
     const link = document.createElement('a');
-    const dateStr = new Date().toISOString().split('T')[0];
-    
-    let filterSuffix = 'Semua';
-    const activeFilterBtn = document.querySelector('.filter-btn.active');
-    if (activeFilterBtn) {
-        const filterVal = (activeFilterBtn.getAttribute('data-filter') || 'all').toLowerCase();
-        if (filterVal === 'layak') filterSuffix = 'Kondisi_Baik_90-100';
-        else if (filterVal === 'renov-ringan') filterSuffix = 'Renovasi_Ringan_76-89';
-        else if (filterVal === 'renov-banyak') filterSuffix = 'Renovasi_Berat_50-75';
-        else if (filterVal === 'rusak') filterSuffix = 'Rusak_Parah_19-49';
-        else if (filterVal === 'tidak-layak') filterSuffix = 'Rusak_Bangun_Ulang_2-18';
-        else if (filterVal === 'tanah') filterSuffix = 'Tanah_Siap_Bangun_0-1';
-        else filterSuffix = 'Semua';
-    }
-
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Laporan_Kondisi_Kavling_${filterSuffix}_${dateStr}.csv`);
+    link.setAttribute('download', `Laporan_Kondisi_Kavling_${filterSuffix}_${dateStr}.xls`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1021,6 +1125,369 @@ function closeEditModal() {
     document.getElementById('editKavlingModal').style.display = 'none';
 }
 
+function showDownloadMultiKavlingPopup() {
+    var overlay = document.createElement('div');
+    overlay.id = 'multiKavlingOverlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.background = 'rgba(0,0,0,0.6)';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.zIndex = '9999';
+    var names = (allKavlingData || []).map(function(r){return String(r[0]||'').trim();}).filter(function(s){return s;});
+    var html = ''
+      + '<div style="background:#1e293b;border-radius:12px;padding:16px;max-width:520px;width:92%;color:#f1f5f9;box-shadow:0 20px 40px rgba(0,0,0,0.5);">'
+      + '<h3 style="margin:0 0 10px 0;font-size:1rem;">Pilih Kavling untuk PDF (pisahkan dengan koma)</h3>'
+      + '<div style="margin-bottom:8px;">'
+      + '<input id="multiKavlingInput" type="text" placeholder="Contoh: UJ100_123, BTU_45" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#f1f5f9;">'
+      + '</div>'
+      + '<div id="multiKavlingList" style="max-height:160px;overflow:auto;border:1px solid #334155;border-radius:8px;background:#0b1220;padding:6px;display:none;"></div>'
+      + '<div style="display:flex;gap:8px;margin-top:12px;">'
+      + '<button id="btnDownloadMulti" style="flex:1;background:#10b981;color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;">Download</button>'
+      + '<button id="btnCancelMulti" style="flex:1;background:#475569;color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;">Batal</button>'
+      + '</div>'
+      + '</div>';
+    overlay.innerHTML = html;
+    document.body.appendChild(overlay);
+    var input = document.getElementById('multiKavlingInput');
+    var list = document.getElementById('multiKavlingList');
+    input.addEventListener('input', function(e){
+        var term = String(e.target.value||'').split(',').pop().trim().toLowerCase();
+        var filtered = names.filter(function(n){return n.toLowerCase().includes(term);}).slice(0,50);
+        if (!term || filtered.length===0){list.style.display='none';list.innerHTML='';return;}
+        list.innerHTML = filtered.map(function(n){
+            return '<div class="opt" data-name="'+n+'" style="padding:6px;border-bottom:1px solid #1f2937;cursor:pointer;">'+n+'</div>';
+        }).join('');
+        list.style.display='block';
+    });
+    list.addEventListener('click', function(e){
+        var el = e.target.closest('.opt');
+        if (!el) return;
+        var name = el.dataset.name;
+        var cur = String(input.value||'');
+        var parts = cur.split(',').map(function(s){return s.trim();}).filter(function(s){return s;});
+        if (parts.length > 0) {
+            parts[parts.length - 1] = name;
+        } else {
+            parts = [name];
+        }
+        var seen = {};
+        var unique = parts.filter(function(s){
+            if (seen[s]) return false;
+            seen[s] = true;
+            return true;
+        });
+        var next = unique.join(', ');
+        if (next.length > 0) next += ', ';
+        input.value = next;
+        list.style.display='none';
+        list.innerHTML='';
+        input.focus();
+    });
+    document.getElementById('btnCancelMulti').onclick = function(){
+        var ov = document.getElementById('multiKavlingOverlay');
+        if (ov) ov.remove();
+    };
+    document.getElementById('btnDownloadMulti').onclick = function(){
+        var cur = String(input.value||'');
+        var parts = cur.split(',').map(function(s){return s.trim();}).filter(function(s){return s;});
+        var names = (allKavlingData || []).map(function(r){return String(r[0]||'').trim();}).filter(function(s){return s;});
+        var canon = {};
+        names.forEach(function(n){ canon[n.toLowerCase()] = n; });
+        var final = [];
+        parts.forEach(function(s){
+            var key = s.toLowerCase();
+            if (canon[key]) final.push(canon[key]);
+        });
+        var seen = {};
+        var unique = final.filter(function(s){
+            if (seen[s]) return false;
+            seen[s] = true;
+            return true;
+        });
+        downloadMultiKavlingPdf(unique);
+        var ov = document.getElementById('multiKavlingOverlay');
+        if (ov) ov.remove();
+    };
+}
+
+function downloadMultiKavlingPdf(kavlingNames) {
+    if (!Array.isArray(kavlingNames) || kavlingNames.length===0) return;
+    var byName = {};
+    (allKavlingData||[]).forEach(function(row){var name=String(row[0]||'').trim();if(name)byName[name]=row;});
+    var pages = kavlingNames.map(function(name){return byName[name];}).filter(function(r){return Array.isArray(r);});
+    if (pages.length===0) return;
+    var win = window.open('', '_blank');
+    if (!win) return;
+    var doc = win.document;
+    var today = new Date();
+    var dateStr = today.toLocaleDateString('id-ID');
+    doc.open();
+    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan Multi Kavling</title>');
+    doc.write('<style>');
+    doc.write('body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#111827;background:#ffffff;margin:0;padding:24px;}');
+    doc.write('h1{font-size:14pt;margin:0 0 3px 0;text-align:center;text-transform:uppercase;letter-spacing:1px;}');
+    doc.write('h2{font-size:11pt;margin:6px 0 4px 0;border-bottom:1px solid #e5e7eb;padding-bottom:3px;}');
+    doc.write('.sub-title{text-align:center;font-size:9pt;color:#6b7280;margin-bottom:6px;}');
+    doc.write('table{width:100%;border-collapse:collapse;margin-bottom:6px;}');
+    doc.write('th,td{border:1px solid #d1d5db;padding:4px 6px;vertical-align:top;}');
+    doc.write('th{background:#f3f4f6;font-weight:600;text-align:left;}');
+    doc.write('.table-two-col th{width:30%;}');
+    doc.write('.photo-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}');
+    doc.write('.photo-grid-item{flex:0 0 44%;border:1px solid #d1d5db;border-radius:4px;overflow:hidden;text-align:center;padding:4px;box-sizing:border-box;}');
+    doc.write('.photo-grid-item img{max-width:100%;height:auto;display:block;margin:0 auto 4px auto;}');
+    doc.write('.photo-caption{font-size:8pt;color:#4b5563;word-break:break-all;}');
+    doc.write('.top-grid{display:flex;gap:6px;align-items:flex-start;}');
+    doc.write('.left-pane{flex:1 1 auto;}');
+    doc.write('.right-pane{flex:0 0 220px;}');
+    doc.write('.qr-large{border:1px solid #d1d5db;border-radius:4px;overflow:hidden;text-align:center;padding:4px;box-sizing:border-box;margin-bottom:6px;}');
+    doc.write('.qr-large img{width:100%;height:auto;max-height:140px;object-fit:contain;display:block;margin:0 auto 3px auto;}');
+    doc.write('@page{size:A4;margin:10mm 15mm 10mm 15mm;}');
+    doc.write('.page{break-after:page;padding:24px;}');
+    doc.write('</style></head><body>');
+    pages.forEach(function(row, idx){
+        var blokName = row[0]||'';
+        var ltVal = row[1]||'';
+        var lbVal = row[2]||'';
+        var typeVal = row[3]||'';
+        var totalNum = window.parseProgressValue(row[27]);
+        var statusLabel = getStatusLabelFromClass(getKondisiClass(totalNum));
+        var totalText = (totalNum||0)+'%';
+        var bentukVal = 'Rumah Kavling';
+        var fotoRaw = row[30]||'';
+        var folderLink = '';
+        var fileLinks = [];
+        if (fotoRaw) {
+            try {
+                var arr = JSON.parse(fotoRaw);
+                if (Array.isArray(arr)) {
+                    arr.forEach(function(p){
+                        var s=String(p||'');if(!s) return;
+                        if (s.indexOf('https://drive.google.com/drive/')===0) folderLink=s;
+                        else if (s.indexOf('http')===0 && s.indexOf('drive.google.com')!==-1) fileLinks.push(s);
+                    });
+                }
+            } catch(e) {
+                var parts = String(fotoRaw||'').split(/[\n,;]+/).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
+                parts.forEach(function(s){
+                    if (s.indexOf('https://drive.google.com/drive/')===0) folderLink=s;
+                    else if (s.indexOf('http')===0 && s.indexOf('drive.google.com')!==-1) fileLinks.push(s);
+                });
+            }
+        }
+        doc.write('<div class="page">');
+        doc.write('<h1>Laporan Kondisi Kavling</h1>');
+        doc.write('<div class="sub-title">Tanggal cetak: '+dateStr+'</div>');
+        doc.write('<div class="top-grid">');
+        doc.write('<div class="left-pane">');
+        doc.write('<h2>1. Data Utama</h2>');
+        doc.write('<table class="table-two-col"><tbody>');
+        doc.write('<tr><th>Nama Kavling / Blok</th><td>'+blokName+'</td></tr>');
+        doc.write('<tr><th>LT (Luas Tanah)</th><td>'+(ltVal||'-')+'</td></tr>');
+        doc.write('<tr><th>LB (Luas Bangunan)</th><td>'+(lbVal||'-')+'</td></tr>');
+        doc.write('<tr><th>Type</th><td>'+(typeVal||'-')+'</td></tr>');
+        doc.write('<tr><th>Status Bentuk Kavling</th><td>'+(bentukVal||'-')+'</td></tr>');
+        doc.write('<tr><th>Total Kondisi</th><td>'+totalText+(statusLabel?(' ('+statusLabel+')'):'')+'</td></tr>');
+        doc.write('</tbody></table>');
+        doc.write('</div>');
+        doc.write('<div class="right-pane">');
+        doc.write('<h2>Foto Kondisi Kavling</h2>');
+        if (!folderLink && fileLinks.length===0){
+            doc.write('<div class="small-text">Belum ada link Google Drive yang tercantum untuk foto kondisi kavling.</div>');
+        } else {
+            var largeLink = folderLink || (fileLinks.length>0?fileLinks[0]:'');
+            if (largeLink) {
+            var largeQr = generateQrDataUrl(largeLink, 140);
+                if (largeQr) {
+                    doc.write('<div class="qr-large">');
+                    doc.write('<img src="'+largeQr+'" alt="QR Besar">');
+                    doc.write('<div class="photo-caption">'+(folderLink?'Folder Foto Google Drive':'Foto 1')+'</div>');
+                    doc.write('</div>');
+                }
+                if (!folderLink && fileLinks.length>0) fileLinks.shift();
+            }
+            doc.write('<div class="photo-grid">');
+            fileLinks.slice(0,3).forEach(function(link, j){
+                var qrSmall = generateQrDataUrl(link, 130);
+                if (!qrSmall) return;
+                var n = folderLink ? (j+1) : (j+2);
+                doc.write('<div class="photo-grid-item">');
+                doc.write('<img src="'+qrSmall+'" alt="QR Foto '+n+'">');
+                doc.write('<div class="photo-caption">Foto '+n+'</div>');
+                doc.write('</div>');
+            });
+            doc.write('</div>');
+        }
+        doc.write('</div>');
+        doc.write('</div>');
+        doc.write('<h2>2. Kondisi Fisik</h2>');
+        doc.write('<table><thead><tr><th>Komponen</th><th>Perkiraan Kondisi</th><th>Keterangan</th></tr></thead><tbody>');
+        PHYSICAL_COLUMNS.forEach(function(colName, index){
+            var raw = String(row[index+6]||'').trim();
+            var percentText = '-';
+            var descText = '-';
+            var m = raw.match(/^(\d+(\.\d+)?)%-?(.*)$/);
+            if (m) {
+                percentText = m[1]+'%';
+                descText = m[3]?String(m[3]).trim():'-';
+            } else if (raw) {
+                var p = parseFloat(raw);
+                if (!isNaN(p)) percentText = window.parseProgressValue(p)+'%';
+                else descText = raw;
+            }
+            doc.write('<tr>');
+            doc.write('<td>'+colName+'</td>');
+            doc.write('<td>'+percentText+'</td>');
+            doc.write('<td>'+descText+'</td>');
+            doc.write('</tr>');
+        });
+        doc.write('</tbody></table>');
+        doc.write('</div>');
+    });
+    doc.write('<script>window.addEventListener(\"load\",function(){setTimeout(function(){try{window.print();}catch(e){}},300);window.onafterprint=function(){try{window.close();}catch(e){}}});</script>');
+    doc.write('</body></html>');
+    doc.close();
+    try{win.focus();}catch(e){}
+}
+function downloadVisibleKavlingsPdf() {
+    const pages = filteredKavlingData || [];
+    if (!Array.isArray(pages) || pages.length === 0) return;
+    var win = window.open('', '_blank');
+    if (!win) return;
+    var doc = win.document;
+    var today = new Date();
+    var dateStr = today.toLocaleDateString('id-ID');
+    doc.open();
+    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan Multi Kavling</title>');
+    doc.write('<style>');
+    doc.write('body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#111827;background:#ffffff;margin:0;padding:24px;}');
+    doc.write('h1{font-size:14pt;margin:0 0 3px 0;text-align:center;text-transform:uppercase;letter-spacing:1px;}');
+    doc.write('h2{font-size:11pt;margin:6px 0 4px 0;border-bottom:1px solid #e5e7eb;padding-bottom:3px;}');
+    doc.write('.sub-title{text-align:center;font-size:9pt;color:#6b7280;margin-bottom:6px;}');
+    doc.write('table{width:100%;border-collapse:collapse;margin-bottom:6px;}');
+    doc.write('th,td{border:1px solid #d1d5db;padding:4px 6px;vertical-align:top;}');
+    doc.write('th{background:#f3f4f6;font-weight:600;text-align:left;}');
+    doc.write('.table-two-col th{width:30%;}');
+    doc.write('.photo-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}');
+    doc.write('.photo-grid-item{flex:0 0 44%;border:1px solid #d1d5db;border-radius:4px;overflow:hidden;text-align:center;padding:4px;box-sizing:border-box;}');
+    doc.write('.photo-grid-item img{max-width:100%;height:auto;display:block;margin:0 auto 4px auto;}');
+    doc.write('.photo-caption{font-size:8pt;color:#4b5563;word-break:break-all;}');
+    doc.write('.top-grid{display:flex;gap:6px;align-items:flex-start;}');
+    doc.write('.left-pane{flex:1 1 auto;}');
+    doc.write('.right-pane{flex:0 0 220px;}');
+    doc.write('.qr-large{border:1px solid #d1d5db;border-radius:4px;overflow:hidden;text-align:center;padding:4px;box-sizing:border-box;margin-bottom:6px;}');
+    doc.write('.qr-large img{width:100%;height:auto;max-height:140px;object-fit:contain;display:block;margin:0 auto 3px auto;}');
+    doc.write('@page{size:A4;margin:10mm 15mm 10mm 15mm;}');
+    doc.write('.page{break-after:page;padding:24px;}');
+    doc.write('</style></head><body>');
+    pages.forEach(function(row){
+        var blokName = row[0]||'';
+        var ltVal = row[1]||'';
+        var lbVal = row[2]||'';
+        var typeVal = row[3]||'';
+        var totalNum = window.parseProgressValue(row[27]);
+        var statusLabel = getStatusLabelFromClass(getKondisiClass(totalNum));
+        var totalText = (totalNum||0)+'%';
+        var bentukVal = 'Rumah Kavling';
+        var fotoRaw = row[30]||'';
+        var folderLink = '';
+        var fileLinks = [];
+        if (fotoRaw) {
+            try {
+                var arr = JSON.parse(fotoRaw);
+                if (Array.isArray(arr)) {
+                    arr.forEach(function(p){
+                        var s=String(p||'');if(!s) return;
+                        if (s.indexOf('https://drive.google.com/drive/')===0) folderLink=s;
+                        else if (s.indexOf('http')===0 && s.indexOf('drive.google.com')!==-1) fileLinks.push(s);
+                    });
+                }
+            } catch(e) {
+                var parts = String(fotoRaw||'').split(/[\n,;]+/).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
+                parts.forEach(function(s){
+                    if (s.indexOf('https://drive.google.com/drive/')===0) folderLink=s;
+                    else if (s.indexOf('http')===0 && s.indexOf('drive.google.com')!==-1) fileLinks.push(s);
+                });
+            }
+        }
+        doc.write('<div class="page">');
+        doc.write('<h1>Laporan Kondisi Kavling</h1>');
+        doc.write('<div class="sub-title">Tanggal cetak: '+dateStr+'</div>');
+        doc.write('<div class="top-grid">');
+        doc.write('<div class="left-pane">');
+        doc.write('<h2>1. Data Utama</h2>');
+        doc.write('<table class="table-two-col"><tbody>');
+        doc.write('<tr><th>Nama Kavling / Blok</th><td>'+blokName+'</td></tr>');
+        doc.write('<tr><th>LT (Luas Tanah)</th><td>'+(ltVal||'-')+'</td></tr>');
+        doc.write('<tr><th>LB (Luas Bangunan)</th><td>'+(lbVal||'-')+'</td></tr>');
+        doc.write('<tr><th>Type</th><td>'+(typeVal||'-')+'</td></tr>');
+        doc.write('<tr><th>Status Bentuk Kavling</th><td>'+(bentukVal||'-')+'</td></tr>');
+        doc.write('<tr><th>Total Kondisi</th><td>'+totalText+(statusLabel?(' ('+statusLabel+')'):'')+'</td></tr>');
+        doc.write('</tbody></table>');
+        doc.write('</div>');
+        doc.write('<div class="right-pane">');
+        doc.write('<h2>Foto Kondisi Kavling</h2>');
+        if (!folderLink && fileLinks.length===0){
+            doc.write('<div class="small-text">Belum ada link Google Drive yang tercantum untuk foto kondisi kavling.</div>');
+        } else {
+            doc.write('<div class="small-text">Data Foto & Video Lokasi</div>');
+            var largeLink = folderLink || (fileLinks.length>0?fileLinks[0]:'');
+            if (largeLink) {
+                var largeQr = generateQrDataUrl(largeLink, 140);
+                if (largeQr) {
+                    doc.write('<div class="qr-large">');
+                    doc.write('<img src="'+largeQr+'" alt="QR Besar">');
+                    doc.write('<div class="photo-caption">'+(folderLink?'Folder Foto Google Drive':'Foto 1')+'</div>');
+                    doc.write('</div>');
+                }
+                if (!folderLink && fileLinks.length>0) fileLinks.shift();
+            }
+            doc.write('<div class="photo-grid">');
+            fileLinks.slice(0,3).forEach(function(link, j){
+                var qrSmall = generateQrDataUrl(link, 130);
+                if (!qrSmall) return;
+                var n = folderLink ? (j+1) : (j+2);
+                doc.write('<div class="photo-grid-item">');
+                doc.write('<img src="'+qrSmall+'" alt="QR Foto '+n+'">');
+                doc.write('<div class="photo-caption">Foto '+n+'</div>');
+                doc.write('</div>');
+            });
+            doc.write('</div>');
+        }
+        doc.write('</div>');
+        doc.write('</div>');
+        doc.write('<h2>2. Kondisi Fisik</h2>');
+        doc.write('<table><thead><tr><th>Komponen</th><th>Perkiraan Kondisi</th><th>Keterangan</th></tr></thead><tbody>');
+        PHYSICAL_COLUMNS.forEach(function(colName, index){
+            var raw = String(row[index+6]||'').trim();
+            var percentText = '-';
+            var descText = '-';
+            var m = raw.match(/^(\d+(\.\d+)?)%-?(.*)$/);
+            if (m) {
+                percentText = m[1]+'%';
+                descText = m[3]?String(m[3]).trim():'-';
+            } else if (raw) {
+                var p = parseFloat(raw);
+                if (!isNaN(p)) percentText = window.parseProgressValue(p)+'%';
+                else descText = raw;
+            }
+            doc.write('<tr>');
+            doc.write('<td>'+colName+'</td>');
+            doc.write('<td>'+percentText+'</td>');
+            doc.write('<td>'+descText+'</td>');
+            doc.write('</tr>');
+        });
+        doc.write('</tbody></table>');
+        doc.write('</div>');
+    });
+    doc.write('</body></html>');
+    doc.close();
+    try{win.focus();}catch(e){}
+}
 function renderPhotoGallery() {
     const gallery = document.getElementById('photoGallery');
     if (!gallery) return;
@@ -1200,6 +1667,35 @@ function generateQrDataUrl(text, size) {
     return canvas.toDataURL('image/png');
 }
 
+function generateQrTableHtml(text, size, cells) {
+    if (!window.QRious || !text) return '';
+    var canvas = document.createElement('canvas');
+    var qr = new QRious({
+        element: canvas,
+        value: text,
+        size: size || 120,
+        level: 'L'
+    });
+    var ctx = canvas.getContext('2d');
+    var w = canvas.width, h = canvas.height;
+    var n = cells || 33;
+    var step = Math.floor(Math.min(w, h) / n);
+    var html = '<table style="border-collapse:collapse"><tbody>';
+    for (var y = 0; y < n; y++) {
+        html += '<tr>';
+        for (var x = 0; x < n; x++) {
+            var sx = x * step + Math.floor(step / 2);
+            var sy = y * step + Math.floor(step / 2);
+            var d = ctx.getImageData(sx, sy, 1, 1).data;
+            var v = (d[0] + d[1] + d[2]) / 3 < 128 ? '#000' : '#fff';
+            html += '<td style="width:3px;height:3px;background:' + v + '"></td>';
+        }
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+    return html;
+}
+
 function downloadKavlingPdf() {
     const blokInput = document.getElementById('editBlok');
     const oldBlokInput = document.getElementById('editOldBlok');
@@ -1276,25 +1772,32 @@ function downloadKavlingPdf() {
     doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title>');
     doc.write('<style>');
     doc.write('body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#111827;background:#ffffff;margin:0;padding:24px;}');
-    doc.write('h1{font-size:18pt;margin:0 0 4px 0;text-align:center;text-transform:uppercase;letter-spacing:1px;}');
-    doc.write('h2{font-size:13pt;margin:18px 0 8px 0;border-bottom:1px solid #e5e7eb;padding-bottom:4px;}');
+    doc.write('h1{font-size:14pt;margin:0 0 3px 0;text-align:center;text-transform:uppercase;letter-spacing:1px;}');
+    doc.write('h2{font-size:11pt;margin:6px 0 4px 0;border-bottom:1px solid #e5e7eb;padding-bottom:3px;}');
     doc.write('h3{font-size:11pt;margin:12px 0 6px 0;}');
-    doc.write('.sub-title{text-align:center;font-size:10pt;color:#6b7280;margin-bottom:12px;}');
-    doc.write('table{width:100%;border-collapse:collapse;margin-bottom:10px;}');
-    doc.write('th,td{border:1px solid #d1d5db;padding:6px 8px;vertical-align:top;}');
+    doc.write('.sub-title{text-align:center;font-size:9pt;color:#6b7280;margin-bottom:4px;}');
+    doc.write('table{width:100%;border-collapse:collapse;margin-bottom:4px;}');
+    doc.write('th,td{border:1px solid #d1d5db;padding:4px 6px;vertical-align:top;}');
     doc.write('th{background:#f3f4f6;font-weight:600;text-align:left;}');
     doc.write('.table-two-col th{width:30%;}');
     doc.write('.small-text{font-size:9pt;color:#6b7280;}');
-    doc.write('.photo-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}');
-    doc.write('.photo-grid-item{flex:0 0 32%;border:1px solid #d1d5db;border-radius:4px;overflow:hidden;text-align:center;padding:6px;box-sizing:border-box;}');
+    doc.write('.photo-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}');
+    doc.write('.photo-grid-item{flex:0 0 44%;border:1px solid #d1d5db;border-radius:4px;overflow:hidden;text-align:center;padding:4px;box-sizing:border-box;}');
     doc.write('.photo-grid-item img{max-width:100%;height:auto;display:block;margin:0 auto 4px auto;}');
     doc.write('.photo-caption{font-size:8pt;color:#4b5563;word-break:break-all;}');
+    doc.write('.top-grid{display:flex;gap:6px;align-items:flex-start;}');
+    doc.write('.left-pane{flex:1 1 auto;}');
+    doc.write('.right-pane{flex:0 0 220px;}');
+    doc.write('.qr-large{border:1px solid #d1d5db;border-radius:4px;overflow:hidden;text-align:center;padding:4px;box-sizing:border-box;margin-bottom:6px;}');
+    doc.write('.qr-large img{width:100%;height:auto;max-height:140px;object-fit:contain;display:block;margin:0 auto 3px auto;}');
     doc.write('@page{size:A4;margin:20mm 15mm 20mm 15mm;}');
     doc.write('@media print{button{display:none;}}');
     doc.write('</style>');
     doc.write('</head><body>');
     doc.write('<h1>Laporan Kondisi Kavling</h1>');
     doc.write('<div class="sub-title">Tanggal cetak: ' + dateStr + '</div>');
+    doc.write('<div class="top-grid">');
+    doc.write('<div class="left-pane">');
     doc.write('<h2>1. Data Utama</h2>');
     doc.write('<table class="table-two-col"><tbody>');
     doc.write('<tr><th>Nama Kavling / Blok</th><td>' + blokName + '</td></tr>');
@@ -1304,40 +1807,36 @@ function downloadKavlingPdf() {
     doc.write('<tr><th>Status Bentuk Kavling</th><td>' + (bentukVal || '-') + '</td></tr>');
     doc.write('<tr><th>Total Kondisi</th><td>' + (totalText || '-') + (statusText ? ' (' + statusText + ')' : '') + '</td></tr>');
     doc.write('</tbody></table>');
-    doc.write('<h2>2. Kondisi Fisik</h2>');
-    doc.write('<table><thead><tr><th>Komponen</th><th>Perkiraan Kondisi</th><th>Keterangan</th></tr></thead><tbody>');
-    physicalRows.forEach(function (row) {
-        const percentText = row.percent ? row.percent + '%' : '-';
-        const descText = row.desc || '-';
-        doc.write('<tr>');
-        doc.write('<td>' + row.label + '</td>');
-        doc.write('<td>' + percentText + '</td>');
-        doc.write('<td>' + descText + '</td>');
-        doc.write('</tr>');
-    });
-    doc.write('</tbody></table>');
-    doc.write('<h2>3. Foto Kondisi Kavling</h2>');
+    doc.write('</div>');
+    doc.write('<div class="right-pane">');
+    doc.write('<h2>Foto Kondisi Kavling</h2>');
     if (!folderLink && fileLinks.length === 0) {
         doc.write('<div class="small-text">Belum ada link Google Drive yang tercantum untuk foto kondisi kavling.</div>');
     } else {
-        doc.write('<div class="small-text">Scan QR Code berikut untuk membuka folder atau file foto kondisi kavling di Google Drive.</div>');
-        doc.write('<div class="photo-grid">');
-        if (folderLink) {
-            var qrFolder = generateQrDataUrl(folderLink, 180);
-            if (qrFolder) {
-                doc.write('<div class="photo-grid-item">');
-                doc.write('<img src="' + qrFolder + '" alt="QR Folder Foto">');
-                doc.write('<div class="photo-caption">Folder Foto Google Drive</div>');
+        var largeLink = folderLink || (fileLinks.length > 0 ? fileLinks[0] : '');
+        if (largeLink) {
+            var largeQrSize = 140;
+            var largeQr = generateQrDataUrl(largeLink, largeQrSize);
+            if (largeQr) {
+                doc.write('<div class="qr-large">');
+                doc.write('<img src="' + largeQr + '" alt="QR Besar">');
+                doc.write('<div class="photo-caption">' + (folderLink ? 'Folder Foto Google Drive' : 'Foto 1') + '</div>');
                 doc.write('</div>');
             }
+            if (!folderLink && fileLinks.length > 0) {
+                fileLinks.shift();
+            }
         }
-        var maxFileQr = 6;
+        doc.write('<div class="photo-grid">');
+        var maxFileQr = 3;
         fileLinks.slice(0, maxFileQr).forEach(function (link, idx) {
-            var qrUrl = generateQrDataUrl(link, 150);
+            var qrUrl = generateQrDataUrl(link, 130);
             if (!qrUrl) return;
+            var n = idx + 1;
+            if (!folderLink) n = idx + 2;
             doc.write('<div class="photo-grid-item">');
-            doc.write('<img src="' + qrUrl + '" alt="QR Foto ' + (idx + 1) + '">');
-            doc.write('<div class="photo-caption">Foto ' + (idx + 1) + '</div>');
+            doc.write('<img src="' + qrUrl + '" alt="QR Foto ' + n + '">');
+            doc.write('<div class="photo-caption">Foto ' + n + '</div>');
             doc.write('</div>');
         });
         doc.write('</div>');
@@ -1353,7 +1852,22 @@ function downloadKavlingPdf() {
             doc.write('</div>');
         }
     }
+    doc.write('</div>');
+    doc.write('</div>');
+    doc.write('<h2>2. Kondisi Fisik</h2>');
+    doc.write('<table><thead><tr><th>Komponen</th><th>Perkiraan Kondisi</th><th>Keterangan</th></tr></thead><tbody>');
+    physicalRows.forEach(function (row) {
+        const percentText = row.percent ? row.percent + '%' : '-';
+        const descText = row.desc || '-';
+        doc.write('<tr>');
+        doc.write('<td>' + row.label + '</td>');
+        doc.write('<td>' + percentText + '</td>');
+        doc.write('<td>' + descText + '</td>');
+        doc.write('</tr>');
+    });
+    doc.write('</tbody></table>');
     doc.write('<div style="position:fixed;bottom:8mm;right:15mm;font-size:8pt;color:#9ca3af;">Kode Kavling: ' + blokName + '</div>');
+    doc.write('<script>(function(){setTimeout(function(){var lp=document.querySelector(\".left-pane .table-two-col\");var rp=document.querySelector(\".right-pane\");var img=document.querySelector(\".qr-large img\");if(lp&&rp&&img){var h=lp.offsetHeight;var vw=window.innerWidth||document.documentElement.clientWidth||rp.clientWidth;var maxSide=Math.min(h, Math.floor(vw*0.35));var side=Math.max(120, maxSide);rp.style.flex=\"0 0 \"+side+\"px\";img.style.width=side+\"px\";img.style.height=side+\"px\";img.style.maxWidth=side+\"px\";img.style.maxHeight=side+\"px\";}},50);}());</script>');
     doc.write('</body></html>');
     doc.close();
     try {
@@ -1674,6 +2188,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     setupFilters();
     setupSearch();
+    setupStokToggle();
     setupTablePanScroll();
     ensureFilterBaseLabels();
     updateFilterCounts();
@@ -1694,6 +2209,8 @@ function applySearchAndFilter() {
     const termRaw = input ? input.value : '';
     const term = String(termRaw || '').trim().toUpperCase();
     const filterVal = getActiveFilterValue();
+    const stokToggle = document.getElementById('stokOnlyToggle');
+    const stokOnly = !!(stokToggle && stokToggle.checked);
     
     // Filter data array, bukan DOM
     filteredKavlingData = allKavlingData.filter(row => {
@@ -1705,14 +2222,30 @@ function applySearchAndFilter() {
         const totalKondisi = window.parseProgressValue(row[27]);
         const kondisi = getKondisiClass(totalKondisi);
         const filterMatch = filterVal === 'all' ? true : kondisi === filterVal;
+        const skemaText = String(row[28] || '').trim().toUpperCase();
+        const stokMatch = stokOnly ? skemaText.includes('STOK') : true;
         
-        return prefixMatch && filterMatch;
+        return prefixMatch && filterMatch && stokMatch;
     });
 
     // Reset ke halaman 1 saat filter berubah
     currentPage = 1;
     renderTable(filteredKavlingData);
     updateFilterCounts();
+}
+
+function setupStokToggle() {
+    const toggle = document.getElementById('stokOnlyToggle');
+    if (!toggle) return;
+    if (toggle.dataset.bound) return;
+    toggle.dataset.bound = 'true';
+    toggle.addEventListener('change', function(){
+        if (toggle.checked) {
+            sortInventarisBy('skema');
+        } else {
+            applySearchAndFilter();
+        }
+    });
 }
 
 function ensureFilterBaseLabels() {
