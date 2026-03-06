@@ -400,9 +400,81 @@ window.updateProgress = function(pageId) {
   }
 };
 
+// Fungsi untuk mereset UI Pelaksana
+window.resetPelaksanaUI = function(role) {
+  const pageId = role + 'Page';
+  const pageElement = document.getElementById(pageId);
+  if (!pageElement) return;
+
+  // 1. Reset semua slider ke 0
+  pageElement.querySelectorAll('.progress-slider').forEach(slider => {
+    slider.value = 0;
+    const track = slider.nextElementSibling;
+    if (track && track.classList.contains('slider-track-fill')) {
+      track.style.width = '0%';
+    }
+    const container = slider.closest('.task-item-standalone');
+    if (container) {
+      const percentBox = container.querySelector('.slider-percent-box');
+      if (percentBox) percentBox.textContent = '0%';
+      const check100 = container.querySelector('.check-100');
+      if (check100) check100.checked = false;
+    }
+  });
+
+  // 2. Deaktivasi semua state buttons
+  pageElement.querySelectorAll('.state-btn').forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('data-active', 'false');
+  });
+
+  // 3. Hapus semua nilai input tersembunyi
+  pageElement.querySelectorAll('input[type="hidden"].sub-task, input[type="hidden"].sub-task-hidden').forEach(input => {
+    input.value = '';
+  });
+
+  // 4. Hapus komentar
+  pageElement.querySelectorAll('.tahap-comments').forEach(comment => {
+    comment.value = '';
+  });
+
+  // 5. Hapus input pengembalian kunci di Tahap 4
+  const userSuffix = 'User' + role.slice(4);
+  const keyRecipientInput = pageElement.querySelector(`#keyReturnRecipient${userSuffix}`);
+  if (keyRecipientInput) keyRecipientInput.value = '';
+  const keyDateInput = pageElement.querySelector(`#keyReturnDate${userSuffix}`);
+  if (keyDateInput) keyDateInput.value = '';
+
+  // 6. Reset progress bar dan persentase setiap tahap
+  for (let i = 1; i <= 4; i++) {
+    const tahapContent = pageElement.querySelector(`#tab-${role}-tahap${i}`);
+    if (tahapContent) {
+        const bar = tahapContent.querySelector('.progress-fill');
+        if (bar) bar.style.width = '0%';
+        const percentText = tahapContent.querySelector('.sub-percent');
+        if (percentText) percentText.textContent = '0%';
+    }
+  }
+
+  // 7. Reset progress total
+  if (typeof window.updateTotalProgressDisplay === 'function') {
+    window.updateTotalProgressDisplay('0%', pageId);
+  }
+  
+  console.log(`UI untuk role ${role} telah direset.`);
+};
+
 // Fungsi utama load progress data ke UI
 window.loadProgressData = function(progressData) {
-  if (!progressData) return;
+  // Selalu reset UI untuk role pengguna saat ini sebelum memuat data baru.
+  if (typeof window.resetPelaksanaUI === 'function' && currentRole && currentRole.startsWith('user')) {
+    window.resetPelaksanaUI(currentRole);
+  }
+
+  if (!progressData) {
+    // Jika tidak ada data, UI sudah direset, jadi kita bisa keluar.
+    return;
+  }
 
   const rolePage = currentRole + 'Page';
   const pageElement = document.getElementById(rolePage);
@@ -509,33 +581,24 @@ window.loadProgressData = function(progressData) {
       }
     }
 
-    // KERAMIK DINDING TOILET & DAPUR
+    // KERAMIK DINDING TOILET & DAPUR (Tahap 2)
     const keramikDindingValue = progressData.tahap2 && progressData.tahap2['KERAMIK DINDING TOILET & DAPUR'];
-    const tilesItem = pageElement.querySelector('.tiles-walls'); // Pastikan class ini ada di HTML
+    const tilesItem = pageElement.querySelector('.bathroom-tiles');
     if (tilesItem) {
       const buttons = tilesItem.querySelectorAll('.tiles-btn');
 
-      // Cari hidden input berdasarkan role
-      let hiddenInput;
-      if (currentRole === 'user1') {
-        hiddenInput = tilesItem.querySelector('#tilesWallsInputUser1');
-      } else if (currentRole === 'user2') {
-        hiddenInput = tilesItem.querySelector('#tilesWallsInputUser2');
-      } else if (currentRole === 'user3') {
-        hiddenInput = tilesItem.querySelector('#tilesWallsInputUser3');
-      } else if (currentRole === 'user4') {
-        hiddenInput = tilesItem.querySelector('#tilesWallsInputUser4');
-      } else if (currentRole === 'user5') {
-        hiddenInput = tilesItem.querySelector('#tilesWallsInputUser5');
-      }
+      // Hidden input yang dipakai untuk perhitungan & simpan
+      let hiddenInput =
+        tilesItem.querySelector('input[type="hidden"][data-task="KERAMIK DINDING TOILET & DAPUR"]') ||
+        tilesItem.querySelector('input[type="hidden"]');
 
-      // Reset dulu
+      // Reset state tombol
       buttons.forEach(btn => {
         btn.classList.remove('active');
         btn.setAttribute('data-active', 'false');
       });
 
-      // Apply kalau ada value
+      // Terapkan nilai dari database
       if (keramikDindingValue) {
         buttons.forEach(btn => {
           if (btn.getAttribute('data-state') === 'include' && keramikDindingValue === 'Dengan Keramik Dinding') {
@@ -547,6 +610,8 @@ window.loadProgressData = function(progressData) {
           }
         });
         if (hiddenInput) hiddenInput.value = keramikDindingValue;
+      } else if (hiddenInput) {
+        hiddenInput.value = '';
       }
     }
 
