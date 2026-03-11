@@ -2300,6 +2300,108 @@ function updateFilterCounts() {
     });
 }
 
+function showDownloadChoiceModal() {
+    const modal = document.getElementById('downloadChoiceModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeDownloadChoiceModal() {
+    const modal = document.getElementById('downloadChoiceModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function downloadSuratPengecekanPDF() {
+    closeDownloadChoiceModal();
+    downloadSuratPengecekan();
+}
+
+async function downloadSuratPengecekanExcel() {
+    const data = filteredKavlingData;
+    if (data.length === 0) {
+        alert("Tidak ada data untuk didownload");
+        return;
+    }
+    
+    closeDownloadChoiceModal();
+
+    if (!window.ExcelJS) {
+        alert("Library ExcelJS tidak ditemukan.");
+        return;
+    }
+
+    try {
+        const wb = new window.ExcelJS.Workbook();
+        const ws = wb.addWorksheet('Surat Pengecekan');
+        
+        // Define Headers
+        const headers = ['No', 'Nama Blok', 'LT', 'LB', 'Type', '% Pelaksana'];
+        PHYSICAL_COLUMNS.forEach(col => headers.push(col));
+        
+        ws.columns = headers.map((h, i) => ({ 
+            header: h, 
+            key: h, 
+            width: i < 6 ? 15 : 8 
+        }));
+
+        // Styling Header
+        ws.getRow(1).font = { bold: true };
+        ws.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+        ws.getRow(1).fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFE5E7EB' }
+        };
+
+        // Add Data Rows
+        data.forEach((row, idx) => {
+            const rowData = {
+                'No': idx + 1,
+                'Nama Blok': row[0] || '',
+                'LT': row[1] || '',
+                'LB': row[2] || '',
+                'Type': row[3] || '',
+                '% Pelaksana': row[31] ? (window.parseProgressValue(row[31]) + '%') : '-'
+            };
+            
+            // Physical columns are empty for "Surat Pengecekan" (manual check)
+            PHYSICAL_COLUMNS.forEach(col => {
+                rowData[col] = ''; 
+            });
+            
+            ws.addRow(rowData);
+        });
+
+        // Add borders to all cells
+        ws.eachRow((row, rowNumber) => {
+            row.eachCell((cell) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            });
+        });
+
+        // Write to buffer and download
+        const buffer = await wb.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStr = new Date().toISOString().split('T')[0];
+        a.href = url;
+        a.download = `Surat_Pengecekan_Kavling_${dateStr}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+    } catch (error) {
+        console.error('Error generating Excel:', error);
+        alert('Gagal membuat file Excel: ' + error.message);
+    }
+}
+
 function downloadSuratPengecekan() {
     const data = filteredKavlingData;
     if (data.length === 0) return;
